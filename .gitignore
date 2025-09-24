@@ -1,0 +1,54 @@
+# Arquivos de byte compilado do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ovos e distribuições do Python
+*.egg-info/
+*.egg
+dist/
+build/
+wheels/
+*.whl
+
+# Ambientes virtuais
+# Substitua 'venv' pelo nome do seu ambiente virtual, se for diferente
+venv/
+env/
+.env
+.venv
+
+# Banco de dados
+# Nunca versione seu banco de dados de desenvolvimento
+db.sqlite3
+db.sqlite3-journal
+
+# Arquivos de mídia e estáticos coletados
+# A pasta 'staticfiles' é gerada pelo comando 'collectstatic'
+media/
+staticfiles/
+
+# Arquivos de log e cache
+*.log
+.cache/
+
+# Arquivos de configuração de IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos específicos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste e cobertura de código
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Arquivos de segredos e configurações locais
+# É uma boa prática ter um arquivo de configurações locais que não é versionado
+local_settings.py
+*.env
