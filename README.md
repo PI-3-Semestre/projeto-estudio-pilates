@@ -1,11 +1,15 @@
 # Projeto Interdisciplinar 3 Semestre
 
-## Preparando o Ambiente Django
-1. Criar venv: python -m venv nome_venv
-    Ativar venv: nome_venv/Scripts/activate
-2. Instalando Django:
-    Windows: py -m pip install Django==5.2.6
-    Linux/Mac: python -m pip install Django==5.2.6
-3. Getting Started Django:
-    Criando projeto com super usuário: django-admin startproject pilates
-    Rodando o servidor: python manage.py runserver
+## 🚀 Guia de Instalação e Execução
+### **1. Clone o Repositório
+```bash
+git clone https://github.com/PI-3-Semestre/Projeto-Estudio-Pilates.git
+```
+### **2. Preparando o Ambiente 
+Criar a venv: `python -m venv venv`
+
+Ativar venv: `venv/Scripts/activate`
+
+Instalando as dependências: `pip install requirements.txt`
+
+Rodando o servidor: `python manage.py runserver`
