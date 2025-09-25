@@ -6,7 +6,7 @@ from .forms import AlunoForm
 def lista_alunos(request):
     alunos = Aluno.objects.all() 
     context = {'alunos': alunos} 
-    return render(request, 'pessoas/lista_alunos.html', context)
+    return render(request, 'usuarios/lista_alunos.html', context)
 
 def cadastrar_aluno(request):
     if request.method == 'POST':
@@ -16,5 +16,5 @@ def cadastrar_aluno(request):
             return redirect('lista_alunos')
     else:
         form = AlunoForm()
-    return render(request, 'pessoas/cadastrar_aluno.html', {'form': form})
+    return render(request, 'usuarios/cadastrar_aluno.html', {'form': form})
 
