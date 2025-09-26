@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from cpf_field.models import CPFField
 from phonenumber_field.modelfields import PhoneNumberField
@@ -14,6 +15,9 @@ class Aluno(models.Model):
     profissao = models.CharField(max_length=100, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
+
+    email_verificado = models.BooleanField(default=False)
+    token_verificado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return str(self.nome)
