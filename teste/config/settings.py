@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     #Arquivos nossos para serem adicionados
     'usuarios.apps.UsuariosConfig',
+    'cpf_field'
 ]
 
 MIDDLEWARE = [
