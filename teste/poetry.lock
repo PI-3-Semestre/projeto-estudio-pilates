@@ -123,6 +123,26 @@ files = [
 ]
 
 [[package]]
+name = "django-phonenumber-field"
+version = "8.1.0"
+description = "An international phone number field for django models."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "django_phonenumber_field-8.1.0-py3-none-any.whl", hash = "sha256:9ba66873bf47401b13fc57797fbf85e785864a6bfdc8b9daa3a9012886567045"},
+    {file = "django_phonenumber_field-8.1.0.tar.gz", hash = "sha256:f19450625574ad3a2de047c409527d0e57699496849e71e53b53e8679ff67b27"},
+]
+
+[package.dependencies]
+Django = ">=4.2"
+phonenumbers = {version = ">=7.0.2", optional = true, markers = "extra == \"phonenumbers\""}
+
+[package.extras]
+phonenumbers = ["phonenumbers (>=7.0.2)"]
+phonenumberslite = ["phonenumberslite (>=7.0.2)"]
+
+[[package]]
 name = "mypy-extensions"
 version = "1.1.0"
 description = "Type system extensions for programs checked with the mypy type checker."
@@ -174,6 +194,18 @@ groups = ["dev"]
 files = [
     {file = "pathspec-0.12.1-py3-none-any.whl", hash = "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08"},
     {file = "pathspec-0.12.1.tar.gz", hash = "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"},
+]
+
+[[package]]
+name = "phonenumbers"
+version = "9.0.15"
+description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "phonenumbers-9.0.15-py2.py3-none-any.whl", hash = "sha256:269b73bc05258e8fd57582770b9559307099ea677c8f1dc5272476f661344776"},
+    {file = "phonenumbers-9.0.15.tar.gz", hash = "sha256:345ff7f23768332d866f37732f815cdf1d33c7f0961246562a5c5b78c12c3ff3"},
 ]
 
 [[package]]
@@ -394,4 +426,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "ab21945d0b1e1ca2cc40649d081391f2716ed8fe9e97b98001e9441478da4bdb"
+content-hash = "128bf5b5eb5a84d17d8bfb125c4e1361c59bb044983f824f89b167413ef36d03"
