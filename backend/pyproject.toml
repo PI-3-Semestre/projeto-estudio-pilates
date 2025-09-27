@@ -1,26 +1,38 @@
-[project]
+# backend/pyproject.toml
+
+[tool.poetry]
 name = "backend"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "wellingtonspdev",email = "dihhhd71@icloud.com"}
-]
+authors = ["wellingtonspdev <dihhhd71@icloud.com>"]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "django (>=5.2.6,<6.0.0)",
-    "djangorestframework (>=3.16.1,<4.0.0)",
-    "mysqlclient (>=2.2.7,<3.0.0)",
-    "python-decouple (>=3.8,<4.0)"
-]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.13"
+django = ">=5.2.6,<6.0.0"
+djangorestframework = ">=3.16.1,<4.0.0"
+mysqlclient = ">=2.2.7,<3.0.0"
+python-decouple = ">=3.8,<4.0"
+djangorestframework-simplejwt = "^5.3.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = ">=25.9.0,<26.0.0"
+ruff = ">=0.13.1,<0.14.0"
+pytest = "^8.2.0"
+pytest-django = "^4.8.0"
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "black (>=25.9.0,<26.0.0)",
-    "ruff (>=0.13.1,<0.14.0)"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = [
+    "tests.py",
+    "test_*.py",
+    "*_tests.py",
 ]
