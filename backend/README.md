@@ -12,3 +12,5 @@
 - django-cpf Faz validação de CPF, somente para django: `poetry add django-cpf`
 
 - secrets Cria tokens para fazer autenticações: `poetry add secrets`
+
+- djangorestframework Pacote para desenvolver aplicações rest, utilizei para incrementar serializers: `poetry add djangorestframework`
