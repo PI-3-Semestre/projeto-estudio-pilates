@@ -37,6 +37,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # ### ADICIONADO ### - Apps de terceiros
+    'rest_framework',
+    'rest_framework_simplejwt',
+
+    # ### ADICIONADO ### - Nossos apps locais
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -100,13 +107,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# https://docs.djangoproject.com/en/5.2/topics/i1n/
 
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
-USE_I18N = True
+USE_I1N = True
 
 USE_TZ = True
 
@@ -120,3 +127,19 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# ### ADICIONADO ### - Configuração do Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+# ### ADICIONADO ### - Configuração do Modelo de Usuário Customizado
+AUTH_USER_MODEL = 'usuarios.Usuario'
+
+AUTHENTICATION_BACKENDS = [
+    'usuarios.auth_backends.CPFOrEmailBackend', # Nosso autenticador customizado
+    'django.contrib.auth.backends.ModelBackend', # O autenticador padrão do Django
+]
