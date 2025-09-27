@@ -9,5 +9,6 @@
 
 - phonenumber Faz validação de números de telefone/celular: `poetry add phonenumbers`
 
-django-cpf Faz validação de CPF, somente para django: `django-cpf`
+- django-cpf Faz validação de CPF, somente para django: `poetry add django-cpf`
 
+- secrets Cria tokens para fazer autenticações: `poetry add secrets`

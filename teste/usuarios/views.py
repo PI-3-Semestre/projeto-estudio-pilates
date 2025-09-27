@@ -2,7 +2,6 @@ import uuid
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.shortcuts import redirect, render, get_object_or_404
-from django.contrib.sites.shortcuts import get_current_site
 from .forms import AlunoForm
 from .repositories.alunos_repository import AlunoRepository
 from .models import Aluno
@@ -10,7 +9,7 @@ from .models import Aluno
 aluno_repository = AlunoRepository()
 
 # Create your views here.
-
+ 
 #Views Cadastro Alunos
 def lista_alunos(request):
     alunos = aluno_repository.get_all()
