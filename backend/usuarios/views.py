@@ -4,7 +4,12 @@ from django.urls import reverse
 from django.shortcuts import redirect, render, get_object_or_404
 from .forms import AlunoForm
 from .repositories.alunos_repository import AlunoRepository
-from .models import Aluno
+from .models import Aluno, AvaliacaoInicial
+from .serializers import AvaliacaoInicialSerializer
+from rest_framework import generics, status
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
 
 aluno_repository = AlunoRepository()
 
@@ -18,7 +23,7 @@ def lista_alunos(request):
 
 def cadastrar_aluno(request):
     if request.method == 'POST':
-        form = AlunoForm(request.POST, request.FILES)
+        form_aluno = AlunoForm(request.POST, request.FILES)
         if form.is_valid():
             aluno = form.save(commit=False)
             aluno.email_verificado = False
@@ -70,3 +75,20 @@ def verificar_email(request, token):
 
         return redirect('lista_alunos') 
 
+class AvaliacaoInicialCreateView(generics.CreateAPIView):
+    """
+    View para criar uma nova avaliação inicial para um aluno específico 
+    """
+    queryset = AvaliacaoInicial.objects.all()
+    serializer_class = AvaliacaoInicialSerializer
+    
+    def perform_create(self, serializer):
+        """
+        Este método é chamado pelo DRF antes de salvar um novo objeto.
+        Nós o usamos para "injetar" o aluno correto na avaliação.
+        """
+        #pega o id do aluno
+        aluno_pk = self.kwargs.get('aluno_pk')
+        #Busca o objeto Aluno no banco de dados ou da erro 404 se nao encontrar
+        aluno = get_object_or_404(Aluno, pk=aluno_pk)
+        serializer.save(aluno=aluno)
