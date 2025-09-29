@@ -1,6 +1,7 @@
-[project]
+[tool.poetry]
 name = "backend"
 version = "0.1.0"
+ #18-login-backend
 description = ""
 authors = [
     {name = "wellingtonspdev",email = "dihhhd71@icloud.com"}
@@ -16,11 +17,26 @@ dependencies = [
     "djangorestframework-simplejwt (>=5.5.1,<6.0.0)"
 ]
 
+description = "Backend para o sistema Define Pilates"
+authors = ["Pilates"]
+package-mode = false
+ 
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.dependencies]
+python = ">=3.10"
+# As dependências serão adicionadas aqui pelo comando 'poetry add'
+django = "^5.2.6"
+djangorestframework = "^3.16.1"
+mysqlclient = "^2.2.7"
+python-decouple = "^3.8"
+drf-spectacular = "^0.28.0"
 
+[tool.poetry.group.dev.dependencies]
+# As dependências de desenvolvimento serão adicionadas aqui
+black = "^25.9.0"
+ruff = "^0.13.2"
+
+ #18-login-backend
 [dependency-groups]
 dev = [
     "black (>=25.9.0,<26.0.0)",
@@ -36,3 +52,8 @@ python_files = [
     "test_*.py",
     "*_tests.py",
 ]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+ 
