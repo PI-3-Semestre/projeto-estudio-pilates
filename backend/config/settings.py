@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     # --- Apps de Terceiros ---
     'rest_framework',       # Para a criação de APIs
     'drf_spectacular',      # Para a documentação (Swagger UI)
-
+    'cpf_field',            #Para validação de CPF
+    
     # --- Nossas Apps ---
     'usuarios',
     'agendamentos',
