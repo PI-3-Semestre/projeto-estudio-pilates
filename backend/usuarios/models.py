@@ -28,4 +28,4 @@ class Aluno(models.Model):
     token_usuario = models.TextField(default=generate_token)
 
     def __str__(self):
-        return str(self.nome)
+        return str(self.nome) 

@@ -22,7 +22,7 @@ class AlunoListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         aluno = serializer.save(email_verificado=False)
 
-        token = aluno.token_verificacao
+        token = aluno.token_verificado
         link_verificacao = self.request.build_absolute_uri(reverse('verificar_email', kwargs={'token': token}))
 
         assunto = 'Ative sua conta em nosso site'
@@ -47,7 +47,7 @@ class AlunoAtualizarDeletarView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
 
 def verificar_email(request, token):
-    aluno = get_object_or_404(Aluno, token_verificacao=token)
+    aluno = get_object_or_404(Aluno, token_verificado=token)
     if aluno:
         aluno.email_verificado = True
         aluno.save()

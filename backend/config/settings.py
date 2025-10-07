@@ -145,3 +145,5 @@ REST_FRAMEWORK = {
     # Define o gerador de esquema da API para o drf-spectacular
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

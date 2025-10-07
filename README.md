@@ -14,3 +14,5 @@
 - secrets Cria tokens para fazer autenticações: `poetry add secrets`
 
 - djangorestframework Pacote para desenvolver aplicações rest, utilizei para incrementar serializers: `poetry add djangorestframework`
+
+- drf-extra-fields. Pacote extras do ORM no Django. Ele vai importar a o pacote B64. Usada para enviar imagens no formato JSON. Incremetei no serializers: `poetry add drf-extra-fields`
