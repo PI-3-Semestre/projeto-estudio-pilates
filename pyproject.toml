@@ -21,6 +21,7 @@ email-validator = "^2.3.0"
 # Sintaxe para dependências com "extras"
 django-phonenumber-field = {version = "^8.1.0", extras = ["phonenumbers"]}
 drf-extra-fields = "^3.7.0"
+python-dotenv = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.9.0"

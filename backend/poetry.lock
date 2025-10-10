@@ -135,6 +135,22 @@ files = [
 ]
 
 [[package]]
+name = "django-guardian"
+version = "3.2.0"
+description = "Per object permissions for Django"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "django_guardian-3.2.0-py3-none-any.whl", hash = "sha256:0768565a057988a93fc4a1d93649c4a794abfd7473a8408a079cfbf83c559d77"},
+    {file = "django_guardian-3.2.0.tar.gz", hash = "sha256:9e18ecd2e211b665972690c2d03d27bce0ea4932b5efac24a4bb9d526950a69e"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+typing_extensions = {version = ">=4.12.0", markers = "python_version < \"3.13\""}
+
+[[package]]
 name = "django-phonenumber-field"
 version = "8.3.0"
 description = "An international phone number field for django models."
@@ -905,4 +921,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "5b5b1f866031828b9d11ffa7b5c429ba38df6a7f390c33c82e9e44ab8d9c82a7"
+content-hash = "55049a13c52b6ca405efb0c44ca42902cf42b15dd63d2865b2af6c8ef2fe8e05"
