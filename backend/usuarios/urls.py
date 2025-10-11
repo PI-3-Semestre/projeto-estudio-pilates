@@ -1,8 +1,9 @@
-from django.urls import path
-from . import views
+# backend/usuarios/urls.py
 
+from django.urls import path
+
+# É obrigatório ter esta lista, mesmo que ela esteja vazia por enquanto.
 urlpatterns = [
-    path('alunos/', views.AlunoListCreateView.as_view(), name='aluno-list-create'),
-    path('alunos/<int:pk>/', views.AlunoAtualizarDeletarView.as_view(), name='aluno-detail'),
-    path('verificar-email/<uuid:token>/', views.verificar_email, name='verificar_email'),
+    # As URLs específicas do app usuarios serão adicionadas aqui no futuro.
+    # Ex: path('perfil/', views.perfil_view, name='perfil'),
 ]

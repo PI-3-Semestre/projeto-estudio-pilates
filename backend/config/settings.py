@@ -43,13 +43,17 @@ INSTALLED_APPS = [
     'rest_framework',       # Para a criação de APIs
     'drf_spectacular',      # Para a documentação (Swagger UI)
     'cpf_field',            #Para validação de CPF
+    'phonenumber_field',
     
     # --- Nossas Apps ---
-    'usuarios',
+    'usuarios.apps.UsuariosConfig',
+    'alunos',
     'agendamentos',
     'financeiro',
     'avaliacoes',
 ]
+
+AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
