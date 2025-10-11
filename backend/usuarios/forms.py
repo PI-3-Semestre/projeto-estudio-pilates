@@ -2,7 +2,7 @@
 
 # 1. Imports necessários
 from django import forms
-from .models import Aluno, AvaliacaoInicial
+from .models import Aluno
 from email_validator import validate_email, EmailNotValidError
 
 # 2. Definição do Formulário
@@ -43,14 +43,3 @@ class AlunoForm(forms.ModelForm):
             # É ESTA LINHA que informa ao Django que o campo é INVÁLIDO.
             # A mensagem de erro 'e' será exibida no template.
             raise forms.ValidationError(str(e))
-
-class AvaliacaoInicialForm(forms.ModelForm):
-    class Meta:
-        model = AvaliacaoInicial
-        # Excluímos o campo 'aluno', vamo associá-lo manualmente na view
-        exclude = ['aluno'] 
-        widgets = {
-            # Adiciona um seletor de data para os campos de data
-            'data_avaliacao': forms.DateInput(attrs={'type': 'date'}),
-            'data_reavaliacao': forms.DateInput(attrs={'type': 'date'}),
-            }

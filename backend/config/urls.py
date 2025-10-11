@@ -1,32 +1,39 @@
 """
-URL configuration for pilates project.
+Configuração de URLs para o projeto config.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
+A lista `urlpatterns` roteia URLs para as views. Para mais informações, consulte:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Exemplos:
+Views baseadas em função (Function views)
+    1. Adicione a importação:  from my_app import views
+    2. Adicione uma URL a urlpatterns:  path('', views.home, name='home')
+Views baseadas em classe (Class-based views)
+    1. Adicione a importação:  from other_app.views import Home
+    2. Adicione uma URL a urlpatterns:  path('', Home.as_view(), name='home')
+Incluindo outro URLconf (Including another URLconf)
+    1. Importe a função include(): from django.urls import include, path
+    2. Adicione uma URL a urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    #Mudei para por convercao de nomenclatura
-    path('api/usuarios/', include('usuarios.urls')),
-    
-    # Rota que gera o "schema" da sua API (um arquivo .yaml)
+    # Rota do Admin Padrão do Django
+    path("admin/", admin.site.urls),
+
+    # --- Rotas da Documentação (Swagger) ---
+    # Rota que gera o arquivo de schema da API (necessário para o Swagger)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     
-    # Rota que geera a interface do Swagger UI
-    # url para acessar no navegador
+    # Rota que serve a interface gráfica do Swagger UI
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    # --- Nossas Rotas de API ---
+    # Inclui todas as rotas definidas no arquivo 'urls.py' do app 'usuarios'
+    
+    # path('api/', include('agendamentos.urls')),
+    path('api/usuarios/', include('usuarios.urls')),
+    path('api/avaliacoes/', include('avaliacoes.urls'))
 ]
