@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'agendamentos',
     'financeiro',
     'avaliacoes',
+    'colaborador.apps.ColaboradorConfig', # Caminho completo para a configuração da app
     # Adicione aqui outras apps que criar, como 'unidades', 'planos', etc.
 ]
 
@@ -139,8 +140,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # --- Configuração do Modelo de Usuário Customizado ---
-# Aponta para o modelo de usuário que você criará no seu app 'usuarios'
-AUTH_USER_MODEL = 'usuarios.Usuario'
+# Aponta para o nosso modelo de usuário customizado na app 'colaborador'.
+AUTH_USER_MODEL = 'colaborador.Colaborador'
 
 
 # --- Configurações de Autenticação (incluindo Django Guardian) ---

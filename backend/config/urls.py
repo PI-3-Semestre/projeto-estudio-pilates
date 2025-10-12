@@ -35,5 +35,7 @@ urlpatterns = [
     
     # TODO: Adicionar as rotas das outras apps aqui no futuro. Exemplo:
     # path('api/', include('agendamentos.urls')),
-    path('api/usuarios/', include('usuarios.urls'))
+    path('api/usuarios/', include('usuarios.urls')),
+    # path /colaraboradores & /cargos 
+    path('api/', include('colaborador.urls'))
 ]
