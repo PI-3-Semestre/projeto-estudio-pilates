@@ -48,15 +48,20 @@ INSTALLED_APPS = [
     'drf_spectacular',      # Para a documentação (Swagger UI)
     'guardian',             # Para permissões por objeto (por unidade)
     'cpf_field',            # Para validação de CPF
+    'phonenumber_field',
+
     
     # --- Nossas Apps ---
-    'usuarios',
+    'usuarios.apps.UsuariosConfig',
+    'alunos',
     'agendamentos',
     'financeiro',
     'avaliacoes',
     'colaborador.apps.ColaboradorConfig', # Caminho completo para a configuração da app
     # Adicione aqui outras apps que criar, como 'unidades', 'planos', etc.
 ]
+
+AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
