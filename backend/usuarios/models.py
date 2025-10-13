@@ -15,7 +15,7 @@ class Aluno(models.Model):
     nome = models.CharField(max_length=200)
     foto = models.ImageField(upload_to='alunos/', blank=True, null=True)
     dataNascimento = models.DateField(verbose_name="Data de Nascimento")
-    cpf = CPFField()
+    cpf = CPFField('cpf')
     email = models.EmailField(unique=True)
     contato = PhoneNumberField(region="BR")
     profissao = models.CharField(max_length=100, blank=True, null=True)
