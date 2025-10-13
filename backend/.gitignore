@@ -1,2 +1,54 @@
-# Arquivos de ambiente local
+# Arquivos de byte compilado do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ovos e distribuições do Python
+*.egg-info/
+*.egg
+dist/
+build/
+wheels/
+*.whl
+
+# Ambientes virtuais
+venv/
+env/
 .env
+.venv
+
+# Banco de dados
+db.sqlite3
+db.sqlite3-journal
+
+# Arquivos de mídia e estáticos coletados
+media/
+staticfiles/
+
+# Migrações do Django
+# Ignora QUALQUER pasta 'migrations' dentro deste projeto.
+**/migrations/
+
+# Arquivos de log e cache
+*.log
+.cache/
+
+# Arquivos de configuração de IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos específicos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste e cobertura de código
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Arquivos de segredos e configurações locais
+local_settings.py
+*.env
