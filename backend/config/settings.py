@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     # --- Nossas Apps ---
     'usuarios.apps.UsuariosConfig',
     'alunos',
+    'studios',
     'agendamentos',
     'financeiro',
     'avaliacoes',
