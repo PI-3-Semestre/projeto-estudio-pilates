@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 from cpf_field.models import CPFField
 from phonenumber_field.modelfields import PhoneNumberField
@@ -15,9 +14,9 @@ class Aluno(models.Model):
     nome = models.CharField(max_length=200)
     foto = models.ImageField(upload_to='alunos/', blank=True, null=True)
     dataNascimento = models.DateField(verbose_name="Data de Nascimento")
-    cpf = CPFField('cpf')
+    cpf = CPFField('cpf', unique=True)
     email = models.EmailField(unique=True)
-    contato = PhoneNumberField(region="BR")
+    contato = PhoneNumberField(region="BR", unique=True)
     profissao = models.CharField(max_length=100, blank=True, null=True) 
     
     token_usuario = models.TextField(default=generate_token)
