@@ -18,12 +18,7 @@ class Aluno(models.Model):
     cpf = CPFField('cpf')
     email = models.EmailField(unique=True)
     contato = PhoneNumberField(region="BR")
-    profissao = models.CharField(max_length=100, blank=True, null=True)
-
-    is_active = models.BooleanField(default=True)
-
-    email_verificado = models.BooleanField(default=False)
-    token_verificado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    profissao = models.CharField(max_length=100, blank=True, null=True) 
     
     token_usuario = models.TextField(default=generate_token)
 

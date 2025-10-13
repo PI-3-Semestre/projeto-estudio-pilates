@@ -15,7 +15,4 @@ class AlunoSerializer(serializers.ModelSerializer):
             'email',
             'contato',
             'profissao',
-            'email_verificado',
         ]
-
-        read_only_fields = ['email_verificado']
