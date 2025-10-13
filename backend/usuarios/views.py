@@ -2,7 +2,6 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import generics
-from .forms import AlunoForm
 from .repositories.alunos_repository import AlunoRepository
 from .models import Aluno
 from .serializers import AlunoSerializer
