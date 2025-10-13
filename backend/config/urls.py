@@ -35,5 +35,5 @@ urlpatterns = [
     
     # path('api/', include('agendamentos.urls')),
     path('api/usuarios/', include('usuarios.urls')),
-    path('api/avaliacoes/', include('avaliacoes.urls'))
+    path('api/avaliacoes/', include('avaliacoes.urls')),
 ]
