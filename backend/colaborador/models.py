@@ -23,8 +23,8 @@ class Endereco(models.Model):
     complemento = models.CharField(max_length=100, blank=True, null=True)
     bairro = models.CharField(max_length=100)
     cidade = models.CharField(max_length=100)
-    estado = models.CharField(max_length=2) # Sigla do estado, ex: SP
-    cep = models.CharField(max_length=9) # Formato 12345-678
+    estado = models.CharField(max_length=2)
+    cep = models.CharField(max_length=9) 
 
     def __str__(self):
         return f"{self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
@@ -39,26 +39,22 @@ class Colaborador(AbstractUser):
         INATIVO = 'INATIVO', 'Inativo'
         FERIAS = 'FERIAS', 'Férias'
 
-    # Removemos campos que não usaremos do AbstractUser
     first_name = None
     last_name = None
 
-    # Atributos do DER
     nome = models.CharField(max_length=255)
     cpf = CPFField(unique=True)
     data_nascimento = models.DateField()
     telefone = PhoneNumberField(region="BR")
-    email = models.EmailField(unique=True) # Já existe no AbstractUser, mas reforçamos
+    email = models.EmailField(unique=True)
     data_admissao = models.DateField()
     data_demissao = models.DateField(null=True, blank=True)
     salario = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ATIVO)
 
-    # Relacionamentos (FK)
     cargo = models.ForeignKey(Cargo, on_delete=models.PROTECT, related_name='colaboradores')
     endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
 
-    # Define o campo usado para login
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'nome', 'cpf']
 

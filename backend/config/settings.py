@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'agendamentos',
     'financeiro',
     'avaliacoes',
-    'colaborador.apps.ColaboradorConfig', # Caminho completo para a configuração da app
+    'colaborador.apps.ColaboradorConfig',
     # Adicione aqui outras apps que criar, como 'unidades', 'planos', etc.
 ]
 
