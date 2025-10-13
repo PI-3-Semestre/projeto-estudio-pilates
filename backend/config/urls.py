@@ -37,5 +37,8 @@ urlpatterns = [
     # path('api/', include('agendamentos.urls')),
     path('api/usuarios/', include('usuarios.urls')),
     # path /colaraboradores & /cargos 
-    path('api/', include('colaborador.urls'))
+    path('api/', include('colaborador.urls')),
+
+    # path para o app studios
+    path('api/studios/', include('studios.urls'))
 ]
