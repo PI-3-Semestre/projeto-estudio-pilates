@@ -1,14 +1,12 @@
 # backend/usuarios/urls.py
 
 from django.urls import path
-from .views import LoginView, CurrentUserView # Adicione CurrentUserView
-from rest_framework_simplejwt.views import TokenRefreshView
+# Você importará suas views aqui no futuro, ex: from . import views
 
+# A variável urlpatterns é obrigatória.
+# O Django procura por ela para saber quais são as rotas deste app.
 urlpatterns = [
-    # Rotas existentes
-    path('login/', LoginView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-    # --- Adicione esta nova linha para a rota do usuário ---
-    path('me/', CurrentUserView.as_view(), name='current_user'),
+    # Suas rotas específicas do app 'usuarios' virão aqui.
+    # Por exemplo: path('perfil/', views.ver_perfil, name='ver_perfil'),
+    # Por enquanto, pode ficar vazia.
 ]
