@@ -26,10 +26,6 @@ db.sqlite3-journal
 media/
 staticfiles/
 
-# Migrações do Django
-# Ignora QUALQUER pasta 'migrations' dentro deste projeto.
-**/migrations/
-
 # Arquivos de log e cache
 *.log
 .cache/
