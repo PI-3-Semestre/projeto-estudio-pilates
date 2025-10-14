@@ -1,9 +1,14 @@
-# backend/usuarios/urls.py
+# usuarios/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UsuarioViewSet, ColaboradorViewSet
 
-from django.urls import path
+# Cria um router e registra nossos viewsets com ele.
+router = DefaultRouter()
+router.register(r'usuarios', UsuarioViewSet)
+router.register(r'colaboradores', ColaboradorViewSet)
 
-# É obrigatório ter esta lista, mesmo que ela esteja vazia por enquanto.
+# As URLs da API são determinadas automaticamente pelo router.
 urlpatterns = [
-    # As URLs específicas do app usuarios serão adicionadas aqui no futuro.
-    # Ex: path('perfil/', views.perfil_view, name='perfil'),
+    path('', include(router.urls)),
 ]

@@ -1,63 +1,17 @@
-from django.core.mail import send_mail
-from django.urls import reverse
-from django.shortcuts import redirect, render, get_object_or_404
-from rest_framework import generics
+# alunos/views.py
+from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema
-from .forms import AlunoForm
-from .repositories.alunos_repository import AlunoRepository
 from .models import Aluno
 from .serializers import AlunoSerializer
+from .permissions import IsAdminOrRecepcionista
 
-aluno_repository = AlunoRepository()
-
-# Create your views here.
- #Views Cadastro Alunos
 @extend_schema(tags=['Alunos'])
-class AlunoListCreateView(generics.ListCreateAPIView):
+class AlunoViewSet(viewsets.ModelViewSet):
     """
-    View para Listar (GET) e Criar (POST) alunos.
+    View para listar, criar, atualizar e deletar Alunos.
+    A criação e modificação de alunos é restrita a Administradores e Recepcionistas.
     """
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
-
-    
-    def perform_create(self, serializer):
-        aluno = serializer.save(email_verificado=False)
-
-        token = aluno.token_verificado
-        link_verificacao = self.request.build_absolute_uri(reverse('verificar_email', kwargs={'token': token}))
-
-        assunto = 'Ative sua conta em nosso site'
-        mensagem = (
-            f'Olá {aluno.nome},\n\n'
-            'Por favor, clique no link abaixo para verificar seu email e ativar sua conta:\n'
-            f'{link_verificacao}\n\n'
-            'Obrigado!'
-        )
-        remetente = 'dmjnf23@gmail.com' 
-        send_mail(assunto, mensagem, remetente, [aluno.email])
-
-
-@extend_schema(tags=['Alunos'])
-class AlunoListagemView(generics.ListAPIView):
-    queryset = Aluno.objects.all()
-    serializer_class = AlunoSerializer
-
-
-@extend_schema(tags=['Alunos'])
-class AlunoAtualizarDeletarView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Aluno.objects.all()
-    serializer_class = AlunoSerializer
-    lookup_field = 'pk'
-
-def verificar_email(request, token):
-    aluno = get_object_or_404(Aluno, token_verificado=token)
-    if aluno:
-        aluno.email_verificado = True
-        aluno.save()
-
-        return render(request, 'usuarios/email_verificado.html')
-    else:
-
-        return redirect('lista_alunos') 
-
+    permission_classes = [IsAdminOrRecepcionista]
+    lookup_field = 'cpf' # Permite buscar alunos pelo CPF na URL

@@ -36,7 +36,7 @@ class ColaboradorStudio(models.Model):
 
     # Conecta-se ao modelo correto após a refatoração.
     colaborador = models.ForeignKey(
-        'colaborador.Colaborador',
+        'usuarios.Colaborador',
         on_delete=models.CASCADE,
         related_name='vinculos_studio'
     )
@@ -59,4 +59,4 @@ class ColaboradorStudio(models.Model):
 
     def __str__(self):
         # Assume que o modelo Colaborador tem o campo `nome_completo`
-        return f"{self.colaborador.nome_completo} em {self.studio.nome}: {self.get_permissao_display()}"
+        return f"{self.colaborador.usuario.get_full_name()} em {self.studio.nome}: {self.get_permissao_display()}"

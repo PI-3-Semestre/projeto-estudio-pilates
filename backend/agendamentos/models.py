@@ -1,6 +1,7 @@
 from django.db import models
 from alunos.models import Aluno
-from usuarios.models import Colaborador, Unidade, Usuario
+from usuarios.models import Colaborador, Usuario
+from studios.models import Studio
 
 class Modalidade(models.Model):
     """ Representa uma modalidade de aula (ex: Pilates, Yoga). """
@@ -18,7 +19,7 @@ class Aula(models.Model):
         EXPERIMENTAL = 'EXPERIMENTAL', 'Experimental'
         REPOSICAO = 'REPOSICAO', 'Reposição'
         
-    studio = models.ForeignKey(Unidade, on_delete=models.CASCADE)
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
     modalidade = models.ForeignKey(Modalidade, on_delete=models.PROTECT)
     instrutor_principal = models.ForeignKey(Colaborador, related_name='aulas_principais', on_delete=models.PROTECT)
     instrutor_substituto = models.ForeignKey(Colaborador, related_name='aulas_substitutas', on_delete=models.SET_NULL, null=True, blank=True)

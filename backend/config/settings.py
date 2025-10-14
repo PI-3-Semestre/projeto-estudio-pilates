@@ -30,7 +30,7 @@ if not SECRET_KEY:
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'agendamentos',
     'financeiro',
     'avaliacoes',
-    'colaborador.apps.ColaboradorConfig',
     'autenticacao',
     # Adicione aqui outras apps que criar, como 'unidades', 'planos', etc.
 ]
@@ -144,11 +143,6 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-
-# --- Configuração do Modelo de Usuário Customizado ---
-# Aponta para o nosso modelo de usuário customizado na app 'colaborador'.
-AUTH_USER_MODEL = 'colaborador.Colaborador'
 
 
 # --- Configurações de Autenticação (incluindo Django Guardian) ---

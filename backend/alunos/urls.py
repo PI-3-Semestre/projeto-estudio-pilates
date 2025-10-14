@@ -1,8 +1,13 @@
-from django.urls import path
-from . import views
+# alunos/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import AlunoViewSet
 
+# Cria um router e registra nosso viewset com ele.
+router = DefaultRouter()
+router.register(r'alunos', AlunoViewSet)
+
+# As URLs da API são determinadas automaticamente pelo router.
 urlpatterns = [
-    path('', views.AlunoListCreateView.as_view(), name='aluno-list-create'),
-    path('<int:pk>/', views.AlunoAtualizarDeletarView.as_view(), name='aluno-detail'),
-    path('verificar-email/<uuid:token>/', views.verificar_email, name='verificar_email'),
+    path('', include(router.urls)),
 ]

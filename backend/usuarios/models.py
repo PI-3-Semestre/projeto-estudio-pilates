@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from cpf_field.models import CPFField
+from phonenumber_field.modelfields import PhoneNumberField
+from studios.models import Studio
 
 class Usuario(AbstractUser):
     """
@@ -30,20 +33,20 @@ class Usuario(AbstractUser):
     def __str__(self):
         return self.get_full_name() or self.username
 
-class Unidade(models.Model):
+class Endereco(models.Model):
     """
-    Representa uma unidade física do estúdio, como São Miguel ou Itaquera.
+    Modelo para armazenar os endereços dos colaboradores.
     """
-    nome = models.CharField(max_length=100, unique=True, help_text="Nome da unidade. Ex: São Miguel")
-    endereco = models.CharField(max_length=255, blank=True, null=True, help_text="Endereço completo da unidade")
-
-    class Meta:
-        db_table = 'unidades'
-        verbose_name = "Unidade"
-        verbose_name_plural = "Unidades"
+    logradouro = models.CharField(max_length=255)
+    numero = models.CharField(max_length=20)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    bairro = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=2)
+    cep = models.CharField(max_length=9) 
 
     def __str__(self):
-        return self.nome
+        return f"{self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
 
 class Colaborador(models.Model):
     """
@@ -56,10 +59,22 @@ class Colaborador(models.Model):
         FISIOTERAPEUTA = 'FISIOTERAPEUTA', 'Fisioterapeuta'
         INSTRUTOR = 'INSTRUTOR', 'Instrutor'
 
+    class Status(models.TextChoices):
+        ATIVO = 'ATIVO', 'Ativo'
+        INATIVO = 'INATIVO', 'Inativo'
+        FERIAS = 'FERIAS', 'Férias'
+
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
     perfil = models.CharField(max_length=20, choices=Perfil.choices)
     registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO/CREF")
-    unidades = models.ManyToManyField(Unidade, related_name="colaboradores")
+    cpf = CPFField(unique=True, null=True, blank=True) # Tornando nulo para não quebrar dados existentes
+    data_nascimento = models.DateField(null=True, blank=True)
+    telefone = PhoneNumberField(region="BR", null=True, blank=True) # Tornando nulo para não quebrar dados existentes
+    data_admissao = models.DateField(null=True, blank=True)
+    data_demissao = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ATIVO)
+    endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
+    unidades = models.ManyToManyField(Studio, related_name="colaboradores")
 
     class Meta:
         db_table = 'colaboradores'
