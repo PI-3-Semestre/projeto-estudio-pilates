@@ -3,7 +3,9 @@
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from .serializers import CustomTokenObtainPairSerializer
+from drf_spectacular.utils import extend_schema
 
+@extend_schema(tags=['Autenticação'])
 class LoginAPIView(TokenObtainPairView):
     """
     View de Login que utiliza o serializer customizado para retornar
