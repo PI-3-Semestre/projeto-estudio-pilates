@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from usuarios.models import Aluno
+from alunos.models import Aluno
 from avaliacoes.models import Avaliacao
 
 # Register your models here.
