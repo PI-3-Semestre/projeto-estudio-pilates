@@ -38,7 +38,12 @@ urlpatterns = [
     path('api/usuarios/', include('usuarios.urls')),
     # path /colaraboradores & /cargos 
     path('api/', include('colaborador.urls')),
+    
+    path('api/alunos', include('alunos.urls')),
 
     # path para o app studios
-    path('api/studios/', include('studios.urls'))
+    path('api/studios/', include('studios.urls')),
+    
+    #path para app avalicoes
+    path('api/avalicoes/', include('avaliacoes.urls'))
 ]
