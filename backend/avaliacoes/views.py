@@ -6,7 +6,18 @@ from .models import Avaliacao
 from usuarios.models import Colaborador # Importe o Colaborador
 from alunos.models import Aluno
 
-@extend_schema(tags=['Avaliações'])
+@extend_schema(
+    tags=['Avaliações'],
+    description='''
+Endpoint para Avaliações Físicas de um Aluno.
+
+Fornece endpoints para:
+- Listar todas as avaliações de um aluno específico (via `aluno_pk` na URL).
+- Criar uma nova avaliação para um aluno específico.
+
+**Nota:** O acesso está atualmente público (`AllowAny`). A permissão final deve ser restrita a `INSTRUTOR` ou `FISIOTERAPEUTA`.
+'''
+)
 class AvaliacaoListCreateView(generics.ListCreateAPIView):
     """
     View para Listar (GET) e Criar (POST) avaliações para um aluno específico.
@@ -43,7 +54,19 @@ class AvaliacaoListCreateView(generics.ListCreateAPIView):
         serializer.save(aluno=aluno, instrutor=instrutor)
 
 # --- VIEW PARA VER, ATUALIZAR E DELETAR UMA AVALIAÇÃO ESPECÍFICA ---
-@extend_schema(tags=['Avaliações'])
+@extend_schema(
+    tags=['Avaliações'],
+    description='''
+Endpoint para gerenciar uma Avaliação Física específica.
+
+Fornece endpoints para:
+- Visualizar detalhes de uma avaliação.
+- Atualizar uma avaliação existente.
+- Deletar uma avaliação.
+
+**Nota:** O acesso está atualmente público (`AllowAny`). A permissão final deve ser restrita a `INSTRUTOR` ou `FISIOTERAPEUTA`.
+'''
+)
 class AvaliacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     View para Detalhar (GET), Atualizar (PUT/PATCH) e Deletar (DELETE)

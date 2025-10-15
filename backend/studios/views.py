@@ -1,53 +1,67 @@
 # studios/views.py
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 
 from .models import Studio
 from .serializers import StudioSerializer
-from .permissions import HasObjectPermission
 from .controllers import StudioController
 
-@extend_schema(tags=['Studios'])
-class StudioListView(APIView):
+@extend_schema(
+    tags=['Studios'],
+    description='''
+ViewSet para gerenciar Studios (unidades).
+
+Fornece endpoints para:
+- Listar studios (Administradores veem todos, outros colaboradores veem apenas os seus).
+- Visualizar detalhes de um studio.
+- Criar um novo studio (Requer permissão de `ADMIN_MASTER` ou `ADMINISTRADOR`).
+- Atualizar um studio (Requer permissão de `ADMIN_MASTER` ou `ADMINISTRADOR`).
+- Deletar um studio (Requer permissão de `ADMIN_MASTER` ou `ADMINISTRADOR`).
+'''
+)
+class StudioViewSet(ModelViewSet):
     """
-    Endpoint para listar os studios (unidades) aos quais o
-    usuário logado está associado.
+    ViewSet para gerenciar Studios (unidades).
+
+    Fornece endpoints para:
+    - Listar studios associados ao usuário
+    - Criar um novo studio (requer permissão)
+    - Visualizar detalhes de um studio
+    - Atualizar um studio (requer permissão)
+    - Deletar um studio (requer permissão)
     """
-    permission_classes = [IsAuthenticated]
-    controller = StudioController()
+    serializer_class = StudioSerializer
+    permission_classes = [IsAuthenticated]  # A permissão específica será verificada no controller
 
-    def get(self, request):
-        studios = self.controller.get_studios_for_user(request.user)
-        serializer = StudioSerializer(studios, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        """
+        Filtra o queryset para retornar apenas os studios aos quais o
+        usuário logado tem acesso.
+        """
+        controller = StudioController()
+        return controller.get_studios_for_user(self.request.user)
 
-@extend_schema(tags=['Studios'])
-class RelatorioFinanceiroView(APIView):
-    """
-    Endpoint de exemplo, protegido por permissão de objeto.
-    Apenas usuários com a permissão 'manage_finances_studio' PARA ESTE
-    studio específico poderão acessá-lo.
-    """
-    permission_classes = [IsAuthenticated, HasObjectPermission('studios.manage_finances_studio')]
+    def perform_create(self, serializer):
+        """
+        Utiliza o controller para criar um novo studio.
+        A lógica de permissão está encapsulada no controller.
+        """
+        controller = StudioController()
+        controller.create_studio(self.request.user, serializer.validated_data)
 
-    def get(self, request, studio_id):
-        studio = get_object_or_404(Studio, pk=studio_id)
+    def perform_update(self, serializer):
+        """
+        Utiliza o controller para atualizar um studio.
+        A lógica de permissão está encapsulada no controller.
+        """
+        controller = StudioController()
+        controller.update_studio(self.request.user, self.get_object(), serializer.validated_data)
 
-        # O DRF chama automaticamente o has_object_permission da nossa classe.
-        # Esta linha garante que a verificação seja executada.
-        self.check_object_permissions(request, studio)
-
-        # Se o código chegou aqui, o usuário está autorizado.
-        # Aqui entraria a lógica para gerar o relatório financeiro...
-        dados_relatorio = {
-            "studio_id": studio.id,
-            "studio_nome": studio.nome,
-            "mensagem": "Acesso ao relatório financeiro concedido.",
-            "faturamento_mes": 15000.00,
-            "despesas_mes": 8500.00
-        }
-        return Response(dados_relatorio, status=status.HTTP_200_OK)
+    def perform_destroy(self, instance):
+        """
+        Utiliza o controller para deletar um studio.
+        A lógica de permissão está encapsulada no controller.
+        """
+        controller = StudioController()
+        controller.delete_studio(self.request.user, instance)

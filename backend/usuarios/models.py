@@ -8,6 +8,7 @@ class Usuario(AbstractUser):
     """
     Representa um usuário autenticável no sistema, estendendo o modelo padrão do Django.
     """
+    cpf = CPFField(unique=True, null=True, blank=True, help_text="CPF do usuário. Será usado como identificador único.")
     groups = models.ManyToManyField(
         Group,
         verbose_name='groups',
@@ -67,7 +68,6 @@ class Colaborador(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
     perfil = models.CharField(max_length=20, choices=Perfil.choices)
     registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO/CREF")
-    cpf = CPFField(unique=True, null=True, blank=True) # Tornando nulo para não quebrar dados existentes
     data_nascimento = models.DateField(null=True, blank=True)
     telefone = PhoneNumberField(region="BR", null=True, blank=True) # Tornando nulo para não quebrar dados existentes
     data_admissao = models.DateField(null=True, blank=True)

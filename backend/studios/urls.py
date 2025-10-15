@@ -1,11 +1,13 @@
 # studios/urls.py
-from django.urls import path
-from .views import StudioListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import StudioViewSet
+
+# O DefaultRouter gera automaticamente as URLs para o ViewSet.
+# Ex: /api/studios/, /api/studios/{id}/
+router = DefaultRouter()
+router.register(r'', StudioViewSet, basename='studio')
 
 urlpatterns = [
-    # Ex: GET /api/studios/
-    path('', StudioListView.as_view(), name='studio-list'),
-
-    # Ex: GET /api/studios/1/relatorio-financeiro/ # EXEMPLO
-    #path('<int:studio_id>/relatorio-financeiro/', RelatorioFinanceiroView.as_view(), name='studio-finance-report'),
+    path('', include(router.urls)),
 ]

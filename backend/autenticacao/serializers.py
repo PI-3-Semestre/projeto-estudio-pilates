@@ -11,12 +11,13 @@ class PerfilColaboradorSerializer(serializers.ModelSerializer):
     
     nome = serializers.CharField(source='usuario.get_full_name', read_only=True)
     email = serializers.CharField(source='usuario.email', read_only=True)
+    cpf = serializers.CharField(source='usuario.cpf', read_only=True)
 
     class Meta:
         # CORREÇÃO: O modelo agora é 'Colaborador'.
         model = Colaborador
         # CORREÇÃO: Campos ajustados para o modelo Colaborador.
-        fields = ['id', 'email', 'nome', 'cpf', 'perfil']
+        fields = ['usuario', 'email', 'nome', 'cpf', 'perfil']
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
