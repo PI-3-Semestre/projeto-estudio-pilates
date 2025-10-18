@@ -2,9 +2,14 @@
 from django.db import models
 
 class Studio(models.Model):
-    """ Representa uma unidade física do estúdio (Unidade). """
+    """ 
+    Representa uma unidade física do estúdio.
+    É a entidade central em torno da qual colaboradores e alunos são organizados.
+    """
     nome = models.CharField(max_length=100, unique=True)
     endereco = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Timestamps automáticos
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_ultima_modificacao = models.DateTimeField(auto_now=True)
 
@@ -12,7 +17,10 @@ class Studio(models.Model):
         ordering = ['nome']
         verbose_name = "Studio (Unidade)"
         verbose_name_plural = "Studios (Unidades)"
-        # Permissões customizadas que traduzem a Matriz de Permissões do PACT
+        
+        # Permissões customizadas a nível de objeto (usadas por libs como django-guardian).
+        # Permitem dar a um usuário permissões específicas para uma instância particular de Studio.
+        # Ex: User A pode gerenciar finanças do Studio X, mas não do Studio Y.
         permissions = [
             ("view_dashboard_studio", "Pode visualizar o dashboard do studio"),
             ("manage_finances_studio", "Pode gerenciar as finanças do studio"),
@@ -26,7 +34,12 @@ class Studio(models.Model):
 class ColaboradorStudio(models.Model):
     """
     Tabela de associação (pivot) que define o papel (permissão) de um colaborador
-    em um studio específico. Esta é a base do sistema de permissões.
+    em um studio específico. Esta é a base do sistema de permissões granulares.
+    
+    NOTA ARQUITETURAL: A lógica de negócio atual (ex: em StudioController) parece usar
+    a relação ManyToMany direta `Colaborador.unidades` em vez deste modelo.
+    Este modelo `ColaboradorStudio` permite uma granularidade maior (papel por studio)
+    e deveria ser considerado na evolução da lógica de permissões.
     """
     class PermissaoChoices(models.TextChoices):
         ADMIN = 'Admin', 'Administrador'
@@ -34,17 +47,19 @@ class ColaboradorStudio(models.Model):
         FISIO = 'Fisio', 'Fisioterapeuta'
         RECEP = 'Recep', 'Recepcionista'
 
-    # Conecta-se ao modelo correto após a refatoração.
+    # Conecta-se ao modelo Colaborador do app 'usuarios'.
     colaborador = models.ForeignKey(
         'usuarios.Colaborador',
         on_delete=models.CASCADE,
         related_name='vinculos_studio'
     )
+    # Conecta-se ao Studio.
     studio = models.ForeignKey(
         Studio,
         on_delete=models.CASCADE,
         related_name='colaboradores_vinculados'
     )
+    # Define o papel específico do colaborador nesta unidade.
     permissao = models.CharField(
         max_length=10,
         choices=PermissaoChoices.choices,
@@ -52,11 +67,10 @@ class ColaboradorStudio(models.Model):
     )
 
     class Meta:
-        # Garante que um colaborador tenha apenas um papel por studio
+        # Garante que um colaborador tenha apenas um papel por studio.
         unique_together = ('colaborador', 'studio')
         verbose_name = "Vínculo Colaborador-Studio"
         verbose_name_plural = "Vínculos Colaborador-Studio"
 
     def __str__(self):
-        # Assume que o modelo Colaborador tem o campo `nome_completo`
         return f"{self.colaborador.usuario.get_full_name()} em {self.studio.nome}: {self.get_permissao_display()}"

@@ -1,10 +1,20 @@
 from django.urls import path
 from . import views
 
+# Define os padrões de URL para o aplicativo de avaliações.
 urlpatterns = [
-    # Listar/Criar avaliações de um aluno específico via CPF
+    # Rota para listar o histórico de avaliações de um aluno ou criar uma nova.
+    # Acessível via GET (listar) e POST (criar).
+    # Ex: /api/alunos/12345678901/avaliacoes/
     path('alunos/<str:aluno_cpf>/avaliacoes/', views.AvaliacaoListCreateView.as_view(), name='aluno-avaliacoes-list-create'),
     
-    # Acessar uma avaliação específica diretamente via ID da avaliação
+    # Rota para gerenciar a avaliação mais recente de um aluno.
+    # Acessível via GET (detalhar), PUT (atualizar), PATCH (atualização parcial) e DELETE (deletar).
+    # Ex: /api/alunos/12345678901/avaliacoes/latest/
+    path('alunos/<str:aluno_cpf>/avaliacoes/latest/', views.LatestAvaliacaoView.as_view(), name='aluno-latest-avaliacao'),
+
+    # Rota para gerenciar uma avaliação específica pelo seu ID único.
+    # Acessível via GET (detalhar), PUT (atualizar), PATCH (atualização parcial) e DELETE (deletar).
+    # Ex: /api/avaliacoes/1/
     path('avaliacoes/<int:pk>/', views.AvaliacaoDetailView.as_view(), name='avaliacao-detail'),
 ]

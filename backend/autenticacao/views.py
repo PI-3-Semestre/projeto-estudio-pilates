@@ -10,18 +10,25 @@ from drf_spectacular.utils import extend_schema
     description='''
 Endpoint para Autenticação de Usuários.
 
-Fornece o endpoint para:
-- Realizar o login no sistema.
+Fornece o endpoint para realizar o login no sistema.
 
-Recebe `username` e `password` e retorna os tokens de acesso (`access`, `refresh`) e os dados do perfil do usuário.
+Recebe um identificador (`username`, `cpf` ou `email`) e `password` e retorna os tokens de acesso (`access`, `refresh`) e os dados do perfil do usuário, se aplicável.
 
 **Nota:** Este endpoint tem acesso público.
 '''
 )
 class LoginAPIView(TokenObtainPairView):
     """
-    View de Login que utiliza o serializer customizado para retornar
-    o token junto com os dados de perfil e permissões do usuário.
+    View de Login customizada.
+    
+    Herda da view padrão do simple-jwt, mas substitui o serializer padrão
+    pelo `CustomTokenObtainPairSerializer` para enriquecer a resposta do login
+    com os dados do perfil do usuário.
     """
+    # Permite que qualquer usuário, autenticado ou não, acesse este endpoint.
+    # Essencial para uma view de login.
     permission_classes = (AllowAny,)
+    
+    # Especifica o serializer customizado que deve ser usado para validar
+    # as credenciais e formatar a resposta do token.
     serializer_class = CustomTokenObtainPairSerializer

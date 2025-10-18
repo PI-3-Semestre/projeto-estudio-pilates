@@ -23,10 +23,19 @@ Fornece endpoints para:
 )
 class UsuarioViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    ViewSet para gerenciar as contas de usuário (modelo Usuario).
+    
+    Fornece todas as operações CRUD (List, Create, Retrieve, Update, Destroy)
+    para o modelo de usuário base do Django.
     """
+    # O queryset define a coleção de objetos que esta view irá operar.
     queryset = Usuario.objects.all().order_by('-date_joined')
+    
+    # O serializer que será usado para converter os dados.
     serializer_class = UsuarioSerializer
+    
+    # A permissão define quem pode acessar esta view.
+    # Apenas Admin Master ou Administradores podem gerenciar usuários.
     permission_classes = [IsAdminMasterOrAdministrador]
 
 @extend_schema(
@@ -46,9 +55,19 @@ Fornece endpoints para:
 )
 class ColaboradorViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows collaborators to be viewed or edited.
+    ViewSet para gerenciar os perfis de colaborador (modelo Colaborador).
+    
+    Fornece todas as operações CRUD para os perfis, que contêm informações 
+    profissionais e de permissão dos usuários.
     """
     queryset = Colaborador.objects.all()
     serializer_class = ColaboradorSerializer
+    
+    # Define o campo usado para buscar um colaborador individual. 
+    # Em vez de usar o ID do colaborador, usa o CPF do usuário relacionado.
+    # Ex: /api/colaboradores/12345678901/
     lookup_field = 'usuario__cpf'
+    
+    # Apenas o Admin Master pode gerenciar perfis de colaborador.
+    # Esta é uma permissão mais restrita para uma ação mais sensível.
     permission_classes = [IsAdminMaster]
