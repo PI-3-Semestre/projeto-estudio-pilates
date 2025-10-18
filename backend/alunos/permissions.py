@@ -1,10 +1,13 @@
 # alunos/permissions.py
 from rest_framework import permissions
+from usuarios.models import Colaborador
 
 class IsAdminOrRecepcionista(permissions.BasePermission):
     """
-    Permissão customizada para permitir acesso apenas a Admins ou Recepcionistas.
+    Permissão customizada para permitir acesso a Admins ou Recepcionistas.
     """
+    message = "Apenas usuários com perfil de Administrador ou Recepcionista podem realizar esta ação."
+
     def has_permission(self, request, view):
         # Permissão de leitura é permitida para qualquer usuário autenticado.
         if request.method in permissions.SAFE_METHODS:
@@ -14,13 +17,14 @@ class IsAdminOrRecepcionista(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        # Verifica se o usuário é superuser/staff ou se tem o perfil de Colaborador adequado
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser:
             return True
             
         try:
-            perfil = request.user.colaborador.perfil
-            return perfil in ['ADMINISTRADOR', 'RECEPCIONISTA']
-        except AttributeError:
+            # Verifica se o colaborador tem algum dos perfis necessários.
+            return request.user.colaborador.perfis.filter(
+                nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
+            ).exists()
+        except Colaborador.DoesNotExist:
             # O usuário não tem um perfil de colaborador
             return False

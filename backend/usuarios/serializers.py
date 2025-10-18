@@ -61,7 +61,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
             'usuario',
             'nome_completo',
             'definir_nome_completo',
-            'perfil',
+            'perfis',
             'registro_profissional',
             'data_nascimento',
             'telefone',

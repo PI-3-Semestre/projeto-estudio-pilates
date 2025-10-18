@@ -11,6 +11,7 @@ class Aluno(models.Model):
     contato = PhoneNumberField(region="BR")
     profissao = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    unidades = models.ManyToManyField('studios.Studio', related_name="alunos")
 
     class Meta:
         db_table = 'alunos'

@@ -4,6 +4,19 @@ from cpf_field.models import CPFField
 from phonenumber_field.modelfields import PhoneNumberField
 from studios.models import Studio
 
+class Perfil(models.Model):
+    NOME_CHOICES = [
+        ('ADMIN_MASTER', 'Admin Master'),
+        ('ADMINISTRADOR', 'Administrador'),
+        ('RECEPCIONISTA', 'Recepcionista'),
+        ('FISIOTERAPEUTA', 'Fisioterapeuta'),
+        ('INSTRUTOR', 'Instrutor'),
+    ]
+    nome = models.CharField(max_length=20, choices=NOME_CHOICES, unique=True)
+
+    def __str__(self):
+        return self.get_nome_display()
+
 class Usuario(AbstractUser):
     """
     Representa um usuário autenticável no sistema, estendendo o modelo padrão do Django.
@@ -53,23 +66,16 @@ class Colaborador(models.Model):
     """
     Armazena dados profissionais de um funcionário, vinculando-o a um usuário e a um perfil.
     """
-    class Perfil(models.TextChoices):
-        ADMIN_MASTER = 'ADMIN_MASTER', 'Admin Master'
-        ADMINISTRADOR = 'ADMINISTRADOR', 'Administrador'
-        RECEPCIONISTA = 'RECEPCIONISTA', 'Recepcionista'
-        FISIOTERAPEUTA = 'FISIOTERAPEUTA', 'Fisioterapeuta'
-        INSTRUTOR = 'INSTRUTOR', 'Instrutor'
-
     class Status(models.TextChoices):
         ATIVO = 'ATIVO', 'Ativo'
         INATIVO = 'INATIVO', 'Inativo'
         FERIAS = 'FERIAS', 'Férias'
 
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
-    perfil = models.CharField(max_length=20, choices=Perfil.choices)
+    perfis = models.ManyToManyField(Perfil, related_name="colaboradores")
     registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO/CREF")
     data_nascimento = models.DateField(null=True, blank=True)
-    telefone = PhoneNumberField(region="BR", null=True, blank=True) # Tornando nulo para não quebrar dados existentes
+    telefone = PhoneNumberField(region="BR", null=True, blank=True)
     data_admissao = models.DateField(null=True, blank=True)
     data_demissao = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ATIVO)

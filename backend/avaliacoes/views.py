@@ -1,10 +1,11 @@
-from rest_framework import generics, permissions
+from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from .serializers import AvaliacaoSerializer
 from .models import Avaliacao
-from usuarios.models import Colaborador # Importe o Colaborador
+from usuarios.models import Colaborador
 from alunos.models import Aluno
+from usuarios.permissions import CanManageAvaliations
 
 @extend_schema(
     tags=['Avaliações'],
@@ -12,68 +13,36 @@ from alunos.models import Aluno
 Endpoint para Avaliações Físicas de um Aluno.
 
 Fornece endpoints para:
-- Listar todas as avaliações de um aluno específico (via `aluno_pk` na URL).
+- Listar todas as avaliações de um aluno específico (via `aluno_cpf` na URL).
 - Criar uma nova avaliação para um aluno específico.
 
-**Nota:** O acesso está atualmente público (`AllowAny`). A permissão final deve ser restrita a `INSTRUTOR` ou `FISIOTERAPEUTA`.
+**Nota:** O acesso está restrito a `FISIOTERAPEUTA`, `INSTRUTOR` ou `ADMINISTRADOR`.
 '''
 )
 class AvaliacaoListCreateView(generics.ListCreateAPIView):
-    """
-    View para Listar (GET) e Criar (POST) avaliações para um aluno específico.
-    """
     serializer_class = AvaliacaoSerializer
-    # MUDANÇA 1: Permite o acesso sem autenticação
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [CanManageAvaliations]
 
     def get_queryset(self):
-        """
-        Este método filtra as avaliações para retornar apenas as do aluno
-        especificado na URL.
-        """
-        aluno_pk = self.kwargs['aluno_pk']
-        return Avaliacao.objects.filter(aluno__pk=aluno_pk).order_by('-data_avaliacao')
+        aluno_cpf = self.kwargs['aluno_cpf']
+        return Avaliacao.objects.filter(aluno__cpf=aluno_cpf).order_by('-data_avaliacao')
 
     def perform_create(self, serializer):
-        """
-        Associa o aluno (da URL) e um instrutor padrão (para testes)
-        à nova avaliação antes de salvá-la.
-        """
-        aluno_pk = self.kwargs.get('aluno_pk')
-        aluno = get_object_or_404(Aluno, pk=aluno_pk)
-        
-        # MUDANÇA 2: Lógica temporária para testes sem login
-        # TODO: Voltar para a lógica de usuário logado quando a autenticação for implementada.
-        # A linha original era:
-        # instrutor = get_object_or_404(Colaborador, usuario=self.request.user)
-        
-        # Pega o primeiro colaborador do banco como um placeholder.
-        # Certifique-se de que você tem pelo menos um colaborador cadastrado!
-        instrutor = Colaborador.objects.first()
-        
+        aluno_cpf = self.kwargs.get('aluno_cpf')
+        aluno = get_object_or_404(Aluno, cpf=aluno_cpf)
+        instrutor = get_object_or_404(Colaborador, usuario=self.request.user)
         serializer.save(aluno=aluno, instrutor=instrutor)
 
-# --- VIEW PARA VER, ATUALIZAR E DELETAR UMA AVALIAÇÃO ESPECÍFICA ---
+
 @extend_schema(
     tags=['Avaliações'],
-    description='''
-Endpoint para gerenciar uma Avaliação Física específica.
-
-Fornece endpoints para:
-- Visualizar detalhes de uma avaliação.
-- Atualizar uma avaliação existente.
-- Deletar uma avaliação.
-
-**Nota:** O acesso está atualmente público (`AllowAny`). A permissão final deve ser restrita a `INSTRUTOR` ou `FISIOTERAPEUTA`.
-'''
+    description='''Endpoint para gerenciar uma Avaliação Física específica diretamente pelo seu ID.'''
 )
-class AvaliacaoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class AvaliacaoDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    View para Detalhar (GET), Atualizar (PUT/PATCH) e Deletar (DELETE)
-    uma avaliação específica pelo seu ID.
+    View para Detalhar/Atualizar/Deletar uma avaliação específica diretamente pelo seu ID.
     """
     queryset = Avaliacao.objects.all()
     serializer_class = AvaliacaoSerializer
-    # MUDANÇA 3: Permite o acesso sem autenticação
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [CanManageAvaliations]
     lookup_field = 'pk'

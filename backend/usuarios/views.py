@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema
 from .models import Usuario, Colaborador
 from .serializers import UsuarioSerializer, ColaboradorSerializer
 
-from .permissions import IsAdminMasterOrAdministrador
+from .permissions import IsAdminMaster, IsAdminMasterOrAdministrador
 
 @extend_schema(
     tags=['Contas de Usuário'],
@@ -18,7 +18,7 @@ Fornece endpoints para:
 - Atualizar um usuário existente.
 - Deletar um usuário.
 
-**Nota:** Todas as operações neste endpoint requerem permissão de Administrador (`is_staff=True`).
+**Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
 '''
 )
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -27,8 +27,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     """
     queryset = Usuario.objects.all().order_by('-date_joined')
     serializer_class = UsuarioSerializer
-    # Apenas administradores podem gerenciar usuários
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminMasterOrAdministrador]
 
 @extend_schema(
     tags=['Colaboradores'],
@@ -42,7 +41,7 @@ Fornece endpoints para:
 - Atualizar um perfil de colaborador.
 - Deletar um perfil de colaborador.
 
-**Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+**Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
 '''
 )
 class ColaboradorViewSet(viewsets.ModelViewSet):
@@ -51,6 +50,5 @@ class ColaboradorViewSet(viewsets.ModelViewSet):
     """
     queryset = Colaborador.objects.all()
     serializer_class = ColaboradorSerializer
-    lookup_field = 'usuario__cpf'  # Usa o CPF do usuário relacionado para buscar
-    # Apenas usuários com perfil de Admin Master ou Administrador podem gerenciar colaboradores
-    permission_classes = [IsAdminMasterOrAdministrador]
+    lookup_field = 'usuario__cpf'
+    permission_classes = [IsAdminMaster]
