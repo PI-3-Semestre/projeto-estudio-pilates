@@ -19,6 +19,29 @@ const authService = {
     return response.json();
   },
 
+  register: async (name, email, password, cpf, definir_nome_completo) => {
+    const response = await fetch(`${API_URL}/api/usuarios/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: name,
+        email,
+        password,
+        cpf,
+        definir_nome_completo,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Erro ao criar conta' }));
+      throw new Error(errorData.detail || 'Não foi possível criar a conta');
+    }
+
+    return response.json();
+  },
+
   // Adicione outros métodos de serviço de autenticação aqui (ex: logout, me)
 };
 

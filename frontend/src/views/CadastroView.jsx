@@ -1,9 +1,9 @@
 import React from "react";
-import useLoginViewModel from "../viewmodels/useLoginViewModel";
+import useCadastroViewModel from "../viewmodels/useCadastroViewModel";
 
-const LoginView = ({ onLoginSuccess, onGoToRegister }) => {
+const CadastroView = ({ onRegisterSuccess, onGoToLogin }) => {
   const { formData, error, loading, handleChange, handleSubmit } =
-    useLoginViewModel({ onLoginSuccess });
+    useCadastroViewModel({ onRegisterSuccess });
 
   return (
     <div
@@ -34,19 +34,19 @@ const LoginView = ({ onLoginSuccess, onGoToRegister }) => {
           </div>
         </div>
         <h1 className="text-[#0d1b1a] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 text-center pb-3 pt-5">
-          Define Pilates
+          Criar conta
         </h1>
         <h2 className="text-[#0d1b1a] text-lg font-bold leading-tight tracking-[-0.015em] px-4 text-center pb-2 pt-4">
-          Bem-vindo de volta
+          Crie sua conta para acessar o Define Pilates
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
               <input
-                placeholder="Username"
-                name="smart-input"
+                placeholder="Nome de usuário"
+                name="name"
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
-                value={formData["smart-input"]}
+                value={formData.name}
                 onChange={handleChange}
               />
             </label>
@@ -54,11 +54,57 @@ const LoginView = ({ onLoginSuccess, onGoToRegister }) => {
           <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
               <input
-                placeholder="Password"
-                type="password"
+                placeholder="Nome Completo"
+                name="definir_nome_completo"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
+                value={formData.definir_nome_completo}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
+              <input
+                placeholder="E-mail"
+                name="email"
+                type="email"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
+              <input
+                placeholder="CPF"
+                name="cpf"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
+                value={formData.cpf}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
+              <input
+                placeholder="Senha"
                 name="password"
+                type="password"
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
                 value={formData.password}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
+              <input
+                placeholder="Confirmar Senha"
+                name="confirmPassword"
+                type="password"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d1b1a] focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] focus:border-none h-14 placeholder:text-[#4c9a92] p-4 text-base font-normal leading-normal"
+                value={formData.confirmPassword}
                 onChange={handleChange}
               />
             </label>
@@ -80,18 +126,16 @@ const LoginView = ({ onLoginSuccess, onGoToRegister }) => {
               disabled={loading}
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-[#0fbdac] text-[#0d1b1a] text-base font-bold leading-normal tracking-[0.015em] disabled:opacity-50"
             >
-              <span className="truncate">{loading ? "Entrando..." : "Entrar"}</span>
+              <span className="truncate">{loading ? 'Criando...' : 'Criar conta'}</span>
             </button>
           </div>
         </form>
-        <div className="flex px-4 py-3">
-          <button
-            onClick={onGoToRegister}
-            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-[#e7f3f2] text-[#0d1b1a] text-base font-bold leading-normal tracking-[0.015em]"
-          >
-            <span className="truncate">Cadastrar</span>
-          </button>
-        </div>
+        <p
+          className="text-[#4c9a92] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline cursor-pointer"
+          onClick={onGoToLogin}
+        >
+          Já tem uma conta? Faça login
+        </p>
       </div>
       <div>
         <div className="h-5 bg-[#f8fcfb]"></div>
@@ -100,4 +144,4 @@ const LoginView = ({ onLoginSuccess, onGoToRegister }) => {
   );
 };
 
-export default LoginView;
+export default CadastroView;
