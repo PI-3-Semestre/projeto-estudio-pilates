@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import authService from '../services/authService';
 
-const useLoginViewModel = () => {
+const useLoginViewModel = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    'smart-input': '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -20,8 +20,11 @@ const useLoginViewModel = () => {
     setError('');
 
     try {
-      const data = await authService.login(formData.username, formData.password);
+      const data = await authService.login(formData['smart-input'], formData.password);
       console.log('Login bem-sucedido:', data);
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
       // Aqui você pode redirecionar o usuário ou salvar o token
       // Ex: localStorage.setItem('accessToken', data.access);
     } catch (err) {

@@ -23,7 +23,7 @@ staticfiles/
 .cache/
 local_settings.py
 *.env
-
+cadastro.html
 # ========================================
 # NPM + REACT + VITE (Frontend)
 # ========================================

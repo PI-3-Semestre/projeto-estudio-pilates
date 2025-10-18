@@ -1,10 +1,11 @@
-import React from 'react';
-import useLoginViewModel from '../viewmodels/useLoginViewModel';
-import FormInput from '../components/FormInput';
-import Icon from '../components/Icon';
+import React from "react";
+import useLoginViewModel from "../viewmodels/useLoginViewModel";
+import FormInput from "../components/FormInput";
+import Icon from "../components/Icon";
 
-const LoginView = () => {
-  const { formData, error, loading, handleChange, handleSubmit } = useLoginViewModel();
+const LoginView = ({ onLoginSuccess }) => {
+  const { formData, error, loading, handleChange, handleSubmit } =
+    useLoginViewModel({ onLoginSuccess });
 
   return (
     <div className="bg-gradient-to-b from-teal-400 via-teal-300 to-teal-50 dark:from-teal-800 dark:via-teal-900 dark:to-gray-900 flex items-center justify-center min-h-screen">
@@ -13,20 +14,25 @@ const LoginView = () => {
           <div className="bg-teal-400/50 dark:bg-teal-600/50 rounded-full w-24 h-24 flex items-center justify-center mb-4">
             <Icon name="help_outline" className="text-white text-5xl" />
           </div>
-          <h1 className="text-3xl font-bold text-text-light dark:text-text-dark">Define Pilates</h1>
-          <p className="text-secondary-text-light dark:text-secondary-text-dark mt-1">Bem-vindo de volta</p>
+          <h1 className="text-3xl font-bold text-text-light dark:text-text-dark">
+            Define Pilates
+          </h1>
+          <p className="text-secondary-text-light dark:text-secondary-text-dark mt-1">
+            Bem-vindo de volta
+          </p>
         </div>
-        
+
         <form className="space-y-6" onSubmit={handleSubmit}>
           <FormInput
-            id="email"
-            name="username" // O backend espera 'username'
-            label="E-mail"
-            placeholder="Digite seu e-mail"
-            type="email"
-            value={formData.username}
+            id="smart-input"
+            name="smart-input"
+            label="Acesse sua conta"
+            placeholder="Digite seu e-mail, CPF ou usuário"
+            type="text"
+            value={formData['smart-input']}
             onChange={handleChange}
-            iconName="mail"
+            iconName="person"
+            secondIconName="alternate_email"
           />
           <FormInput
             id="password"
@@ -39,7 +45,15 @@ const LoginView = () => {
             iconName="visibility"
           />
 
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {error && (
+            <p
+              role="alert"
+              aria-live="assertive"
+              className="text-red-500 text-sm text-center"
+            >
+              {error}
+            </p>
+          )}
 
           <div>
             <button
@@ -47,17 +61,26 @@ const LoginView = () => {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? "Entrando..." : "Entrar"}
             </button>
           </div>
         </form>
 
         <div className="text-center mt-6">
-          <a className="font-medium text-secondary-text-light dark:text-secondary-text-dark hover:text-primary dark:hover:text-teal-300" href="#">
+          <a
+            className="font-medium text-secondary-text-light dark:text-secondary-text-dark hover:text-primary dark:hover:text-teal-300"
+            href="#"
+          >
             Esqueci minha senha
           </a>
           <p className="mt-2 text-sm text-secondary-text-light dark:text-secondary-text-dark">
-            Não tem uma conta? <a className="font-bold text-text-light dark:text-text-dark hover:text-primary dark:hover:text-teal-300" href="#">Cadastre-se</a>
+            Não tem uma conta?{" "}
+            <a
+              className="font-bold text-text-light dark:text-text-dark hover:text-primary dark:hover:text-teal-300"
+              href="#"
+            >
+              Cadastre-se
+            </a>
           </p>
         </div>
       </div>
