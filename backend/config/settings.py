@@ -147,7 +147,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Configurações de Autenticação (incluindo Django Guardian) ---
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # Autenticação padrão do Django
+    'autenticacao.auth_backends.CPFBackend', # Autenticação por CPF
+    'autenticacao.auth_backends.EmailBackend', # Autenticação por Email
+    'django.contrib.auth.backends.ModelBackend', # Autenticação padrão do Django (por username)
     'guardian.backends.ObjectPermissionBackend', # Backend para permissões por objeto
 )
 

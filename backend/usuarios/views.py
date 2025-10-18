@@ -4,6 +4,8 @@ from drf_spectacular.utils import extend_schema
 from .models import Usuario, Colaborador
 from .serializers import UsuarioSerializer, ColaboradorSerializer
 
+from .permissions import IsAdminMasterOrAdministrador
+
 @extend_schema(
     tags=['Contas de Usuário'],
     description='''
@@ -40,7 +42,7 @@ Fornece endpoints para:
 - Atualizar um perfil de colaborador.
 - Deletar um perfil de colaborador.
 
-**Nota:** Todas as operações neste endpoint requerem permissão de Administrador (`is_staff=True`).
+**Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
 '''
 )
 class ColaboradorViewSet(viewsets.ModelViewSet):
@@ -50,5 +52,5 @@ class ColaboradorViewSet(viewsets.ModelViewSet):
     queryset = Colaborador.objects.all()
     serializer_class = ColaboradorSerializer
     lookup_field = 'usuario__cpf'  # Usa o CPF do usuário relacionado para buscar
-    # Apenas administradores podem gerenciar colaboradores
-    permission_classes = [permissions.IsAdminUser]
+    # Apenas usuários com perfil de Admin Master ou Administrador podem gerenciar colaboradores
+    permission_classes = [IsAdminMasterOrAdministrador]
