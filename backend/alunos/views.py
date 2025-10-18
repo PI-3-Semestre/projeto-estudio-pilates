@@ -1,6 +1,7 @@
 # alunos/views.py
 from rest_framework import viewsets
-from drf_spectacular.utils import extend_schema
+# +++ MODIFICADO: Adicionado OpenApiParameter para a decoração.
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from .models import Aluno
 from .serializers import AlunoSerializer
 from .permissions import IsAdminOrRecepcionista
@@ -20,7 +21,16 @@ Fornece endpoints para:
 **Permissões:**
 - **Leitura (GET):** Permitida para qualquer usuário autenticado (Instrutores, Fisioterapeutas, etc.).
 - **Escrita (POST, PUT, PATCH, DELETE):** Restrita a `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
-'''
+''',
+    # +++ ADICIONADO: Define explicitamente o parâmetro 'cpf' na URL para a documentação.
+    parameters=[
+        OpenApiParameter(
+            name='cpf', 
+            type=str, 
+            location=OpenApiParameter.PATH,
+            description='CPF do Aluno (utilizado como identificador na URL).'
+        )
+    ]
 )
 class AlunoViewSet(viewsets.ModelViewSet):
     """
@@ -33,14 +43,7 @@ class AlunoViewSet(viewsets.ModelViewSet):
     - `PATCH /alunos/{cpf}/`: Atualiza parcialmente um aluno.
     - `DELETE /alunos/{cpf}/`: Remove um aluno.
     """
-    # Define o conjunto de dados base para esta view: todos os alunos.
     queryset = Aluno.objects.all()
-    
-    # Define o serializador que será usado para entrada e saída de dados.
     serializer_class = AlunoSerializer
-    
-    # Define a classe de permissão que controla o acesso a esta view.
     permission_classes = [IsAdminOrRecepcionista]
-    
-    # Configura o campo de busca na URL para ser o CPF, em vez do ID padrão.
     lookup_field = 'cpf'
