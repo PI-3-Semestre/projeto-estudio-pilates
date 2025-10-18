@@ -1,10 +1,38 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from cpf_field.models import CPFField
+from phonenumber_field.modelfields import PhoneNumberField
+from studios.models import Studio
+
+class Perfil(models.Model):
+    """
+    Define os papéis ou funções que um colaborador pode ter no sistema.
+    Estes perfis são usados para controlar as permissões de acesso.
+    """
+    NOME_CHOICES = [
+        ('ADMIN_MASTER', 'Admin Master'), # Super administrador com acesso total
+        ('ADMINISTRADOR', 'Administrador'), # Administrador de um studio
+        ('RECEPCIONISTA', 'Recepcionista'),
+        ('FISIOTERAPEUTA', 'Fisioterapeuta'),
+        ('INSTRUTOR', 'Instrutor'), # Instrutor de Pilates
+    ]
+    # O nome do perfil é único para evitar duplicidade.
+    nome = models.CharField(max_length=20, choices=NOME_CHOICES, unique=True)
+
+    def __str__(self):
+        """Retorna o nome legível do perfil. Ex: 'Admin Master'."""
+        return self.get_nome_display()
 
 class Usuario(AbstractUser):
     """
-    Representa um usuário autenticável no sistema, estendendo o modelo padrão do Django.
+    Modelo customizado de usuário que estende o `AbstractUser` do Django.
+    É a base para a autenticação e identificação no sistema.
     """
+    # CPF como um identificador único para o usuário, além do username.
+    cpf = CPFField(unique=True, null=True, blank=True, help_text="CPF do usuário. Será usado como identificador único.")
+    
+    # Campos de relacionamento com os modelos de Group e Permission do Django.
+    # Os `related_name` foram ajustados para evitar conflitos com o modelo de usuário padrão.
     groups = models.ManyToManyField(
         Group,
         verbose_name='groups',
@@ -28,38 +56,53 @@ class Usuario(AbstractUser):
         verbose_name_plural = "Usuários"
 
     def __str__(self):
+        """Retorna o nome completo do usuário ou seu username se o nome não estiver definido."""
         return self.get_full_name() or self.username
 
-class Unidade(models.Model):
+class Endereco(models.Model):
     """
-    Representa uma unidade física do estúdio, como São Miguel ou Itaquera.
+    Modelo para armazenar dados de endereço, reutilizável por outros modelos.
     """
-    nome = models.CharField(max_length=100, unique=True, help_text="Nome da unidade. Ex: São Miguel")
-    endereco = models.CharField(max_length=255, blank=True, null=True, help_text="Endereço completo da unidade")
-
-    class Meta:
-        db_table = 'unidades'
-        verbose_name = "Unidade"
-        verbose_name_plural = "Unidades"
+    logradouro = models.CharField(max_length=255)
+    numero = models.CharField(max_length=20)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    bairro = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=2, help_text="Sigla do estado, ex: SP")
+    cep = models.CharField(max_length=9, help_text="CEP no formato XXXXX-XXX") 
 
     def __str__(self):
-        return self.nome
+        return f"{self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
 
 class Colaborador(models.Model):
     """
-    Armazena dados profissionais de um funcionário, vinculando-o a um usuário e a um perfil.
+    Modelo que representa o perfil profissional de um usuário.
+    Contém informações de trabalho, como perfis de acesso, status e unidades.
     """
-    class Perfil(models.TextChoices):
-        ADMIN_MASTER = 'ADMIN_MASTER', 'Admin Master'
-        ADMINISTRADOR = 'ADMINISTRADOR', 'Administrador'
-        RECEPCIONISTA = 'RECEPCIONISTA', 'Recepcionista'
-        FISIOTERAPEUTA = 'FISIOTERAPEUTA', 'Fisioterapeuta'
-        INSTRUTOR = 'INSTRUTOR', 'Instrutor'
+    class Status(models.TextChoices):
+        ATIVO = 'ATIVO', 'Ativo'
+        INATIVO = 'INATIVO', 'Inativo'
+        FERIAS = 'FERIAS', 'Férias'
 
+    # Relação um-para-um com o usuário. Cada usuário pode ter apenas um perfil de colaborador.
+    # `primary_key=True` faz deste campo a chave primária da tabela.
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
-    perfil = models.CharField(max_length=20, choices=Perfil.choices)
-    registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO/CREF")
-    unidades = models.ManyToManyField(Unidade, related_name="colaboradores")
+    
+    # Perfis de acesso associados a este colaborador.
+    perfis = models.ManyToManyField(Perfil, related_name="colaboradores")
+    
+    registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO para fisioterapeutas, CREF para instrutores")
+    data_nascimento = models.DateField(null=True, blank=True)
+    telefone = PhoneNumberField(region="BR", null=True, blank=True)
+    data_admissao = models.DateField(null=True, blank=True)
+    data_demissao = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ATIVO)
+    
+    # Endereço do colaborador. Se o endereço for deletado, o campo fica nulo.
+    endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Unidades/Studios onde o colaborador trabalha.
+    unidades = models.ManyToManyField(Studio, related_name="colaboradores")
 
     class Meta:
         db_table = 'colaboradores'
@@ -67,4 +110,5 @@ class Colaborador(models.Model):
         verbose_name_plural = "Colaboradores"
 
     def __str__(self):
+        """Retorna o nome do usuário associado a este perfil de colaborador."""
         return self.usuario.get_full_name() or self.usuario.username

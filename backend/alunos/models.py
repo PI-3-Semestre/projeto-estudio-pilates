@@ -1,31 +1,31 @@
-import uuid
 from django.db import models
-from cpf_field.models import CPFField
 from phonenumber_field.modelfields import PhoneNumberField
-import secrets
+from usuarios.models import Usuario
 
-# Create your models here.
-
-#Criação do Token
-def generate_token():
-    return secrets.token_urlsafe(20)
-
-#Classe Model Aluno
 class Aluno(models.Model):   
-    nome = models.CharField(max_length=200)
+    """
+    Modelo que representa o perfil de um Aluno.
+    Este modelo estende o modelo de Usuário com informações específicas do aluno.
+    """
+    # Relação um-para-um com o usuário. Cada usuário pode ter apenas um perfil de aluno.
+    # `primary_key=True` faz deste campo a chave primária da tabela.
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
+
+    # Foto de perfil do aluno.
     foto = models.ImageField(upload_to='alunos/', blank=True, null=True)
+
     dataNascimento = models.DateField(verbose_name="Data de Nascimento")
-    cpf = CPFField()
-    email = models.EmailField(unique=True)
-    contato = PhoneNumberField(region="BR")
+    contato = PhoneNumberField(region="BR", verbose_name="Telefone de Contato")
     profissao = models.CharField(max_length=100, blank=True, null=True)
 
-    is_active = models.BooleanField(default=True)
+    # Campo para desativar o perfil de um aluno sem excluí-lo.
+    is_active = models.BooleanField(default=True, verbose_name="Ativo")
 
-    email_verificado = models.BooleanField(default=False)
-    token_verificado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    
-    token_usuario = models.TextField(default=generate_token)
+    # Unidades/Studios que o aluno frequenta.
+    unidades = models.ManyToManyField('studios.Studio', related_name="alunos")
+
+    # O campo CPF foi removido deste modelo para evitar redundância.
+    # O CPF canônico é armazenado no modelo `Usuario` e pode ser acessado via `self.usuario.cpf`.
 
     class Meta:
         db_table = 'alunos'
@@ -33,4 +33,10 @@ class Aluno(models.Model):
         verbose_name_plural = "Alunos"
 
     def __str__(self):
-        return str(self.nome) 
+        """Retorna o nome completo do usuário associado a este perfil de aluno."""
+        return str(self.usuario.get_full_name())
+
+    @property
+    def cpf(self):
+        """Propriedade para acessar o CPF do usuário relacionado diretamente."""
+        return self.usuario.cpf

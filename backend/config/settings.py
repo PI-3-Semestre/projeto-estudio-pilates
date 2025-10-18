@@ -30,7 +30,7 @@ if not SECRET_KEY:
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -44,13 +44,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # --- Apps de Terceiros ---
-    'rest_framework',       # Para a criação de APIs
-    'drf_spectacular',      # Para a documentação (Swagger UI)
-    'guardian',             # Para permissões por objeto (por unidade)
-    'cpf_field',            # Para validação de CPF
+    'rest_framework',         # Para a criação de APIs
+    'drf_spectacular',        # Para a documentação (Swagger UI)
+    'guardian',               # Para permissões por objeto (por unidade)
+    'cpf_field',              # Para validação de CPF
     'phonenumber_field',
+    'corsheaders',            # +++ ADICIONADO para gerenciar o CORS
 
-    
     # --- Nossas Apps ---
     'usuarios.apps.UsuariosConfig',
     'alunos',
@@ -58,14 +58,15 @@ INSTALLED_APPS = [
     'agendamentos',
     'financeiro',
     'avaliacoes',
-    'colaborador.apps.ColaboradorConfig',
-    # Adicione aqui outras apps que criar, como 'unidades', 'planos', etc.
+    'autenticacao',
 ]
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # +++ O middleware do CORS deve vir antes de middlewares que geram respostas, como o CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -97,7 +98,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# --- Bloco de Banco de Dados Lendo do .env ---
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.mysql'),
@@ -124,13 +124,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-# --- Configurações de Idioma e Fuso Horário ---
 LANGUAGE_CODE = "pt-br"
-
 TIME_ZONE = "America/Sao_Paulo"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -145,25 +141,30 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# --- Configuração do Modelo de Usuário Customizado ---
-# Aponta para o nosso modelo de usuário customizado na app 'colaborador'.
-AUTH_USER_MODEL = 'colaborador.Colaborador'
-
-
 # --- Configurações de Autenticação (incluindo Django Guardian) ---
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # Autenticação padrão do Django
-    'guardian.backends.ObjectPermissionBackend', # Backend para permissões por objeto
+    'django.contrib.auth.backends.ModelBackend',
+    'autenticacao.auth_backends.CPFBackend',
+    'autenticacao.auth_backends.EmailBackend',
+    'guardian.backends.ObjectPermissionBackend',
 )
 
 
 # --- Configurações do Django REST Framework e Swagger ---
 REST_FRAMEWORK = {
-    # Define o gerador de esquema da API para o drf-spectacular
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # --- Configuração de E-mail (para desenvolvimento) ---
-# Imprime os e-mails no console em vez de enviá-los de verdade.
-# Ótimo para testar o fluxo de "esqueci minha senha".
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# +++ ADICIONADO: Configurações do CORS (Cross-Origin Resource Sharing) +++
+# Lista de origens (seu frontend) que têm permissão para fazer requisições.
+# Altere a porta se o seu frontend rodar em uma porta diferente (ex: 8080, 4200).
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Para testes rápidos, você pode permitir todas as origens (NÃO USE EM PRODUÇÃO)
+# CORS_ALLOW_ALL_ORIGINS = True

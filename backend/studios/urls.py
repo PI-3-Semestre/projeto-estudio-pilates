@@ -1,11 +1,18 @@
 # studios/urls.py
-from django.urls import path
-from .views import StudioListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import StudioViewSet
 
+# O DefaultRouter é uma ferramenta do Django Rest Framework que cria automaticamente
+# um conjunto completo de URLs para um ViewSet.
+router = DefaultRouter()
+
+# Registra o StudioViewSet com o router.
+# O prefixo da URL será 'studios/' (definido no urls.py principal do projeto).
+# O `basename` é usado para nomear as URLs geradas, o que é útil para reverter URLs.
+router.register(r'', StudioViewSet, basename='studio')
+
+# Inclui as URLs geradas pelo router no padrão de URLs do aplicativo.
 urlpatterns = [
-    # Ex: GET /api/studios/
-    path('', StudioListView.as_view(), name='studio-list'),
-
-    # Ex: GET /api/studios/1/relatorio-financeiro/ # EXEMPLO
-    #path('<int:studio_id>/relatorio-financeiro/', RelatorioFinanceiroView.as_view(), name='studio-finance-report'),
+    path('', include(router.urls)),
 ]
