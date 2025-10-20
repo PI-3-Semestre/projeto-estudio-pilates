@@ -52,3 +52,5 @@ htmlcov/
 # É uma boa prática ter um arquivo de configurações locais que não é versionado
 local_settings.py
 *.env
+
+GEMINI.md

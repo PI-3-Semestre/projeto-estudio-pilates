@@ -31,10 +31,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
     # --- Nossas Rotas de API ---
-    # Inclui todas as rotas definidas no arquivo 'urls.py' do app 'usuarios'
-    
-    # TODO: Adicionar as rotas das outras apps aqui no futuro. Exemplo:
-    # path('api/', include('agendamentos.urls')),
+    path('api/agendamentos/', include('agendamentos.urls')),
     path('api/', include('usuarios.urls')),
     # path /colaraboradores & /cargos 
     

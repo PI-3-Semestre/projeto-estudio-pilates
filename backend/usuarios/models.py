@@ -101,8 +101,12 @@ class Colaborador(models.Model):
     # Endereço do colaborador. Se o endereço for deletado, o campo fica nulo.
     endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # Unidades/Studios onde o colaborador trabalha.
-    unidades = models.ManyToManyField(Studio, related_name="colaboradores")
+    # Novo campo de unidades que usa a tabela intermediária para permissões granulares.
+    unidades = models.ManyToManyField(
+        Studio,
+        through='studios.ColaboradorStudio',
+        related_name="colaboradores"
+    )
 
     class Meta:
         db_table = 'colaboradores'

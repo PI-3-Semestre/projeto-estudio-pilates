@@ -12,9 +12,9 @@ class LoginAPITestCase(APITestCase):
     def setUp(self):
         # Cria um usuário de teste para os cenários
         self.user = Usuario.objects.create_user(
+            username='testuser',
             email='teste@exemplo.com',
-            password='senhasecreta123',
-            tipo_usuario='ALUNO'
+            password='senhasecreta123'
         )
 
     def test_login_com_credenciais_validas(self):

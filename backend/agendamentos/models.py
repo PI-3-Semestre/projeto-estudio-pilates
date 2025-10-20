@@ -1,96 +1,143 @@
+# agendamentos/models.py
 from django.db import models
-from alunos.models import Aluno
-from usuarios.models import Colaborador, Usuario
 from studios.models import Studio
+from usuarios.models import Colaborador
+from alunos.models import Aluno
+
+class HorarioTrabalho(models.Model):
+    """
+    Armazena a configuração de dias e horários de funcionamento por estúdio.
+    """
+    class DiaSemana(models.IntegerChoices):
+        SEGUNDA = 0, 'Segunda-feira'
+        TERCA = 1, 'Terça-feira'
+        QUARTA = 2, 'Quarta-feira'
+        QUINTA = 3, 'Quinta-feira'
+        SEXTA = 4, 'Sexta-feira'
+        SABADO = 5, 'Sábado'
+        DOMINGO = 6, 'Domingo'
+
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name='horarios_trabalho')
+    dia_semana = models.IntegerField(choices=DiaSemana.choices)
+    hora_inicio = models.TimeField()
+    hora_fim = models.TimeField()
+
+    class Meta:
+        unique_together = ('studio', 'dia_semana')
+        verbose_name = "Horário de Trabalho"
+        verbose_name_plural = "Horários de Trabalho"
+
+    def __str__(self):
+        return f"{self.studio.nome} - {self.get_dia_semana_display()}: {self.hora_inicio} às {self.hora_fim}"
+
+class BloqueioAgenda(models.Model):
+    """
+    Armazena feriados e outras datas em que não haverá expediente.
+    """
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name='bloqueios')
+    data = models.DateField()
+    descricao = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('studio', 'data')
+        verbose_name = "Bloqueio de Agenda"
+        verbose_name_plural = "Bloqueios de Agenda"
+
+    def __str__(self):
+        return f"Bloqueio em {self.studio.nome} no dia {self.data}: {self.descricao}"
 
 class Modalidade(models.Model):
-    """ Representa uma modalidade de aula (ex: Pilates, Yoga). """
-    nome = models.CharField(max_length=50, unique=True)
-    
-    class Meta:
-        db_table = 'modalidades'
+    """
+    Define as modalidades de aula oferecidas (ex: Pilates, Yoga).
+    """
+    nome = models.CharField(max_length=100, unique=True)
+
     def __str__(self):
         return self.nome
 
 class Aula(models.Model):
-    """ Representa uma aula na grade de horários do estúdio. """
+    """
+    A entidade central para uma aula agendada.
+    """
     class TipoAula(models.TextChoices):
         REGULAR = 'REGULAR', 'Regular'
         EXPERIMENTAL = 'EXPERIMENTAL', 'Experimental'
         REPOSICAO = 'REPOSICAO', 'Reposição'
-        
-    studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
-    modalidade = models.ForeignKey(Modalidade, on_delete=models.PROTECT)
-    instrutor_principal = models.ForeignKey(Colaborador, related_name='aulas_principais', on_delete=models.PROTECT)
-    instrutor_substituto = models.ForeignKey(Colaborador, related_name='aulas_substitutas', on_delete=models.SET_NULL, null=True, blank=True)
+
+    studio = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name='aulas')
+    modalidade = models.ForeignKey(Modalidade, on_delete=models.PROTECT, related_name='aulas')
+    instrutor_principal = models.ForeignKey(Colaborador, on_delete=models.SET_NULL, null=True, related_name='aulas_principais')
+    instrutor_substituto = models.ForeignKey(Colaborador, on_delete=models.SET_NULL, null=True, blank=True, related_name='aulas_substitutas')
     data_hora_inicio = models.DateTimeField()
-    duracao_minutos = models.IntegerField(default=60)
-    capacidade_maxima = models.PositiveIntegerField()
+    duracao_minutos = models.PositiveIntegerField(default=60)
+    capacidade_maxima = models.PositiveIntegerField(default=3)
     tipo_aula = models.CharField(max_length=20, choices=TipoAula.choices, default=TipoAula.REGULAR)
-    alunos = models.ManyToManyField(Aluno, through='AulaAluno')
-    
+
     class Meta:
-        db_table = 'aulas'
+        ordering = ['data_hora_inicio']
+        verbose_name = "Aula"
+        verbose_name_plural = "Aulas"
+
     def __str__(self):
-        return f"{self.modalidade} em {self.data_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
+        return f"{self.modalidade.nome} em {self.studio.nome} - {self.data_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
 
 class AulaAluno(models.Model):
-    """ Tabela de ligação para registrar a presença de um aluno em uma aula. """
+    """
+    Tabela de associação que inscreve um aluno em uma aula e controla a presença.
+    """
     class StatusPresenca(models.TextChoices):
         PRESENTE = 'PRESENTE', 'Presente'
         AUSENTE_COM_REPO = 'AUSENTE_COM_REPO', 'Ausente com Reposição'
         AUSENTE_SEM_REPO = 'AUSENTE_SEM_REPO', 'Ausente sem Reposição'
-    
-    aula = models.ForeignKey(Aula, on_delete=models.CASCADE)
-    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE)
-    status_presenca = models.CharField(max_length=20, choices=StatusPresenca.choices)
-    
+        AGENDADO = 'AGENDADO', 'Agendado'
+
+    aula = models.ForeignKey(Aula, on_delete=models.CASCADE, related_name='alunos_inscritos')
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='aulas_agendadas')
+    status_presenca = models.CharField(max_length=20, choices=StatusPresenca.choices, default=StatusPresenca.AGENDADO)
+
     class Meta:
-        db_table = 'aulas_alunos'
-        unique_together = [['aula', 'aluno']]
+        unique_together = ('aula', 'aluno')
+        verbose_name = "Agendamento de Aluno"
+        verbose_name_plural = "Agendamentos de Alunos"
+
+    def __str__(self):
+        return f"{self.aluno} na aula de {self.aula.modalidade.nome} em {self.aula.data_hora_inicio.strftime('%d/%m')}"
 
 class Reposicao(models.Model):
-    """ Controla os créditos de reposição de um aluno. """
+    """
+    Gerencia os créditos de reposição de aulas para os alunos.
+    """
     class StatusReposicao(models.TextChoices):
         DISPONIVEL = 'DISPONIVEL', 'Disponível'
         UTILIZADA = 'UTILIZADA', 'Utilizada'
         EXPIRADA = 'EXPIRADA', 'Expirada'
-        
-    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name="reposicoes")
-    aula_origem = models.ForeignKey(Aula, on_delete=models.CASCADE, help_text="Aula que gerou o crédito de reposição.")
+
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='reposicoes')
+    agendamento_origem = models.ForeignKey(AulaAluno, on_delete=models.CASCADE, related_name='reposicao_gerada', null=True)
     data_expiracao = models.DateField()
     status = models.CharField(max_length=20, choices=StatusReposicao.choices, default=StatusReposicao.DISPONIVEL)
-    
-    class Meta:
-        db_table = 'reposicoes'
+
+    def __str__(self):
+        return f"Reposição para {self.aluno} (expira em {self.data_expiracao})"
 
 class ListaEspera(models.Model):
-    """ Gerencia a lista de espera para aulas lotadas. """
+    """
+    Gerencia a lista de espera para aulas lotadas.
+    """
     class StatusEspera(models.TextChoices):
         AGUARDANDO = 'AGUARDANDO', 'Aguardando'
         NOTIFICADO = 'NOTIFICADO', 'Notificado'
 
-    aula = models.ForeignKey(Aula, on_delete=models.CASCADE, related_name="lista_espera")
-    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name="lista_espera")
+    aula = models.ForeignKey(Aula, on_delete=models.CASCADE, related_name='lista_espera')
+    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name='lista_espera')
     data_inscricao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=StatusEspera.choices, default=StatusEspera.AGUARDANDO)
 
     class Meta:
-        db_table = 'lista_espera'
+        unique_together = ('aula', 'aluno')
         ordering = ['data_inscricao']
+        verbose_name = "Lista de Espera"
+        verbose_name_plural = "Listas de Espera"
 
-class Notificacao(models.Model):
-    """ Armazena notificações para os usuários. """
-    class StatusNotificacao(models.TextChoices):
-        NAO_LIDA = 'NAO_LIDA', 'Não Lida'
-        LIDA = 'LIDA', 'Lida'
-
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notificacoes")
-    tipo = models.CharField(max_length=50)
-    mensagem = models.TextField()
-    status = models.CharField(max_length=20, choices=StatusNotificacao.choices, default=StatusNotificacao.NAO_LIDA)
-    data_criacao = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'notificacoes'
-        ordering = ['-data_criacao']
+    def __str__(self):
+        return f"{self.aluno} na lista de espera para {self.aula}"
