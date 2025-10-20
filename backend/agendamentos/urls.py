@@ -2,21 +2,24 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    HorarioTrabalhoViewSet, BloqueioAgendaViewSet, ModalidadeViewSet,
-    AulaViewSet, AulaAlunoViewSet, ReposicaoViewSet, ListaEsperaViewSet
+    HorarioTrabalhoViewSet,
+    BloqueioAgendaViewSet,
+    ModalidadeViewSet,
+    AulaViewSet,
+    AulaAlunoViewSet,
+    ReposicaoViewSet,
+    ListaEsperaViewSet
 )
 
-# Cria um router e registra nossos viewsets com ele.
 router = DefaultRouter()
-router.register(r'horarios-trabalho', HorarioTrabalhoViewSet)
-router.register(r'bloqueios-agenda', BloqueioAgendaViewSet)
-router.register(r'modalidades', ModalidadeViewSet)
-router.register(r'aulas', AulaViewSet)
-router.register(r'agendamentos-alunos', AulaAlunoViewSet)
-router.register(r'reposicoes', ReposicaoViewSet)
-router.register(r'listas-espera', ListaEsperaViewSet)
+router.register(r'horarios-trabalho', HorarioTrabalhoViewSet, basename='horariotrabalho')
+router.register(r'bloqueios-agenda', BloqueioAgendaViewSet, basename='bloqueioagenda')
+router.register(r'modalidades', ModalidadeViewSet, basename='modalidade')
+router.register(r'aulas', AulaViewSet, basename='aula')
+router.register(r'aulas-alunos', AulaAlunoViewSet, basename='aulaaluno')
+router.register(r'reposicoes', ReposicaoViewSet, basename='reposicao')
+router.register(r'listas-espera', ListaEsperaViewSet, basename='listaespera')
 
-# As URLs da API são determinadas automaticamente pelo router.
 urlpatterns = [
     path('', include(router.urls)),
 ]

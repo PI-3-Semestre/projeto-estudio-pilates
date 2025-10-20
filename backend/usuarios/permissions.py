@@ -43,25 +43,3 @@ class IsAdminMasterOrAdministrador(BasePermission):
             ).exists()
         except Colaborador.DoesNotExist:
             return False
-
-class CanManageAvaliations(BasePermission):
-    """
-    Permissão para gerenciar avaliações, concedida a Fisioterapeutas, 
-    Instrutores e Administradores.
-    """
-    message = "Apenas Fisioterapeutas, Instrutores ou Administradores podem realizar esta ação."
-
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        
-        if request.user.is_superuser:
-            return True
-
-        try:
-            # Verifica se o colaborador tem algum dos perfis necessários.
-            return request.user.colaborador.perfis.filter(
-                nome__in=['FISIOTERAPEUTA', 'INSTRUTOR', 'ADMIN_MASTER', 'ADMINISTRADOR']
-            ).exists()
-        except Colaborador.DoesNotExist:
-            return False

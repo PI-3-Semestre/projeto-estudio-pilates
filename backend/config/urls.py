@@ -45,4 +45,7 @@ urlpatterns = [
 
     #path para app autenticacao
     path('api/auth/', include('autenticacao.urls')),
+
+    #path para app financeiro
+    path('api/financeiro/', include('financeiro.urls')),
 ]

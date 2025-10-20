@@ -5,26 +5,26 @@ from guardian.shortcuts import assign_perm, remove_perm
 from .models import ColaboradorStudio, Studio
 
 # Este dicionário funciona como uma Matriz de Controle de Acesso Baseado em Papel (Role-Based Access Control).
-# Ele mapeia um papel (definido em ColaboradorStudio.PermissaoChoices) para uma lista de codinomes de permissão
+# Ele mapeia o NOME de uma FuncaoOperacional para uma lista de codinomes de permissão
 # (definidos na classe Meta do modelo Studio).
 PERMISSIONS_MAP = {
     # Administradores têm todas as permissões no studio.
-    ColaboradorStudio.PermissaoChoices.ADMIN: [
+    'Admin': [
         "view_dashboard_studio",
         "manage_finances_studio",
         "manage_collaborators_studio",
         "manage_enrollments_studio",
     ],
     # Recepcionistas podem ver o dashboard e gerenciar matrículas.
-    ColaboradorStudio.PermissaoChoices.RECEP: [
+    'Recep': [
         "view_dashboard_studio",
         "manage_enrollments_studio",
     ],
     # Instrutores e Fisioterapeutas podem apenas visualizar o dashboard.
-    ColaboradorStudio.PermissaoChoices.INSTRUTOR: [
+    'Instrutor': [
         "view_dashboard_studio",
     ],
-    ColaboradorStudio.PermissaoChoices.FISIO: [
+    'Fisio': [
         "view_dashboard_studio",
     ]
 }
@@ -39,7 +39,9 @@ def handle_colaborador_studio_permissions(sender, instance, **kwargs):
     # Obtém os objetos relevantes a partir da instância que foi salva.
     usuario_autenticavel = instance.colaborador.usuario
     studio = instance.studio
-    papel_atual = instance.permissao
+    # O campo 'permissao' agora é uma ForeignKey para FuncaoOperacional.
+    # Precisamos do nome da função para usar como chave no nosso mapa.
+    papel_atual = instance.permissao.nome
 
     # 1. Limpa todas as permissões de studio existentes para este usuário neste studio específico.
     # Este passo é CRUCIAL para garantir que, ao rebaixar o papel de um usuário

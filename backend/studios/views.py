@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from .models import Studio
 from .serializers import StudioSerializer
+from .permissions import IsAdminMasterOrReadOnly
 
 @extend_schema(
     tags=['Studios'],
@@ -31,4 +32,4 @@ class StudioViewSet(viewsets.ModelViewSet):
     # ATENÇÃO: Confirme se os nomes do modelo e do serializer estão corretos.
     queryset = Studio.objects.all()
     serializer_class = StudioSerializer
-    # permission_classes = [IsAuthenticated] # Exemplo de permissão, ajuste se necessário
+    permission_classes = [IsAdminMasterOrReadOnly]

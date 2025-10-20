@@ -31,22 +31,19 @@ class Studio(models.Model):
     def __str__(self):
         return self.nome
 
+class FuncaoOperacional(models.Model):
+    """Define as funções operacionais que um colaborador pode ter em um estúdio."""
+    nome = models.CharField(max_length=50, unique=True)
+    descricao = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nome
+
 class ColaboradorStudio(models.Model):
     """
     Tabela de associação (pivot) que define o papel (permissão) de um colaborador
     em um studio específico. Esta é a base do sistema de permissões granulares.
-    
-    NOTA ARQUITETURAL: A lógica de negócio atual (ex: em StudioController) parece usar
-    a relação ManyToMany direta `Colaborador.unidades` em vez deste modelo.
-    Este modelo `ColaboradorStudio` permite uma granularidade maior (papel por studio)
-    e deveria ser considerado na evolução da lógica de permissões.
     """
-    class PermissaoChoices(models.TextChoices):
-        ADMIN = 'Admin', 'Administrador'
-        INSTRUTOR = 'Instrutor', 'Instrutor'
-        FISIO = 'Fisio', 'Fisioterapeuta'
-        RECEP = 'Recep', 'Recepcionista'
-
     # Conecta-se ao modelo Colaborador do app 'usuarios'.
     colaborador = models.ForeignKey(
         'usuarios.Colaborador',
@@ -60,11 +57,7 @@ class ColaboradorStudio(models.Model):
         related_name='colaboradores_vinculados'
     )
     # Define o papel específico do colaborador nesta unidade.
-    permissao = models.CharField(
-        max_length=10,
-        choices=PermissaoChoices.choices,
-        help_text="Define o papel do colaborador nesta unidade específica."
-    )
+    permissao = models.ForeignKey(FuncaoOperacional, on_delete=models.PROTECT)
 
     class Meta:
         # Garante que um colaborador tenha apenas um papel por studio.
@@ -73,4 +66,4 @@ class ColaboradorStudio(models.Model):
         verbose_name_plural = "Vínculos Colaborador-Studio"
 
     def __str__(self):
-        return f"{self.colaborador.usuario.get_full_name()} em {self.studio.nome}: {self.get_permissao_display()}"
+        return f"{self.colaborador.usuario.get_full_name()} em {self.studio.nome}: {self.permissao.nome}"

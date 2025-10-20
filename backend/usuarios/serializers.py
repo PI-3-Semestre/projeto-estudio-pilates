@@ -1,7 +1,7 @@
 # usuarios/serializers.py
 from rest_framework import serializers
 from .models import Usuario, Colaborador, Endereco
-from studios.models import Studio, ColaboradorStudio
+from studios.models import Studio, ColaboradorStudio, FuncaoOperacional
 
 class EnderecoSerializer(serializers.ModelSerializer):
     """
@@ -56,13 +56,26 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class ColaboradorStudioWriteSerializer(serializers.Serializer):
     """Serializer auxiliar para a escrita da relação Colaborador-Studio."""
     studio_id = serializers.IntegerField()
-    permissao = serializers.ChoiceField(choices=ColaboradorStudio.PermissaoChoices.choices)
+    permissao_id = serializers.IntegerField()
+
+    def validate_studio_id(self, value):
+        """Verifica se o Studio com o ID fornecido existe."""
+        if not Studio.objects.filter(pk=value).exists():
+            raise serializers.ValidationError(f"Studio com id={value} não existe.")
+        return value
+
+    def validate_permissao_id(self, value):
+        """Verifica se a FuncaoOperacional com o ID fornecido existe."""
+        if not FuncaoOperacional.objects.filter(pk=value).exists():
+            raise serializers.ValidationError(f"Permissão com id={value} não existe.")
+        return value
 
 
 class ColaboradorStudioReadSerializer(serializers.ModelSerializer):
     """Serializer para leitura da relação Colaborador-Studio, mostrando o nome do studio."""
     studio_nome = serializers.CharField(source='studio.nome', read_only=True)
     studio_id = serializers.IntegerField(source='studio.id', read_only=True)
+    permissao = serializers.IntegerField(source='permissao_id', read_only=True)
 
     class Meta:
         model = ColaboradorStudio
@@ -77,9 +90,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
     nome_completo = serializers.CharField(source='usuario.get_full_name', read_only=True)
     definir_nome_completo = serializers.CharField(write_only=True, required=False, help_text="Defina o nome completo para atualizar o usuário relacionado.")
     
-    # Campo para LEITURA da relação com studios
     unidades = ColaboradorStudioReadSerializer(source='vinculos_studio', many=True, read_only=True)
-    # Campo para ESCRITA da relação com studios
     vinculos_studio = ColaboradorStudioWriteSerializer(many=True, write_only=True)
 
     class Meta:
@@ -90,7 +101,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
             'data_demissao', 'status', 'endereco', 'unidades', 'vinculos_studio'
         ]
         extra_kwargs = {
-            'usuario': {'read_only': True} # Usuário é definido na criação e não deve ser alterado.
+            'usuario': {'read_only': True}
         }
 
     def create(self, validated_data):
@@ -106,7 +117,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
             ColaboradorStudio.objects.create(
                 colaborador=colaborador,
                 studio_id=vinculo_data['studio_id'],
-                permissao=vinculo_data['permissao']
+                permissao_id=vinculo_data['permissao_id']
             )
 
         return colaborador
@@ -126,15 +137,12 @@ class ColaboradorSerializer(serializers.ModelSerializer):
 
         if 'vinculos_studio' in validated_data:
             vinculos_data = validated_data.pop('vinculos_studio')
-            # Apaga os vínculos antigos
             instance.vinculos_studio.all().delete()
-            # Cria os novos vínculos
             for vinculo_data in vinculos_data:
                 ColaboradorStudio.objects.create(
                     colaborador=instance,
                     studio_id=vinculo_data['studio_id'],
-                    permissao=vinculo_data['permissao']
+                    permissao_id=vinculo_data['permissao_id']
                 )
 
-        # Chama o super para atualizar os campos restantes do Colaborador
         return super().update(instance, validated_data)
