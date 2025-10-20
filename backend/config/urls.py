@@ -31,7 +31,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
     # --- Nossas Rotas de API ---
-    path('api/agendamentos/', include('agendamentos.urls')),
+    # path('api/agendamentos/', include('agendamentos.urls')),
     path('api/', include('usuarios.urls')),
     # path /colaraboradores & /cargos 
     
@@ -47,5 +47,5 @@ urlpatterns = [
     path('api/auth/', include('autenticacao.urls')),
 
     #path para app financeiro
-    path('api/financeiro/', include('financeiro.urls')),
+    # path('api/financeiro/', include('financeiro.urls')),
 ]
