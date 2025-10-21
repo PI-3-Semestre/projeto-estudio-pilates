@@ -7,16 +7,7 @@ from .permissions import IsAdminMasterOrReadOnly
 
 @extend_schema(
     tags=['Studios'],
-    description='ViewSet para gerenciar os Studios (unidades).',
-    # +++ ADICIONADO: Define explicitamente o parâmetro 'pk' (ID) na URL para a documentação.
-    parameters=[
-        OpenApiParameter(
-            name='pk', 
-            type=int, 
-            location=OpenApiParameter.PATH,
-            description='ID (Chave Primária) do Studio.'
-        )
-    ]
+    description='ViewSet para gerenciar os Studios (unidades).'
 )
 class StudioViewSet(viewsets.ModelViewSet):
     """

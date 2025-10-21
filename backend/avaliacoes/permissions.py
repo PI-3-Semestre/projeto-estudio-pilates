@@ -14,6 +14,9 @@ class CanManageAvaliacaoObject(BasePermission):
 
     def has_permission(self, request, view):
         """Define o acesso a nível de view (POST para criar, GET para listar)."""
+        if request.user and request.user.is_superuser:
+            return True
+            
         if not request.user or not request.user.is_authenticated:
             return False
 
@@ -32,6 +35,9 @@ class CanManageAvaliacaoObject(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         """Define o acesso a nível de objeto (GET, PUT, DELETE em uma avaliação específica)."""
+        if request.user and request.user.is_superuser:
+            return True
+            
         try:
             user_perfis = set(request.user.colaborador.perfis.values_list('nome', flat=True))
         except Colaborador.DoesNotExist:

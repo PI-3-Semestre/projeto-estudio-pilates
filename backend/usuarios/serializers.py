@@ -1,5 +1,6 @@
 # usuarios/serializers.py
 from rest_framework import serializers
+from django.db import IntegrityError
 from .models import Usuario, Colaborador, Endereco
 from studios.models import Studio, ColaboradorStudio, FuncaoOperacional
 
@@ -47,16 +48,20 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if 'definir_nome_completo' in validated_data:
             nome_completo = validated_data.pop('definir_nome_completo')
             parts = nome_completo.split(' ', 1)
-            instance.first_name = parts[0]
-            instance.last_name = parts[1] if len(parts) > 1 else ''
-        
+            instance.usuario.first_name = parts[0]
+            instance.usuario.last_name = parts[1] if len(parts) > 1 else ''
+            instance.usuario.save()
+
         return super().update(instance, validated_data)
 
 
 class ColaboradorStudioWriteSerializer(serializers.Serializer):
     """Serializer auxiliar para a escrita da relação Colaborador-Studio."""
     studio_id = serializers.IntegerField()
-    permissao_id = serializers.IntegerField()
+    permissao_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        allow_empty=False
+    )
 
     def validate_studio_id(self, value):
         """Verifica se o Studio com o ID fornecido existe."""
@@ -64,11 +69,12 @@ class ColaboradorStudioWriteSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"Studio com id={value} não existe.")
         return value
 
-    def validate_permissao_id(self, value):
-        """Verifica se a FuncaoOperacional com o ID fornecido existe."""
-        if not FuncaoOperacional.objects.filter(pk=value).exists():
-            raise serializers.ValidationError(f"Permissão com id={value} não existe.")
-        return value
+    def validate_permissao_ids(self, values):
+        """Verifica se todas as FuncoesOperacionais com os IDs fornecidos existem."""
+        for value in values:
+            if not FuncaoOperacional.objects.filter(pk=value).exists():
+                raise serializers.ValidationError(f"Permissão com id={value} não existe.")
+        return values
 
 
 class ColaboradorStudioReadSerializer(serializers.ModelSerializer):
@@ -100,25 +106,32 @@ class ColaboradorSerializer(serializers.ModelSerializer):
             'registro_profissional', 'data_nascimento', 'telefone', 'data_admissao',
             'data_demissao', 'status', 'endereco', 'unidades', 'vinculos_studio'
         ]
-        extra_kwargs = {
-            'usuario': {'read_only': True}
-        }
 
     def create(self, validated_data):
         """Cria um novo perfil de Colaborador, seu Endereço e os vínculos com Studios."""
         validated_data.pop('definir_nome_completo', None)
         endereco_data = validated_data.pop('endereco')
         vinculos_data = validated_data.pop('vinculos_studio')
+        perfis_data = validated_data.pop('perfis')
+        usuario = validated_data.pop('usuario')
 
         endereco = Endereco.objects.create(**endereco_data)
-        colaborador = Colaborador.objects.create(endereco=endereco, **validated_data)
+        
+        try:
+            colaborador = Colaborador.objects.create(usuario=usuario, endereco=endereco, **validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({"usuario": "Já existe um colaborador para este usuário."})
+
+        colaborador.perfis.set(perfis_data)
 
         for vinculo_data in vinculos_data:
-            ColaboradorStudio.objects.create(
-                colaborador=colaborador,
-                studio_id=vinculo_data['studio_id'],
-                permissao_id=vinculo_data['permissao_id']
-            )
+            studio_id = vinculo_data['studio_id']
+            for permissao_id in vinculo_data['permissao_ids']:
+                ColaboradorStudio.objects.create(
+                    colaborador=colaborador,
+                    studio_id=studio_id,
+                    permissao_id=permissao_id
+                )
 
         return colaborador
 
@@ -139,10 +152,16 @@ class ColaboradorSerializer(serializers.ModelSerializer):
             vinculos_data = validated_data.pop('vinculos_studio')
             instance.vinculos_studio.all().delete()
             for vinculo_data in vinculos_data:
-                ColaboradorStudio.objects.create(
-                    colaborador=instance,
-                    studio_id=vinculo_data['studio_id'],
-                    permissao_id=vinculo_data['permissao_id']
-                )
+                studio_id = vinculo_data['studio_id']
+                for permissao_id in vinculo_data['permissao_ids']:
+                    ColaboradorStudio.objects.create(
+                        colaborador=instance,
+                        studio_id=studio_id,
+                        permissao_id=permissao_id
+                    )
+        
+        if 'perfis' in validated_data:
+            perfis_data = validated_data.pop('perfis')
+            instance.perfis.set(perfis_data)
 
         return super().update(instance, validated_data)

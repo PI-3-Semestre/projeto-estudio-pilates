@@ -61,7 +61,7 @@ class ColaboradorStudio(models.Model):
 
     class Meta:
         # Garante que um colaborador tenha apenas um papel por studio.
-        unique_together = ('colaborador', 'studio')
+        unique_together = ('colaborador', 'studio', 'permissao')
         verbose_name = "Vínculo Colaborador-Studio"
         verbose_name_plural = "Vínculos Colaborador-Studio"
 

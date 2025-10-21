@@ -87,7 +87,7 @@ class Colaborador(models.Model):
     # Relação um-para-um com o usuário. Cada usuário pode ter apenas um perfil de colaborador.
     # `primary_key=True` faz deste campo a chave primária da tabela.
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
-    
+    print(usuario)
     # Perfis de acesso associados a este colaborador.
     perfis = models.ManyToManyField(Perfil, related_name="colaboradores")
     
@@ -114,5 +114,5 @@ class Colaborador(models.Model):
         verbose_name_plural = "Colaboradores"
 
     def __str__(self):
-        """Retorna o nome do usuário associado a este perfil de colaborador."""
+        """Retorna o nome do usuário associado a este perfil de colaborador. """
         return self.usuario.get_full_name() or self.usuario.username
