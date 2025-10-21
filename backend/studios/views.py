@@ -3,19 +3,11 @@ from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from .models import Studio
 from .serializers import StudioSerializer
+from .permissions import IsAdminMasterOrReadOnly
 
 @extend_schema(
     tags=['Studios'],
-    description='ViewSet para gerenciar os Studios (unidades).',
-    # +++ ADICIONADO: Define explicitamente o parâmetro 'pk' (ID) na URL para a documentação.
-    parameters=[
-        OpenApiParameter(
-            name='pk', 
-            type=int, 
-            location=OpenApiParameter.PATH,
-            description='ID (Chave Primária) do Studio.'
-        )
-    ]
+    description='ViewSet para gerenciar os Studios (unidades).'
 )
 class StudioViewSet(viewsets.ModelViewSet):
     """
@@ -31,4 +23,4 @@ class StudioViewSet(viewsets.ModelViewSet):
     # ATENÇÃO: Confirme se os nomes do modelo e do serializer estão corretos.
     queryset = Studio.objects.all()
     serializer_class = StudioSerializer
-    # permission_classes = [IsAuthenticated] # Exemplo de permissão, ajuste se necessário
+    permission_classes = [IsAdminMasterOrReadOnly]

@@ -36,8 +36,8 @@ class StudioController:
         
         try:
             # Para usuários comuns (não-admins), busca os studios associados 
-            # ao seu perfil de colaborador através da relação 'unidades'.
-            return user.colaborador.unidades.all()
+            # ao seu perfil de colaborador através da nova tabela de relacionamento.
+            return Studio.objects.filter(colaboradores_vinculados__colaborador=user.colaborador)
         except user.colaborador.RelatedObjectDoesNotExist:
             # Se o usuário não é um colaborador, retorna uma lista vazia.
             return Studio.objects.none()

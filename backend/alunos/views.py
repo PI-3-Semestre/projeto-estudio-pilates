@@ -1,7 +1,7 @@
 # alunos/views.py
 from rest_framework import viewsets
-# +++ MODIFICADO: Adicionado OpenApiParameter para a decoração.
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+# +++ MODIFICADO: Adicionado OpenApiParameter e extend_schema_view para a decoração.
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from .models import Aluno
 from .serializers import AlunoSerializer
 from .permissions import IsAdminOrRecepcionista
@@ -21,16 +21,59 @@ Fornece endpoints para:
 **Permissões:**
 - **Leitura (GET):** Permitida para qualquer usuário autenticado (Instrutores, Fisioterapeutas, etc.).
 - **Escrita (POST, PUT, PATCH, DELETE):** Restrita a `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
-''',
-    # +++ ADICIONADO: Define explicitamente o parâmetro 'cpf' na URL para a documentação.
-    parameters=[
-        OpenApiParameter(
-            name='cpf', 
-            type=str, 
-            location=OpenApiParameter.PATH,
-            description='CPF do Aluno (utilizado como identificador na URL).'
-        )
-    ]
+'''
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='Lista todos os alunos.'
+    ),
+    retrieve=extend_schema(
+        description='Retorna os detalhes de um aluno específico.',
+        parameters=[
+            OpenApiParameter(
+                name='cpf',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='CPF do Aluno (utilizado como identificador na URL).'
+            )
+        ]
+    ),
+    create=extend_schema(
+        description='Cria um novo aluno.'
+    ),
+    update=extend_schema(
+        description='Atualiza completamente um aluno.',
+        parameters=[
+            OpenApiParameter(
+                name='cpf',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='CPF do Aluno (utilizado como identificador na URL).'
+            )
+        ]
+    ),
+    partial_update=extend_schema(
+        description='Atualiza parcialmente um aluno.',
+        parameters=[
+            OpenApiParameter(
+                name='cpf',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='CPF do Aluno (utilizado como identificador na URL).'
+            )
+        ]
+    ),
+    destroy=extend_schema(
+        description='Remove um aluno.',
+        parameters=[
+            OpenApiParameter(
+                name='cpf',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='CPF do Aluno (utilizado como identificador na URL).'
+            )
+        ]
+    )
 )
 class AlunoViewSet(viewsets.ModelViewSet):
     """

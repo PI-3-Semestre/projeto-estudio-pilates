@@ -1,8 +1,33 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission, BaseUserManager
 from cpf_field.models import CPFField
 from phonenumber_field.modelfields import PhoneNumberField
 from studios.models import Studio
+
+class UsuarioManager(BaseUserManager):
+    """Define um gerenciador customizado para o modelo Usuario."""
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Cria e salva um usuário com o e-mail e a senha fornecidos."""
+        if not email:
+            raise ValueError('O campo de e-mail deve ser definido')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Cria e salva um superusuário com o e-mail e a senha fornecidos."""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('O superusuário deve ter is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('O superusuário deve ter is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
 
 class Perfil(models.Model):
     """
@@ -26,9 +51,17 @@ class Perfil(models.Model):
 class Usuario(AbstractUser):
     """
     Modelo customizado de usuário que estende o `AbstractUser` do Django.
-    É a base para a autenticação e identificação no sistema.
+    O login é feito via email e senha.
     """
-    # CPF como um identificador único para o usuário, além do username.
+    username = None
+    email = models.EmailField('endereço de e-mail', unique=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = UsuarioManager()
+
+    # CPF como um identificador único para o usuário.
     cpf = CPFField(unique=True, null=True, blank=True, help_text="CPF do usuário. Será usado como identificador único.")
     
     # Campos de relacionamento com os modelos de Group e Permission do Django.
@@ -56,8 +89,8 @@ class Usuario(AbstractUser):
         verbose_name_plural = "Usuários"
 
     def __str__(self):
-        """Retorna o nome completo do usuário ou seu username se o nome não estiver definido."""
-        return self.get_full_name() or self.username
+        """Retorna o e-mail do usuário."""
+        return self.email
 
 class Endereco(models.Model):
     """
@@ -101,8 +134,12 @@ class Colaborador(models.Model):
     # Endereço do colaborador. Se o endereço for deletado, o campo fica nulo.
     endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # Unidades/Studios onde o colaborador trabalha.
-    unidades = models.ManyToManyField(Studio, related_name="colaboradores")
+    # Novo campo de unidades que usa a tabela intermediária para permissões granulares.
+    unidades = models.ManyToManyField(
+        Studio,
+        through='studios.ColaboradorStudio',
+        related_name="colaboradores"
+    )
 
     class Meta:
         db_table = 'colaboradores'
@@ -110,5 +147,5 @@ class Colaborador(models.Model):
         verbose_name_plural = "Colaboradores"
 
     def __str__(self):
-        """Retorna o nome do usuário associado a este perfil de colaborador."""
-        return self.usuario.get_full_name() or self.usuario.username
+        """Retorna o nome do usuário associado a este perfil de colaborador. """
+        return self.usuario.get_full_name() or self.usuario.email
