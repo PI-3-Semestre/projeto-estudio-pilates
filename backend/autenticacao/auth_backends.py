@@ -15,21 +15,19 @@ class CPFBackend(ModelBackend):
         # O simple-jwt envia o identificador (seja username, email ou cpf) 
         # sempre no parâmetro 'username'.
         cpf = username
-        try:
-            # Tenta encontrar um usuário ativo cujo CPF corresponda ao fornecido.
-            user = Usuario.objects.get(cpf=cpf, is_active=True)
-        except Usuario.DoesNotExist:
-            # Se nenhum usuário for encontrado, este backend falha silenciosamente (retorna None)
-            # e o Django tentará o próximo backend na lista.
+        if not cpf:
             return None
 
-        # Se um usuário foi encontrado, verifica se a senha fornecida está correta.
-        # O método check_password lida com a comparação de hashes de forma segura.
-        if user.check_password(password):
-            # Se a senha estiver correta, retorna o objeto do usuário para o Django.
-            return user
+        users = Usuario.objects.filter(cpf=cpf, is_active=True)
         
-        # Se a senha estiver incorreta, a autenticação falha.
+        # Se encontrou exatamente um usuário, prossiga com a verificação da senha.
+        if users.count() == 1:
+            user = users.first()
+            if user.check_password(password):
+                return user
+        
+        # Se a autenticação não foi bem-sucedida (nenhum usuário, múltiplos usuários ou senha incorreta),
+        # falha silenciosamente para que o Django possa tentar outros backends.
         return None
 
 class EmailBackend(ModelBackend):
