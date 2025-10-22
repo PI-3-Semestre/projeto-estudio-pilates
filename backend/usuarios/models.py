@@ -7,18 +7,20 @@ from studios.models import Studio
 class UsuarioManager(BaseUserManager):
     """Define um gerenciador customizado para o modelo Usuario."""
 
-    def create_user(self, email, password=None, **extra_fields):
-        """Cria e salva um usuário com o e-mail e a senha fornecidos."""
+    def create_user(self, username, email, password=None, **extra_fields):
+        """Cria e salva um usuário com o nome de usuário, e-mail e senha fornecidos."""
+        if not username:
+            raise ValueError('O campo de nome de usuário deve ser definido')
         if not email:
             raise ValueError('O campo de e-mail deve ser definido')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
-        """Cria e salva um superusuário com o e-mail e a senha fornecidos."""
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        """Cria e salva um superusuário com o nome de usuário, e-mail e senha fornecidos."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -27,7 +29,7 @@ class UsuarioManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('O superusuário deve ter is_superuser=True.')
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(username, email, password, **extra_fields)
 
 class Perfil(models.Model):
     """
@@ -51,13 +53,12 @@ class Perfil(models.Model):
 class Usuario(AbstractUser):
     """
     Modelo customizado de usuário que estende o `AbstractUser` do Django.
-    O login é feito via email e senha.
+    O login é feito via username e senha.
     """
-    username = None
     email = models.EmailField('endereço de e-mail', unique=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     objects = UsuarioManager()
 
@@ -87,10 +88,6 @@ class Usuario(AbstractUser):
         db_table = 'usuarios'
         verbose_name = "Usuário"
         verbose_name_plural = "Usuários"
-
-    def __str__(self):
-        """Retorna o e-mail do usuário."""
-        return self.email
 
 class Endereco(models.Model):
     """
