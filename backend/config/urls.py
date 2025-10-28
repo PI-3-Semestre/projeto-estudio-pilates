@@ -48,4 +48,6 @@ urlpatterns = [
 
     #path para app financeiro
     # path('api/financeiro/', include('financeiro.urls')),
+    
+    path('api/agendamentos/', include('agendamentos.urls'))
 ]

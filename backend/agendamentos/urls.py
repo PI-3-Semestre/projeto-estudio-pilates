@@ -1,25 +1,48 @@
 # agendamentos/urls.py
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import (
-    HorarioTrabalhoViewSet,
-    BloqueioAgendaViewSet,
-    ModalidadeViewSet,
-    AulaViewSet,
-    AulaAlunoViewSet,
-    ReposicaoViewSet,
-    ListaEsperaViewSet
+    HorarioTrabalhoListCreateView,
+    HorarioTrabalhoRetrieveUpdateDestroyAPIView, 
+    BloqueioAgendaListCreateView,
+    BloqueioAgendaRetrieveUpdateDestroyAPIView,   
+    ModalidadeListCreateView,
+    ModalidadeRetrieveUpdateDestroyAPIView,    
+    AulaListCreateView,
+    AulaRetrieveUpdateDestroyAPIView,       
+    AgendamentoAlunoListCreateView,
+    AgendamentoAlunoRetrieveUpdateDestroyAPIView, 
+    ReposicaoListCreateView,
+    ReposicaoRetrieveUpdateDestroyAPIView,    
+    ListaEsperaListCreateView,
+    ListaEsperaRetrieveUpdateDestroyAPIView     
 )
 
-router = DefaultRouter()
-router.register(r'horarios-trabalho', HorarioTrabalhoViewSet, basename='horariotrabalho')
-router.register(r'bloqueios-agenda', BloqueioAgendaViewSet, basename='bloqueioagenda')
-router.register(r'modalidades', ModalidadeViewSet, basename='modalidade')
-router.register(r'aulas', AulaViewSet, basename='aula')
-router.register(r'aulas-alunos', AulaAlunoViewSet, basename='aulaaluno')
-router.register(r'reposicoes', ReposicaoViewSet, basename='reposicao')
-router.register(r'listas-espera', ListaEsperaViewSet, basename='listaespera')
-
 urlpatterns = [
-    path('', include(router.urls)),
+    # Horarios de Trabalho
+    path('horarios/trabalho/', HorarioTrabalhoListCreateView.as_view(), name='horario-trabalho-list-create'),
+    path('horarios/trabalho/<int:pk>/', HorarioTrabalhoRetrieveUpdateDestroyAPIView.as_view(), name='horario-trabalho-detail'),
+    
+    # Bloqueios de Agenda
+    path('bloqueios/agenda/', BloqueioAgendaListCreateView.as_view(), name='bloqueio-agenda-list-create'),
+    path('bloqueios/agenda/<int:pk>/', BloqueioAgendaRetrieveUpdateDestroyAPIView.as_view(), name='bloqueio-agenda-detail'),
+
+    # Modalidades
+    path('modalidades/', ModalidadeListCreateView.as_view(), name='modalidade-list-create'),
+    path('modalidades/<int:pk>/', ModalidadeRetrieveUpdateDestroyAPIView.as_view(), name='modalidade-detail'),
+
+    # Aulas
+    path('aulas/', AulaListCreateView.as_view(), name='aula-list-create'),
+    path('aulas/<int:pk>/', AulaRetrieveUpdateDestroyAPIView.as_view(), name='aula-detail'),
+
+    # Agendamentos (AulaAluno)
+    path('aulas-alunos/', AgendamentoAlunoListCreateView.as_view(), name='agendamento-aluno-list-create'),
+    path('aulas-alunos/<int:pk>/', AgendamentoAlunoRetrieveUpdateDestroyAPIView.as_view(), name='agendamento-aluno-detail'),
+
+    # Reposições
+    path('reposicoes/', ReposicaoListCreateView.as_view(), name='reposicao-list-create'),
+    path('reposicoes/<int:pk>/', ReposicaoRetrieveUpdateDestroyAPIView.as_view(), name='reposicao-detail'),
+
+    # Listas de Espera
+    path('listas-espera/', ListaEsperaListCreateView.as_view(), name='lista-espera-list-create'),
+    path('listas-espera/<int:pk>/', ListaEsperaRetrieveUpdateDestroyAPIView.as_view(), name='lista-espera-detail'),
 ]

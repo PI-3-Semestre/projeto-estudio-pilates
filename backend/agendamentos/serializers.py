@@ -29,6 +29,27 @@ class AulaAlunoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AulaAluno
         fields = '__all__'
+class AgendamentoAlunoSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o "Fluxo Aluno". 
+    O aluno é automaticamente definido como o usuário logado.
+    """
+    class Meta:
+        model = AulaAluno
+        fields = ['id', 'aula', 'aluno', 'status_presenca']
+        
+        # impede que o aluno passe no json
+        read_only_fields = ['aluno']
+        
+class AgendamentoStaffSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o "Fluxo Staff".
+    Permite que o staff defina para qual 'aluno' o agendamento está sendo feito.
+    """
+    class Meta:
+        model = AulaAluno
+        fields = ['id', 'aula', 'aluno', 'status_presenca']
+        # aluno para ser editável depois 
 
 class ReposicaoSerializer(serializers.ModelSerializer):
     class Meta:

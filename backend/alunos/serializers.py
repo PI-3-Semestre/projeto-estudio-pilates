@@ -61,7 +61,7 @@ class AlunoSerializer(serializers.ModelSerializer):
 
         # Cria o aluno, definindo o CPF a partir do usuário associado para manter a consistência.
         aluno = Aluno.objects.create(
-            cpf=usuario.cpf,
+            #cpf=usuario.cpf,
             **validated_data
         )
         
