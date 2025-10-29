@@ -1,48 +1,55 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import api from './api';
 
 const authService = {
-  login: async (username, password) => {
-    const response = await fetch(`${API_URL}/auth/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
+  /**
+   * Realiza o login do usuário.
+   * @param {string} email - O email ou CPF do usuário.
+   * @param {string} password - A senha do usuário.
+   * @returns {Promise<object>} Os dados da resposta da API (access, refresh, user).
+   */
+  login: async (email, password) => {
+    try {
+      // O schema da API espera que o identificador (email/cpf/username)
+      // seja enviado no campo 'username'.
+      const response = await api.post('/auth/login/', {
+        username: email, // Corrigido de 'email' para 'username'
+        password: password,
+      });
+      return response.data;
+    } catch (error) {
+      // Extrai e traduz a mensagem de erro da resposta da API, se disponível
+      const apiError = error.response?.data?.detail;
+      let errorMessage = 'Credenciais inválidas. Verifique seu e-mail/CPF e senha.'; // Mensagem padrão
 
-    if (!response.ok) {
-      // Lança um erro para ser capturado pelo ViewModel
-      const errorData = await response.json().catch(() => ({ detail: 'Erro de autenticação' }));
-      throw new Error(errorData.detail || 'Não foi possível fazer login');
+      if (apiError) {
+        if (apiError.includes('No active account found')) {
+          errorMessage = 'Nenhuma conta ativa foi encontrada com as credenciais fornecidas.';
+        } else {
+          errorMessage = apiError; // Usa o erro da API se for outro
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
-
-    return response.json();
   },
 
-  register: async (name, email, password, cpf, definir_nome_completo) => {
-    const response = await fetch(`${API_URL}/api/usuarios/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: name,
-        email,
-        password,
-        cpf,
-        definir_nome_completo,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Erro ao criar conta' }));
-      throw new Error(errorData.detail || 'Não foi possível criar a conta');
+  /**
+   * Cria um novo usuário (aluno) a partir de uma conta de administrador.
+   * @param {object} userData - Os dados do usuário para criação.
+   * @returns {Promise<object>} Os dados do usuário criado.
+   */
+  adminCreateUser: async (userData) => {
+    try {
+      const response = await api.post('/api/usuarios/', userData);
+      return response.data;
+    } catch (error) {
+      // Lança o erro original para que o ViewModel possa extrair detalhes de validação
+      throw error;
     }
-
-    return response.json();
   },
 
-  // Adicione outros métodos de serviço de autenticação aqui (ex: logout, me)
+  // Outros métodos de serviço de autenticação podem ser adicionados aqui.
 };
 
 export default authService;
+

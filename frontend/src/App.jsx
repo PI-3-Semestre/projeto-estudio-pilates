@@ -1,44 +1,62 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+import ErrorBoundary from './components/ErrorBoundary';
+
+import ProtectedRoute from './components/ProtectedRoute';
 import LoginView from './views/LoginView';
-import HomeView from './views/HomeView';
-import CadastroView from './views/CadastroView';
+import AdminCadastroView from './views/AdminCadastroView';
+import DashboardAdminMasterView from './views/DashboardAdminMasterView';
+import GerenciarAlunosView from './views/GerenciarAlunosView';
+import CadastrarUsuarioView from './views/CadastrarUsuarioView';
+import CadastrarAlunoView from './views/CadastrarAlunoView';
+
+// Lida com as rotas que o usuário pode ver quando NÃO está logado.
+const PublicRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginView />} />
+      <Route path="*" element={<Navigate to="/login" />} />
+    </Routes>
+  );
+};
+
+// Lida com as rotas que o usuário só pode ver quando ESTÁ logado.
+const PrivateRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardAdminMasterView /></ProtectedRoute>} />
+      <Route path="/alunos" element={<ProtectedRoute adminOnly={true}><GerenciarAlunosView /></ProtectedRoute>} />
+      <Route path="/alunos/cadastrar-usuario" element={<ProtectedRoute adminOnly={true}><CadastrarUsuarioView /></ProtectedRoute>} />
+      <Route path="/alunos/cadastrar-perfil/:userId" element={<ProtectedRoute adminOnly={true}><CadastrarAlunoView /></ProtectedRoute>} />
+      <Route 
+        path="/admin/cadastrar-aluno" 
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <AdminCadastroView />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="*" element={<Navigate to="/dashboard" />} />
+    </Routes>
+  );
+};
+
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
+};
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState('login'); // 'login' or 'register'
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  const handleRegisterSuccess = () => {
-    // After successful registration, switch to the login view
-    setCurrentView('login');
-  };
-
-  const handleGoToRegister = () => {
-    setCurrentView('register');
-  };
-
-  const handleGoToLogin = () => {
-    setCurrentView('login');
-  };
-
-  const renderUnauthenticatedView = () => {
-    if (currentView === 'login') {
-      return <LoginView onLoginSuccess={handleLoginSuccess} onGoToRegister={handleGoToRegister} />;
-    }
-    return <CadastroView onRegisterSuccess={handleRegisterSuccess} onGoToLogin={handleGoToLogin} />;
-  };
-
   return (
-    <>
-      {isAuthenticated ? (
-        <HomeView />
-      ) : (
-        renderUnauthenticatedView()
-      )}
-    </>
+    <AuthProvider>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

@@ -1,18 +1,15 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
 
-const useLoginViewModel = ({ onLoginSuccess }) => {
-  const [formData, setFormData] = useState({
-    'smart-input': '',
-    password: ''
-  });
+const useLoginViewModel = () => {
+  const [emailCpf, setEmailCpf] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // <-- Novo estado
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const { login: contextLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,13 +17,8 @@ const useLoginViewModel = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const data = await authService.login(formData['smart-input'], formData.password);
-      console.log('Login bem-sucedido:', data);
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-      // Aqui você pode redirecionar o usuário ou salvar o token
-      // Ex: localStorage.setItem('accessToken', data.access);
+      const data = await authService.login(emailCpf, password);
+      contextLogin(data.user, data.access, data.refresh);
     } catch (err) {
       setError(err.message);
       console.error('Erro no login:', err);
@@ -35,12 +27,21 @@ const useLoginViewModel = ({ onLoginSuccess }) => {
     }
   };
 
+  // <-- Nova função
+  const toggleShowPassword = () => {
+    setShowPassword(prev => !prev);
+  };
+
   return {
-    formData,
+    emailCpf,
+    setEmailCpf,
+    password,
+    setPassword,
     error,
     loading,
-    handleChange,
     handleSubmit,
+    showPassword, // <-- Exporta o estado
+    toggleShowPassword, // <-- Exporta a função
   };
 };
 
