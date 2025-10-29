@@ -8,6 +8,41 @@ from alunos.models import Aluno
 from .permissions import CanManageAvaliacaoObject
 from django.http import Http404
 
+# --- FUNÇÃO AUXILIAR CENTRALIZADA ---
+# Esta função remove a duplicação de código identificada pelo Sonar.
+def _can_user_view_aluno_avaliacoes(user, aluno_cpf):
+    """
+    Função auxiliar para verificar se um usuário (request.user) 
+    tem permissão para visualizar as avaliações de um aluno_cpf específico.
+    """
+    if not user.is_authenticated:
+        return False
+
+    # Check 1: É o próprio aluno?
+    if hasattr(user, 'cpf') and user.cpf == aluno_cpf:
+        return True
+
+    # Check 2: É um superusuário?
+    if user.is_superuser:
+        return True
+
+    # Check 3: É um Colaborador com perfil privilegiado?
+    try:
+        user_perfis = set(user.colaborador.perfis.values_list('nome', flat=True))
+        perfis_permitidos = [
+            'ADMIN_MASTER', 'ADMINISTRADOR', 'FISIOTERAPEUTA', 
+            'INSTRUTOR', 'RECEPCIONISTA'
+        ]
+        if any(perfil in perfis_permitidos for perfil in user_perfis):
+            return True
+    except Colaborador.DoesNotExist:
+        pass  # Não é colaborador, segue para o False
+
+    # Se não passou em nenhuma verificação
+    return False
+# --- FIM DA FUNÇÃO AUXILIAR ---
+
+
 @extend_schema(
     summary='Lista e cria avaliações para um aluno',
     tags=['Avaliações'],
@@ -29,20 +64,8 @@ class AvaliacaoListCreateView(generics.ListCreateAPIView):
         aluno_cpf = self.kwargs['aluno_cpf']
         user = self.request.user
 
-        is_owner = hasattr(user, 'cpf') and user.cpf == aluno_cpf
-        is_privileged = False
-        if user.is_authenticated:
-            if user.is_superuser:
-                is_privileged = True
-            else:
-                try:
-                    user_perfis = set(user.colaborador.perfis.values_list('nome', flat=True))
-                    if any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'FISIOTERAPEUTA', 'INSTRUTOR', 'RECEPCIONISTA'] for perfil in user_perfis):
-                        is_privileged = True
-                except Colaborador.DoesNotExist:
-                    pass
-
-        if not (is_owner or is_privileged):
+        # Lógica de permissão agora centralizada na função auxiliar
+        if not _can_user_view_aluno_avaliacoes(user, aluno_cpf):
             return Avaliacao.objects.none()
 
         aluno = get_object_or_404(Aluno, usuario__cpf=aluno_cpf)
@@ -80,20 +103,8 @@ class LatestAvaliacaoView(generics.RetrieveUpdateDestroyAPIView):
         aluno_cpf = self.kwargs['aluno_cpf']
         user = self.request.user
 
-        is_owner = hasattr(user, 'cpf') and user.cpf == aluno_cpf
-        is_privileged = False
-        if user.is_authenticated:
-            if user.is_superuser:
-                is_privileged = True
-            else:
-                try:
-                    user_perfis = set(user.colaborador.perfis.values_list('nome', flat=True))
-                    if any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'FISIOTERAPEUTA', 'INSTRUTOR', 'RECEPCIONISTA'] for perfil in user_perfis):
-                        is_privileged = True
-                except Colaborador.DoesNotExist:
-                    pass
-
-        if not (is_owner or is_privileged):
+        # Lógica de permissão agora centralizada na função auxiliar
+        if not _can_user_view_aluno_avaliacoes(user, aluno_cpf):
             raise Http404("Nenhuma avaliação encontrada para este aluno.")
 
         aluno = get_object_or_404(Aluno, usuario__cpf=aluno_cpf)
