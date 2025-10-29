@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'corsheaders',            # +++ ADICIONADO para gerenciar o CORS
 
     # --- Nossas Apps ---
+    'core.apps.CoreConfig',
     'usuarios.apps.UsuariosConfig',
     'alunos',
     'studios',
