@@ -20,9 +20,11 @@ ViewSet para gerenciar os Alunos.
 )
 @extend_schema_view(
     list=extend_schema(
+        summary='Lista todos os alunos',
         description='Lista todos os alunos (apenas para admins/recepcionistas).'
     ),
     retrieve=extend_schema(
+        summary='Busca um aluno pelo CPF',
         description='Retorna os detalhes de um aluno específico.',
         parameters=[
             OpenApiParameter(
@@ -34,9 +36,11 @@ ViewSet para gerenciar os Alunos.
         ]
     ),
     create=extend_schema(
+        summary='Cria um novo aluno',
         description='Cria um novo aluno (apenas para admins/recepcionistas).'
     ),
     update=extend_schema(
+        summary='Atualiza os dados de um aluno',
         description='Atualiza completamente um aluno.',
         parameters=[
             OpenApiParameter(
@@ -48,6 +52,7 @@ ViewSet para gerenciar os Alunos.
         ]
     ),
     partial_update=extend_schema(
+        summary='Atualiza parcialmente os dados de um aluno',
         description='Atualiza parcialmente um aluno.',
         parameters=[
             OpenApiParameter(
@@ -59,6 +64,7 @@ ViewSet para gerenciar os Alunos.
         ]
     ),
     destroy=extend_schema(
+        summary='Deleta um aluno',
         description='Remove um aluno (apenas para admins/recepcionistas).'
     )
 )

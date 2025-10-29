@@ -1,10 +1,18 @@
 # studios/views.py
 from rest_framework import viewsets
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from .models import Studio
 from .serializers import StudioSerializer
 from .permissions import IsAdminMasterOrReadOnly
 
+@extend_schema_view(
+    list=extend_schema(summary="Lista todos os studios"),
+    create=extend_schema(summary="Cria um novo studio"),
+    retrieve=extend_schema(summary="Busca um studio pelo ID"),
+    update=extend_schema(summary="Atualiza os dados de um studio"),
+    partial_update=extend_schema(summary="Atualiza parcialmente os dados de um studio"),
+    destroy=extend_schema(summary="Deleta um studio"),
+)
 @extend_schema(
     tags=['Studios'],
     description='ViewSet para gerenciar os Studios (unidades).'

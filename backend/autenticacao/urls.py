@@ -1,8 +1,7 @@
 # autenticacao/urls.py
 
 from django.urls import path
-from .views import LoginAPIView
-from rest_framework_simplejwt.views import TokenRefreshView
+from .views import LoginAPIView, CustomTokenRefreshView
 
 urlpatterns = [
     # Rota para obter o par de tokens (access e refresh) através do login.
@@ -11,6 +10,10 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='token_obtain_pair'),
     
     # Rota para obter um novo token de acesso usando um token de refresh válido.
-    # Utiliza a view padrão do simple-jwt, que já tem a lógica necessária.
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Utiliza a view customizada `CustomTokenRefreshView` que é decorada com `extend_schema`.
+    path(
+        'token/refresh/',
+        CustomTokenRefreshView.as_view(),
+        name='token_refresh'
+    ),
 ]

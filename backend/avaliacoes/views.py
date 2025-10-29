@@ -9,6 +9,7 @@ from .permissions import CanManageAvaliacaoObject
 from django.http import Http404
 
 @extend_schema(
+    summary='Lista e cria avaliações para um aluno',
     tags=['Avaliações'],
     description='''
 Endpoint para Avaliações Físicas de um Aluno.
@@ -55,6 +56,7 @@ class AvaliacaoListCreateView(generics.ListCreateAPIView):
 
 
 @extend_schema(
+    summary='Busca, atualiza e deleta uma avaliação pelo ID',
     tags=['Avaliações'],
     description='''Endpoint para gerenciar uma Avaliação Física específica diretamente pelo seu ID.'''
 )
@@ -66,6 +68,7 @@ class AvaliacaoDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @extend_schema(
+    summary='Busca, atualiza e deleta a avaliação mais recente de um aluno',
     tags=['Avaliações'],
     description='''Endpoint para gerenciar a Avaliação Física mais recente de um Aluno (via CPF).'''
 )

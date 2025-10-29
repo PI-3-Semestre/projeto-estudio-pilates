@@ -1,13 +1,21 @@
 # usuarios/views.py
 from rest_framework import viewsets, permissions
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from .models import Usuario, Colaborador
 from .serializers import UsuarioSerializer, ColaboradorSerializer
 
 from .permissions import IsAdminMaster, IsAdminMasterOrAdministrador
 
+@extend_schema_view(
+    list=extend_schema(summary="Lista todos os usuários"),
+    create=extend_schema(summary="Cria um novo usuário"),
+    retrieve=extend_schema(summary="Busca um usuário pelo ID"),
+    update=extend_schema(summary="Atualiza todos os dados de um usuário"),
+    partial_update=extend_schema(summary="Atualiza parcialmente os dados de um usuário"),
+    destroy=extend_schema(summary="Deleta um usuário"),
+)
 @extend_schema(
-    tags=['Contas de Usuário'],
+    tags=['Usuários'],
     description='''
 ViewSet para gerenciar as Contas de Usuário.
 
@@ -38,6 +46,14 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     # Apenas Admin Master ou Administradores podem gerenciar usuários.
     permission_classes = [IsAdminMasterOrAdministrador]
 
+@extend_schema_view(
+    list=extend_schema(summary="Lista todos os colaboradores"),
+    create=extend_schema(summary="Cria um novo colaborador"),
+    retrieve=extend_schema(summary="Busca um colaborador pelo CPF"),
+    update=extend_schema(summary="Atualiza todos os dados de um colaborador"),
+    partial_update=extend_schema(summary="Atualiza parcialmente os dados de um colaborador"),
+    destroy=extend_schema(summary="Deleta um colaborador"),
+)
 @extend_schema(
     tags=['Colaboradores'],
     description='''
