@@ -82,6 +82,21 @@ O sistema atualmente suporta as seguintes funcionalidades:
    poetry run python manage.py runserver
    ```
 
+7. **Populando o Banco de Dados (Seeding):**
+   Para facilitar os testes, um comando foi criado para popular o banco de dados com um conjunto completo de dados de teste, incluindo studios, todos os tipos de colaboradores (admins, recepcionistas, fisios, instrutores) e alunos com avaliações.
+
+   - **Para popular o banco de dados:**
+     ```bash
+     poetry run python manage.py seed_db
+     ```
+
+   - **Para LIMPAR o banco e depois popular:**
+     Use a flag `--clean` para apagar todos os dados das tabelas antes de inserir os novos.
+     ```bash
+     poetry run python manage.py seed_db --clean
+     ```
+   Ao final da execução, o terminal exibirá as credenciais de login (email e senha) para cada usuário padrão criado.
+
 ## Documentação da API
 
 A documentação da API é gerada automaticamente pelo `drf-spectacular` e pode ser acessada em:

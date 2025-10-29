@@ -1,37 +1,32 @@
-# alunos/views.py
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets
-# +++ MODIFICADO: Adicionado OpenApiParameter e extend_schema_view para a decoração.
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from .models import Aluno
 from .serializers import AlunoSerializer
-from .permissions import IsAdminOrRecepcionista
+from .permissions import IsOwnerOrAdminOrRecepcionista
 
 @extend_schema(
     tags=['Alunos'],
     description='''
 ViewSet para gerenciar os Alunos.
 
-Fornece endpoints para:
-- Listar todos os alunos (qualquer usuário autenticado).
-- Visualizar detalhes de um aluno por CPF (qualquer usuário autenticado).
-- Criar um novo aluno (Admin/Recepcionista).
-- Atualizar um aluno existente (Admin/Recepcionista).
-- Deletar um aluno (Admin/Recepcionista).
-
 **Permissões:**
-- **Leitura (GET):** Permitida para qualquer usuário autenticado (Instrutores, Fisioterapeutas, etc.).
-- **Escrita (POST, PUT, PATCH, DELETE):** Restrita a `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
+- **Listar (GET):** Apenas `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
+- **Visualizar (GET):** O próprio aluno, ou `ADMIN_MASTER`, `ADMINISTRADOR`, `RECEPCIONISTA`.
+- **Criar (POST):** `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
+- **Atualizar (PUT/PATCH):** O próprio aluno, ou `ADMIN_MASTER`, `ADMINISTRADOR`, `RECEPCIONISTA`.
+- **Deletar (DELETE):** `ADMIN_MASTER`, `ADMINISTRADOR` ou `RECEPCIONISTA`.
 '''
 )
 @extend_schema_view(
     list=extend_schema(
-        description='Lista todos os alunos.'
+        description='Lista todos os alunos (apenas para admins/recepcionistas).'
     ),
     retrieve=extend_schema(
         description='Retorna os detalhes de um aluno específico.',
         parameters=[
             OpenApiParameter(
-                name='cpf',
+                name='usuario__cpf',
                 type=str,
                 location=OpenApiParameter.PATH,
                 description='CPF do Aluno (utilizado como identificador na URL).'
@@ -39,13 +34,13 @@ Fornece endpoints para:
         ]
     ),
     create=extend_schema(
-        description='Cria um novo aluno.'
+        description='Cria um novo aluno (apenas para admins/recepcionistas).'
     ),
     update=extend_schema(
         description='Atualiza completamente um aluno.',
         parameters=[
             OpenApiParameter(
-                name='cpf',
+                name='usuario__cpf',
                 type=str,
                 location=OpenApiParameter.PATH,
                 description='CPF do Aluno (utilizado como identificador na URL).'
@@ -56,7 +51,7 @@ Fornece endpoints para:
         description='Atualiza parcialmente um aluno.',
         parameters=[
             OpenApiParameter(
-                name='cpf',
+                name='usuario__cpf',
                 type=str,
                 location=OpenApiParameter.PATH,
                 description='CPF do Aluno (utilizado como identificador na URL).'
@@ -64,29 +59,33 @@ Fornece endpoints para:
         ]
     ),
     destroy=extend_schema(
-        description='Remove um aluno.',
-        parameters=[
-            OpenApiParameter(
-                name='cpf',
-                type=str,
-                location=OpenApiParameter.PATH,
-                description='CPF do Aluno (utilizado como identificador na URL).'
-            )
-        ]
+        description='Remove um aluno (apenas para admins/recepcionistas).'
     )
 )
 class AlunoViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet que fornece a API completa para o gerenciamento de Alunos.
-    
-    - `GET /alunos/`: Lista todos os alunos.
-    - `POST /alunos/`: Cria um novo aluno.
-    - `GET /alunos/{cpf}/`: Retorna os detalhes de um aluno específico.
-    - `PUT /alunos/{cpf}/`: Atualiza completamente um aluno.
-    - `PATCH /alunos/{cpf}/`: Atualiza parcialmente um aluno.
-    - `DELETE /alunos/{cpf}/`: Remove um aluno.
-    """
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
-    permission_classes = [IsAdminOrRecepcionista]
-    lookup_field = 'cpf'
+    permission_classes = [IsOwnerOrAdminOrRecepcionista]
+    lookup_field = 'usuario__cpf'
+
+    def get_queryset(self):
+        """
+        Este viewset retorna:
+        - Todos os alunos para usuários com perfil de admin ou recepcionista.
+        - Apenas o perfil do próprio aluno para usuários sem esses perfis.
+        """
+        user = self.request.user
+        if not user.is_authenticated:
+            return Aluno.objects.none()
+
+        if user.is_superuser:
+            return Aluno.objects.all()
+        
+        try:
+            if user.colaborador.perfis.filter(nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']).exists():
+                return Aluno.objects.all()
+        except ObjectDoesNotExist:
+            # Se não for um colaborador, pode ser um aluno
+            pass
+            
+        return Aluno.objects.filter(usuario=user)
