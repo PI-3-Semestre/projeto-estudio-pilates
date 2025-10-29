@@ -12,7 +12,7 @@ class Aluno(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
 
     # Foto de perfil do aluno.
-    foto = models.ImageField(upload_to='alunos/', blank=True, null=True)
+    foto = models.ImageField(upload_to='fotos_alunos/', blank=True, null=True)
 
     dataNascimento = models.DateField(verbose_name="Data de Nascimento")
     contato = PhoneNumberField(region="BR", verbose_name="Telefone de Contato")
