@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Criar Novo Usuário - Fase 1</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0ac2ac",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#102220",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1a2c2a",
+                        "text-light": "#0d1b1a",
+                        "text-dark": "#e0f2f0",
+                        "subtle-text-light": "#4c9a92",
+                        "subtle-text-dark": "#8cd4cb",
+                        "input-bg-light": "#e7f3f2",
+                        "input-bg-dark": "#1f3a37"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+    <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+        <!-- Top App Bar -->
+        <header
+            class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 md:px-6">
+            <button class="flex size-10 items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">arrow_back</span>
+            </button>
+            <h1 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Criar Novo Usuário
+                - Fase 1</h1>
+        </header>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col items-center p-4 md:p-6">
+            <div class="w-full max-w-lg bg-card-light dark:bg-card-dark shadow-md rounded-xl p-6 md:p-8">
+                <!-- Headline Text -->
+                <h2 class="text-2xl font-bold leading-tight tracking-tight text-left pb-6">Dados de Acesso e
+                    Identificação</h2>
+                <form class="flex flex-col gap-4">
+                    <!-- Full Name -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-base font-medium leading-normal pb-2">Nome Completo *</p>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-bg-light dark:bg-input-bg-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-subtle-text-light dark:placeholder:text-subtle-text-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
+                            placeholder="Digite o nome completo do aluno" type="text" value="" />
+                    </label>
+                    <!-- Email -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-base font-medium leading-normal pb-2">E-mail *</p>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-bg-light dark:bg-input-bg-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-subtle-text-light dark:placeholder:text-subtle-text-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
+                            placeholder="exemplo@email.com" type="email" value="" />
+                    </label>
+                    <!-- Username -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-base font-medium leading-normal pb-2">Nome de Usuário (Username) *</p>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-bg-light dark:bg-input-bg-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-subtle-text-light dark:placeholder:text-subtle-text-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
+                            placeholder="crie um nome de usuário" type="text" value="" />
+                    </label>
+                    <!-- CPF -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-base font-medium leading-normal pb-2">CPF *</p>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-bg-light dark:bg-input-bg-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-subtle-text-light dark:placeholder:text-subtle-text-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
+                            placeholder="000.000.000-00" type="text" value="" />
+                    </label>
+                    <!-- Password -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-base font-medium leading-normal pb-2">Senha de Acesso *</p>
+                        <div class="relative flex w-full items-center">
+                            <input
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-bg-light dark:bg-input-bg-dark h-14 p-4 pr-12 text-base font-normal leading-normal placeholder:text-subtle-text-light dark:placeholder:text-subtle-text-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
+                                placeholder="Crie uma senha forte" type="password" value="" />
+                            <button
+                                class="absolute right-0 flex h-14 w-12 items-center justify-center text-subtle-text-light dark:text-subtle-text-dark"
+                                type="button">
+                                <span class="material-symbols-outlined">visibility_off</span>
+                            </button>
+                        </div>
+                    </label>
+                </form>
+                <!-- Action Button -->
+                <div class="pt-8">
+                    <button
+                        class="flex w-full items-center justify-center rounded-lg bg-primary h-14 px-6 text-base font-bold text-white shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                        Criar Usuário e Continuar
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

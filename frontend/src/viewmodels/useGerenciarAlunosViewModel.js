@@ -9,7 +9,7 @@ const useGerenciarAlunosViewModel = () => {
     useEffect(() => {
         const fetchAlunos = async () => {
             try {
-                const response = await api.get('/alunos/alunos/');
+                const response = await api.get('/alunosalunos/');
                 setAlunos(response.data);
             } catch (err) {
                 setError(err);
