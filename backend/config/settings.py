@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "corsheaders",  # +++ ADICIONADO para gerenciar o CORS
     # --- Nossas Apps ---
+    'core.apps.CoreConfig',
     "usuarios.apps.UsuariosConfig",
     "alunos",
     "studios",
