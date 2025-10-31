@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     'usuarios.apps.UsuariosConfig',
     'alunos',
     'studios',
-    'agendamentos',
+    'agendamentos.apps.AgendamentosConfig',
     'avaliacoes',
     'autenticacao',
     'financeiro',

@@ -32,6 +32,7 @@ urlpatterns = [
 
     # --- Nossas Rotas de API ---
     path('api/agendamentos/', include('agendamentos.urls')),
+    
     path('api/', include('usuarios.urls')),
     # path /colaraboradores & /cargos 
     
