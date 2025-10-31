@@ -14,7 +14,8 @@ from .models import (
 from .serializers import (
     HorarioTrabalhoSerializer, BloqueioAgendaSerializer, ModalidadeSerializer,
     AulaSerializer, AulaAlunoSerializer, ReposicaoSerializer, ListaEsperaSerializer,
-    AgendamentoAlunoSerializer, AgendamentoStaffSerializer, CreditoAula
+    AgendamentoAlunoSerializer, AgendamentoStaffSerializer, CreditoAula, AgendamentoAlunoReadSerializer,
+    CreditoAulaSerializer
 )
 from .permissions import IsStaffAgendamento, IsOwnerDoAgendamento
 
@@ -167,12 +168,20 @@ class AgendamentoAlunoListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
-        staff_permission = IsStaffAgendamento()
-        if staff_permission.has_permission(self.request, self):
-            return AgendamentoStaffSerializer
-        return AgendamentoAlunoSerializer
+        """
+        Diferencia o serializer para Leitura (GET) e Escrita (POST).
+        """
+        if self.request.method == 'GET':
+            return AgendamentoAlunoReadSerializer
 
-    # --- INÍCIO DA LÓGICA ATUALIZADA (ISSUE #63) ---
+        if self.request.method == 'POST':
+            staff_permission = IsStaffAgendamento()
+            if staff_permission.has_permission(self.request, self):
+                return AgendamentoStaffSerializer 
+            return AgendamentoAlunoSerializer     
+        
+        return AgendamentoAlunoReadSerializer
+    
     def perform_create(self, serializer):
         """
         Salva o agendamento e consome o crédito (se aplicável),
@@ -184,10 +193,8 @@ class AgendamentoAlunoListCreateView(generics.ListCreateAPIView):
             if not hasattr(self.request.user, 'aluno'):
                 raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
             
-            # O 'validate' do serializer já validou e colocou o crédito nos dados
             credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
             
-            # Salva o agendamento associando ao aluno logado
             agendamento = serializer.save(aluno=self.request.user.aluno)
 
             # Consome o crédito (lógica idêntica ao 'create' do StaffSerializer)
@@ -201,7 +208,7 @@ class AgendamentoAlunoListCreateView(generics.ListCreateAPIView):
             # --- FLUXO STAFF ---
             # O 'AgendamentoStaffSerializer' tem seu próprio método 'create'
             # que já contém a lógica de consumo de crédito.
-            # Apenas chamamos o 'save()' e o serializer cuida do resto.
+            # Apenas chamamos o 'save()'
             serializer.save()
 
 @extend_schema(
@@ -224,7 +231,22 @@ class ReposicaoListCreateView(generics.ListCreateAPIView):
     queryset = Reposicao.objects.all()
     serializer_class = ReposicaoSerializer
     permission_classes = [permissions.IsAuthenticated] 
-    # TODO: Definir regras
+    
+    def get_serializer_class(self):
+        """
+        Diferencia o serializer para Leitura (GET) e Escrita (PUT/PATCH).
+        """
+        # Para LEITURA (Detalhe), usamos o ReadSerializer
+        if self.request.method == 'GET':
+            return AgendamentoAlunoReadSerializer
+
+        # Para ESCRITA (Atualizar), usamos o WriteSerializer do Staff
+        # (Lembre-se: Apenas Staff pode editar agendamentos nesta view)
+        if self.request.method in ['PUT', 'PATCH']:
+            return AgendamentoStaffSerializer
+        
+        # DELETE não usa serializer
+        return AgendamentoAlunoReadSerializer
 
 @extend_schema(
     tags=['Agendamentos - Reposição Aula']
@@ -252,3 +274,27 @@ class ListaEsperaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIV
     serializer_class = ListaEsperaSerializer
     permission_classes = [permissions.IsAuthenticated] 
     # TODO: Definir regras 
+    
+@extend_schema(
+    tags=['Agendamentos - Créditos'] # Tag para organizar no Swagger
+)
+class CreditoAulaListAPIView(generics.ListAPIView):
+    """
+    View (apenas GET) para um aluno listar o seu próprio extrato de créditos.
+    """
+    serializer_class = CreditoAulaSerializer
+    permission_classes = [permissions.IsAuthenticated] # Só utilizadores logados
+
+    def get_queryset(self):
+        """
+        Filtra o queryset para retornar apenas os créditos
+        associados ao aluno que está logado.
+        """
+        user = self.request.user
+        
+        # Garantir que o utilizador tem um perfil de aluno
+        if not hasattr(user, 'aluno'):
+            # Se não for aluno (ex: Staff), retorna uma lista vazia
+            return CreditoAula.objects.none() 
+            
+        return CreditoAula.objects.filter(aluno=user.aluno).order_by('-data_expiracao')

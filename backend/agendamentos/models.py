@@ -224,7 +224,7 @@ class CreditoAula(models.Model):
         on_delete=models.CASCADE,
         related_name="credito_aula_gerado",  #Nome diferente de "reposicao_gerada"
         null=True,
-        blank=True,  # Adicionando blank=True (boa prática)
+        blank=True, 
     )
     data_expiracao = models.DateField()
     status = models.CharField(

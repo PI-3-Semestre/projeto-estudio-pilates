@@ -14,7 +14,8 @@ from .views import (
     ReposicaoListCreateView,
     ReposicaoRetrieveUpdateDestroyAPIView,    
     ListaEsperaListCreateView,
-    ListaEsperaRetrieveUpdateDestroyAPIView     
+    ListaEsperaRetrieveUpdateDestroyAPIView,
+    CreditoAulaListAPIView
 )
 
 urlpatterns = [
@@ -45,4 +46,7 @@ urlpatterns = [
     # Listas de Espera
     path('listas-espera/', ListaEsperaListCreateView.as_view(), name='lista-espera-list-create'),
     path('listas-espera/<int:pk>/', ListaEsperaRetrieveUpdateDestroyAPIView.as_view(), name='lista-espera-detail'),
+    
+    # Endpoint para o aluno ver o seu extrato de créditos
+    path('creditos/', CreditoAulaListAPIView.as_view(), name='credito-aula-list')
 ]

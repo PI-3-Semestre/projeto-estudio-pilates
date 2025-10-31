@@ -4,10 +4,8 @@ from .models import (
     HorarioTrabalho, BloqueioAgenda, Modalidade, 
     Aula, AulaAluno, Reposicao, ListaEspera, Aluno, CreditoAula
 )
-from django.utils import timezone
 from datetime import timedelta
 from rest_framework.exceptions import ValidationError
-from django.db.models import F, ExpressionWrapper, DateTimeField, Q, DurationField
 
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,14 +23,38 @@ class ModalidadeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AulaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o modelo Aula.
+    """
     class Meta:
         model = Aula
-        fields = '__all__'
+        fields = [
+            'id', 'studio', 'modalidade', 'instrutor_principal', 
+            'instrutor_substituto', 'data_hora_inicio', 'duracao_minutos', 
+            'capacidade_maxima', 'tipo_aula'
+        ]   
 
 class AulaAlunoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AulaAluno
         fields = '__all__'
+        
+class AgendamentoAlunoReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer para LEITURA (GET) de agendamentos.
+    Mostra os detalhes completos da aula aninhados, em vez de apenas o ID.
+    """
+    # Aninha o AulaSerializer
+    aula = AulaSerializer(read_only=True)
+    
+    # Podemos também aninhar os detalhes do aluno se quisermos (opcional)
+    # aluno = AlunoSerializer(read_only=True) 
+
+    class Meta:
+        model = AulaAluno
+        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
+        # Usamos 'depth = 1' ou definimos os campos aninhados manualmente
+        # Optámos por definir 'aula' manualmente para melhor controlo.
 class AgendamentoAlunoSerializer(serializers.ModelSerializer):
     """
     Serializer para o Aluno agendar sua própria aula.
@@ -43,7 +65,11 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AulaAluno
         fields = ['id', 'aula', 'aluno', 'status_presenca']
-        read_only_fields = ['status_presenca', 'credito_utilizado']
+        read_only_fields = [
+            'id',                   # ID é auto-increment
+            'status_presenca',      # Status é 'AGENDADO' por default
+            'credito_utilizado'   # Crédito é gerido na lógica interna
+        ]
 
     # --- INÍCIO DA NOVA LÓGICA (ISSUE #63 - FLUXO ALUNO) ---
     def validate(self, attrs):
@@ -229,3 +255,26 @@ class ListaEsperaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListaEspera
         fields = '__all__'
+
+class CreditoAulaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para LEITURA (GET) dos créditos de aula do aluno (Tarefa da Issue #62).
+    Mostra o status, a validade e a origem/uso do crédito.
+    """
+    
+    # Opcional: Mostrar o ID da aula que usou este crédito.
+    agendamento_uso = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    
+    # Opcional: Mostrar o ID do agendamento cancelado que gerou este crédito (se aplicável)
+    agendamento_origem = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = CreditoAula
+        fields = [
+            'id', 
+            'status', 
+            'data_expiracao', 
+            'agendamento_origem', 
+            'agendamento_uso'   
+        ]
+        read_only_fields = fields
