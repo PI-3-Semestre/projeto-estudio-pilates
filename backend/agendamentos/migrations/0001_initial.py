@@ -71,9 +71,31 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
+<<<<<<< HEAD
+                "verbose_name": "Lista de Espera",
+                "verbose_name_plural": "Listas de Espera",
+                "ordering": ["data_inscricao"],
+            },
+        ),
+        migrations.CreateModel(
+            name="Modalidade",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=100, unique=True)),
+            ],
+=======
                 "verbose_name": "Agendamento de Aluno",
                 "verbose_name_plural": "Agendamentos de Alunos",
             },
+>>>>>>> db5a7261e5b4ab7db8fc96ca5106849fe1b669cb
         ),
         migrations.CreateModel(
             name="BloqueioAgenda",
