@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from rest_framework.exceptions import PermissionDenied
 
 from .models import (
     HorarioTrabalho, BloqueioAgenda, Modalidade, 
@@ -13,7 +14,7 @@ from .models import (
 from .serializers import (
     HorarioTrabalhoSerializer, BloqueioAgendaSerializer, ModalidadeSerializer,
     AulaSerializer, AulaAlunoSerializer, ReposicaoSerializer, ListaEsperaSerializer,
-    AgendamentoAlunoSerializer, AgendamentoStaffSerializer
+    AgendamentoAlunoSerializer, AgendamentoStaffSerializer, CreditoAula
 )
 from .permissions import IsStaffAgendamento, IsOwnerDoAgendamento
 
@@ -21,7 +22,7 @@ from .permissions import IsStaffAgendamento, IsOwnerDoAgendamento
 # --- Views de Configuração de Agenda (Horarios, Bloqueios, Modalidades) ---
 # Estas views geralmente são restritas a Staff
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Horario Aula']
 ) 
 class HorarioTrabalhoListCreateView(generics.ListCreateAPIView):
     queryset = HorarioTrabalho.objects.all()
@@ -29,7 +30,7 @@ class HorarioTrabalhoListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsStaffAgendamento]
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Horario Aula']
 )  
 class HorarioTrabalhoRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = HorarioTrabalho.objects.all()
@@ -37,7 +38,7 @@ class HorarioTrabalhoRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroy
     permission_classes = [permissions.IsAuthenticated, IsStaffAgendamento]
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Bloqueio Agenda']
 )
 class BloqueioAgendaListCreateView(generics.ListCreateAPIView):
     """ViewSet para gerenciar Bloqueios de Agenda."""
@@ -47,7 +48,7 @@ class BloqueioAgendaListCreateView(generics.ListCreateAPIView):
                          IsStaffAgendamento]
  
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Bloqueio Agenda']
 )   
 class BloqueioAgendaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BloqueioAgenda.objects.all()
@@ -55,7 +56,7 @@ class BloqueioAgendaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyA
     permission_classes = [permissions.IsAuthenticated, IsStaffAgendamento]
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Modalidade']
 ) 
 class ModalidadeListCreateView(generics.ListCreateAPIView):
     queryset = Modalidade.objects.all()
@@ -63,7 +64,7 @@ class ModalidadeListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsStaffAgendamento]
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Modalidade']
 )    
 class ModalidadeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Modalidade.objects.all()
@@ -71,7 +72,7 @@ class ModalidadeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVi
     permission_classes = [permissions.IsAuthenticated, IsStaffAgendamento]
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Aulas']
 )
 # --- Views de Gestão de Aulas (Aula) ---
 # A criação de aulas também é restrita a Staff
@@ -119,7 +120,7 @@ class AulaListCreateView(generics.ListCreateAPIView):
         return Aula.objects.none()
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Aulas']
 )
 class AulaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -171,14 +172,36 @@ class AgendamentoAlunoListCreateView(generics.ListCreateAPIView):
             return AgendamentoStaffSerializer
         return AgendamentoAlunoSerializer
 
+    # --- INÍCIO DA LÓGICA ATUALIZADA (ISSUE #63) ---
     def perform_create(self, serializer):
+        """
+        Salva o agendamento e consome o crédito (se aplicável),
+        seja para o fluxo de Staff ou Aluno.
+        """
+        
         if isinstance(serializer, AgendamentoAlunoSerializer):
-            if hasattr(self.request.user, 'aluno'):
-                serializer.save(aluno=self.request.user.aluno)
-            else:
-                from rest_framework.exceptions import PermissionDenied
+            # --- FLUXO ALUNO ---
+            if not hasattr(self.request.user, 'aluno'):
                 raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
+            
+            # O 'validate' do serializer já validou e colocou o crédito nos dados
+            credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
+            
+            # Salva o agendamento associando ao aluno logado
+            agendamento = serializer.save(aluno=self.request.user.aluno)
+
+            # Consome o crédito (lógica idêntica ao 'create' do StaffSerializer)
+            if credito_a_utilizar:
+                agendamento.credito_utilizado = credito_a_utilizar
+                credito_a_utilizar.status = CreditoAula.StatusCredito.UTILIZADA
+                credito_a_utilizar.save()
+                agendamento.save() 
+
         else:
+            # --- FLUXO STAFF ---
+            # O 'AgendamentoStaffSerializer' tem seu próprio método 'create'
+            # que já contém a lógica de consumo de crédito.
+            # Apenas chamamos o 'save()' e o serializer cuida do resto.
             serializer.save()
 
 @extend_schema(
@@ -195,7 +218,7 @@ class AgendamentoAlunoRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestro
 # --- Views de Reposição e Lista de Espera ---
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Reposição Aula']
 )
 class ReposicaoListCreateView(generics.ListCreateAPIView):
     queryset = Reposicao.objects.all()
@@ -204,7 +227,7 @@ class ReposicaoListCreateView(generics.ListCreateAPIView):
     # TODO: Definir regras
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Reposição Aula']
 )
 class ReposicaoRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Reposicao.objects.all()
@@ -213,7 +236,7 @@ class ReposicaoRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
     # TODO: Definir regras
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Lista Espera']
 )
 class ListaEsperaListCreateView(generics.ListCreateAPIView):
     queryset = ListaEspera.objects.all()
@@ -222,7 +245,7 @@ class ListaEsperaListCreateView(generics.ListCreateAPIView):
     # TODO: Definir regras
 
 @extend_schema(
-    tags=['Agendamentos']
+    tags=['Agendamentos - Lista Espera']
 )
 class ListaEsperaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ListaEspera.objects.all()
