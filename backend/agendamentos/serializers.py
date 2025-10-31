@@ -51,7 +51,7 @@ class AulaWtriteSerializer(serializers.ModelSerializer):
 
 class AulaReadSerializer(serializers.ModelSerializer):
     modalidade = ModalidadeSerializer(read_only=True)
-    instructor_principal=serializers.StringRelatetField(read_only=True)
+    instructor_principal = serializers.StringRelatedField(read_only=True)
     instructor_substituto=serializers.StringRelatedField(read_only=True)
     studio = serializers.StringRelatedField(read_only=True)
     
