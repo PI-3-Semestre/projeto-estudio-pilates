@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 
+from .permissions import HasRole, IsOwnerDaAula, CanUpdateAula
 from .models import (
     HorarioTrabalho,
     BloqueioAgenda,
@@ -33,20 +34,35 @@ from alunos.permissions import IsStaffAutorizado
 from alunos.models import Aluno
 
 
+# ... (ViewSets de HorarioTrabalho, BloqueioAgenda, Modalidade - Inalterados) ...
+@extend_schema(tags=['Agendamentos - Horários de Trabalho'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todos os horários de trabalho"),
+    retrieve=extend_schema(summary="Busca um horário de trabalho pelo ID"),
+    create=extend_schema(summary="Cria um novo horário de trabalho"),
+    update=extend_schema(summary="Atualiza um horário de trabalho"),
+    partial_update=extend_schema(summary="Atualiza parcialmente um horário de trabalho"),
+    destroy=extend_schema(summary="Deleta um horário de trabalho"),
+)
 class HorarioTrabalhoViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar Horários de Trabalho."""
 
     queryset = HorarioTrabalho.objects.all()
     serializer_class = HorarioTrabalhoSerializer
-    permission_classes = [IsAdminAgendamento]
+    def get_permissions(self):
+        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
 
 
 class BloqueioAgendaViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar Bloqueios de Agenda."""
 
     queryset = BloqueioAgenda.objects.all()
-    serializer_class = BloqueioAgendaSerializer
-    permission_classes = [IsAdminAgendamento]
+    def get_permissions(self):
+        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return BloqueioAgendaReadSerializer
+        return BloqueioAgendaWriteSerializer
 
 
 class ModalidadeViewSet(viewsets.ModelViewSet):
@@ -54,7 +70,8 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
 
     queryset = Modalidade.objects.all()
     serializer_class = ModalidadeSerializer
-    permission_classes = [IsAdminAgendamento]
+    def get_permissions(self):
+        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
 
 
 class AulaViewSet(viewsets.ModelViewSet):
@@ -63,12 +80,19 @@ class AulaViewSet(viewsets.ModelViewSet):
     serializer_class = AulaSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return AulaReadSerializer
+        return AulaWriteSerializer
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        elif self.action in ['create', 'destroy']:
+            return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
+        elif self.action in ['update', 'partial_update']:
+            return [CanUpdateAula()]
+        return [IsAuthenticated()]
     def get_queryset(self):
-        """
-        Filtra o queryset de aulas com base no perfil do usuário.
-        - Admin/Recepcionista: veem todas as aulas.
-        - Instrutor/Fisioterapeuta: veem apenas suas próprias aulas.
-        """
         user = self.request.user
         if not hasattr(user, "colaborador"):
             return Aula.objects.none()
@@ -177,6 +201,16 @@ class AulaViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+
+@extend_schema(tags=['Agendamentos - Alunos por Aula'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista inscrições (filtrado por perfil)"),
+    retrieve=extend_schema(summary="Busca uma inscrição pelo ID (filtrado por perfil)"),
+    create=extend_schema(summary="Inscreve um aluno em uma aula (Admin/Recep)"),
+    update=extend_schema(summary="Atualiza uma inscrição (Admin/Recep)"),
+    partial_update=extend_schema(summary="Atualiza parcialmente uma inscrição (Admin/Recep)"),
+    destroy=extend_schema(summary="Remove um aluno de uma aula (Admin/Recep)"),
+)
 class AulaAlunoViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar os agendamentos dos alunos."""
 
@@ -223,6 +257,14 @@ class AulaAlunoViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+        return AulaAluno.objects.none()
+
+
+@extend_schema(tags=['Agendamentos - Reposições'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todas as reposições disponíveis"),
+    retrieve=extend_schema(summary="Busca uma reposição pelo ID"),
+)
 class ReposicaoViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para visualizar as reposições dos alunos."""
 
@@ -231,6 +273,15 @@ class ReposicaoViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAdminAgendamento]  # Temporário
 
 
+@extend_schema(tags=['Agendamentos - Listas de Espera'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todas as inscrições em listas de espera"),
+    retrieve=extend_schema(summary="Busca uma inscrição na lista de espera pelo ID"),
+    create=extend_schema(summary="Adiciona um aluno à lista de espera de uma aula"),
+    update=extend_schema(summary="Atualiza o status de um aluno na lista de espera"),
+    partial_update=extend_schema(summary="Atualiza parcialmente o status de um aluno"),
+    destroy=extend_schema(summary="Remove um aluno da lista de espera"),
+)
 class ListaEsperaViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar a lista de espera."""
 
