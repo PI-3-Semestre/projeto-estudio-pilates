@@ -154,6 +154,34 @@ AUTHENTICATION_BACKENDS = (
 # --- Configurações do Django REST Framework e Swagger ---
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # --- Autenticação ---
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API de Gestão para Estúdio de Pilates',
+    'DESCRIPTION': 'API para gerenciar alunos, agendamentos, avaliações e finanças de um estúdio de pilates.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False, # Otimiza o carregamento da UI
+
+    # Adiciona o suporte a autenticação JWT no Swagger UI
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True, # Mantém a autorização após o refresh da página
+    },
+    'SECURITY': [
+        {
+            # Define o esquema de segurança Bearer (JWT)
+            'JWTAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    ],
+    'COMPONENT_SPLIT_REQUEST': True, # Melhora a visualização de schemas complexos
 }
 
 # --- Configuração de E-mail (para desenvolvimento) ---
