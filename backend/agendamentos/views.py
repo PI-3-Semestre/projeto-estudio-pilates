@@ -92,26 +92,89 @@ class AulaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="inscrever")
     def inscrever_aluno(self, request, pk=None):
         """
-        Ação customizada para inscrever um aluno em uma aula específica.
-        Espera um 'aluno_id' no corpo da requisição.
+        Ação customizada para inscrever um aluno em uma aula.
+        - Alunos podem se inscrever (sem passar aluno_id).
+        - Staff pode inscrever um aluno específico (passando aluno_id).
         """
         aula = self.get_object()
-        aluno_id = request.data.get("aluno_id")
+        user = request.user
+        aluno_id_request = request.data.get("aluno_id")
 
-        if not aluno_id:
+        target_aluno = None
+
+        # 1. Identificar o Aluno e Validar Permissões
+        if aluno_id_request:
+            # Cenário: Staff agendando um aluno
+            if (
+                not hasattr(user, "colaborador")
+                or not user.colaborador.perfis.filter(
+                    nome__in=["ADMINISTRADOR", "RECEPCIONISTA"]
+                ).exists()
+            ):
+                return Response(
+                    {"error": "Você não tem permissão para agendar outros alunos."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            try:
+                target_aluno = Aluno.objects.get(pk=aluno_id_request)
+            except Aluno.DoesNotExist:
+                return Response(
+                    {"error": "Aluno especificado não encontrado."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            # Cenário: Aluno agendando a si mesmo
+            if not hasattr(user, "aluno"):
+                return Response(
+                    {"error": "Apenas alunos podem se agendar."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            target_aluno = user.aluno
+
+        # 2. Validações de Negócio
+        # Verifica se a aula está lotada
+        if aula.alunos_inscritos.count() >= aula.capacidade_maxima:
             return Response(
-                {"error": "O campo 'aluno_id' é obrigatório."},
+                {"error": "A aula está lotada."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verifica se o aluno já está inscrito
+        if AulaAluno.objects.filter(aula=aula, aluno=target_aluno).exists():
+            return Response(
+                {"error": "Você já está inscrito nesta aula."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # TODO: Adicionar lógica de permissão para esta ação
+        # 3. Lógica de Créditos
+        today = timezone.now().date()
+        credito_disponivel = (
+            CreditoAula.objects.filter(
+                aluno=target_aluno,
+                data_validade__gte=today,
+                agendamento_uso__isnull=True,  # Garante que o crédito não foi usado
+            )
+            .order_by("data_validade")
+            .first()
+        )
 
-        serializer = AulaAlunoSerializer(data={"aula": aula.pk, "aluno": aluno_id})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not credito_disponivel:
+            return Response(
+                {"error": "Nenhum crédito de aula disponível."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 4. Criar o agendamento e consumir o crédito
+        agendamento = AulaAluno.objects.create(
+            aula=aula, aluno=target_aluno, credito_utilizado=credito_disponivel
+        )
+
+        # Marca o crédito como utilizado, associando ao agendamento
+        # Esta lógica pode ser movida para um signal se preferir
+        credito_disponivel.agendamento_uso = agendamento
+        credito_disponivel.save()
+
+        serializer = AulaAlunoSerializer(agendamento)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AulaAlunoViewSet(viewsets.ModelViewSet):
@@ -119,7 +182,45 @@ class AulaAlunoViewSet(viewsets.ModelViewSet):
 
     queryset = AulaAluno.objects.all()
     serializer_class = AulaAlunoSerializer
-    permission_classes = [IsAdminAgendamento]  # Temporário
+    permission_classes = [IsAuthenticated] # Alterado para permitir acesso a usuários autenticados
+
+    def get_queryset(self):
+        """
+        Filtra os agendamentos para que usuários vejam apenas o que lhes diz respeito.
+        - Alunos veem seus próprios agendamentos.
+        - Staff (Admin/Recepcionista) veem todos.
+        """
+        user = self.request.user
+        if hasattr(user, 'colaborador') and user.colaborador.perfis.filter(nome__in=["ADMINISTRADOR", "RECEPCIONISTA"]).exists():
+            return AulaAluno.objects.all()
+        if hasattr(user, 'aluno'):
+            return AulaAluno.objects.filter(aluno=user.aluno)
+        return AulaAluno.objects.none()
+
+    @action(detail=True, methods=['delete'], url_path='cancelar')
+    def cancelar_agendamento(self, request, pk=None):
+        """
+        Permite que um aluno cancele seu próprio agendamento ou que um admin/recepcionista cancele qualquer um.
+        """
+        agendamento = self.get_object()
+        user = request.user
+
+        # Lógica de Permissão
+        is_owner = hasattr(user, 'aluno') and agendamento.aluno == user.aluno
+        is_staff = hasattr(user, 'colaborador') and user.colaborador.perfis.filter(nome__in=["ADMINISTRADOR", "RECEPCIONISTA"]).exists()
+
+        if not is_owner and not is_staff:
+            return Response({"error": "Você não tem permissão para cancelar este agendamento."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Lógica de Negócio (reativar crédito)
+        if agendamento.credito_utilizado:
+            credito = agendamento.credito_utilizado
+            credito.agendamento_uso = None
+            credito.save()
+
+        agendamento.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ReposicaoViewSet(viewsets.ReadOnlyModelViewSet):
