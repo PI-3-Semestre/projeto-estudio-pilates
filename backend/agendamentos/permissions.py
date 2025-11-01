@@ -1,4 +1,3 @@
-# agendamentos/permissions.py
 from rest_framework.permissions import BasePermission
 from usuarios.models import Colaborador
 
@@ -55,15 +54,52 @@ class IsAdminAgendamento(BasePermission):
     message = "Apenas Admin Master ou Administrador podem gerenciar este recurso."
 
     def has_permission(self, request, view):
+
         if not request.user or not request.user.is_authenticated:
             return False
-        
         if request.user.is_superuser:
             return True
-            
         try:
             return request.user.colaborador.perfis.filter(
                 nome__in=['ADMIN_MASTER', 'ADMINISTRADOR']
             ).exists()
         except Colaborador.DoesNotExist:
             return False
+
+
+class CanUpdateAula(BasePermission):
+    """
+    Permissão customizada para ATUALIZAR (PUT/PATCH) uma aula.
+    A permissão é concedida se o usuário for:
+    1. Admin Master, Administrador OU Recepcionista
+    OU
+    2. O instrutor (principal ou substituto) da aula.
+    """
+    message = "Você não tem permissão para editar esta aula."
+
+    def has_object_permission(self, request, view, obj):
+ 
+        
+   
+        if request.user.is_superuser:
+            return True
+
+    
+        if not hasattr(request.user, 'colaborador'):
+            return False
+            
+        
+        try:
+            is_admin_or_recep = request.user.colaborador.perfis.filter(
+                nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
+            ).exists()
+            
+            if is_admin_or_recep:
+                return True
+        except Colaborador.DoesNotExist:
+            pass
+
+        is_owner = (obj.instrutor_principal == request.user.colaborador or
+                    obj.instrutor_substituto == request.user.colaborador)
+        
+        return is_owner
