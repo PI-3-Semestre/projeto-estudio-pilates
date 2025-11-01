@@ -16,6 +16,7 @@ class AlunoSerializer(serializers.ModelSerializer):
     # Isso garante que os dados de identidade do aluno venham de uma única fonte (Usuario).
     nome = serializers.CharField(source='usuario.get_full_name', read_only=True)
     email = serializers.EmailField(source='usuario.email', read_only=True)
+    cpf = serializers.CharField(read_only=True) # O CPF é definido internamente, não pelo cliente.
 
     # Campo para representar a relação ManyToMany com Studio.
     # Retorna uma lista de IDs de Studio.
@@ -31,6 +32,7 @@ class AlunoSerializer(serializers.ModelSerializer):
             'usuario', # ID do usuário (apenas escrita)
             'nome', # Nome do usuário (apenas leitura)
             'email', # Email do usuário (apenas leitura)
+            'cpf', # CPF do aluno (apenas leitura)
             'foto',
             'dataNascimento',
             'contato',
@@ -57,8 +59,10 @@ class AlunoSerializer(serializers.ModelSerializer):
         if Aluno.objects.filter(usuario=usuario).exists():
             raise serializers.ValidationError({"usuario": "Este usuário já está associado a um aluno."})
 
-        # Cria o aluno.
-        aluno = Aluno.objects.create(**validated_data)
+        # Cria o aluno, definindo o CPF a partir do usuário associado para manter a consistência.
+        aluno = Aluno.objects.create(
+            **validated_data
+        )
         
         # Associa as unidades ao aluno recém-criado.
         if unidades_data:

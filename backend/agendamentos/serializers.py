@@ -1,37 +1,77 @@
 # agendamentos/serializers.py
+import datetime
 from rest_framework import serializers
 from .models import (
-    HorarioTrabalho, BloqueioAgenda, Modalidade, 
-    Aula, AulaAluno, Reposicao, ListaEspera, Aluno, CreditoAula
+    HorarioTrabalho,
+    BloqueioAgenda,
+    Modalidade,
+    Aula,
+    AulaAluno,
+    Reposicao,
+    ListaEspera,
+    CreditoAula,
+    Aluno
 )
 from datetime import timedelta
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HorarioTrabalho
-        fields = '__all__'
+        fields = "__all__"
 
-class BloqueioAgendaSerializer(serializers.ModelSerializer):
+
+class BloqueioAgendaWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = BloqueioAgenda
-        fields = '__all__'
+        fields = ['id', 'data', 'descricao', 'studio']
+
+class BloqueioAgendaReadSerializer(serializers.ModelSerializer):
+    studio = serializers.StringRelatedField(read_only=True)
+    class Meta:
+        model = BloqueioAgenda
+        fields = ['id', 'data', 'descricao', 'studio']
+
 
 class ModalidadeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Modalidade
-        fields = '__all__'
+        fields = "__all__"
 
-class AulaSerializer(serializers.ModelSerializer):
-    """
-    Serializer para o modelo Aula.
-    """
+
+class AulaWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Aula
         fields = [
-            'id', 'studio', 'modalidade', 'instrutor_principal', 
-            'instrutor_substituto', 'data_hora_inicio', 'duracao_minutos', 
-            'capacidade_maxima', 'tipo_aula'
+            "data_hora_inicio",
+            "capacidade_maxima",
+            "duracao_minutos",
+            "tipo_aula",
+            "modalidade",
+            "studio",
+            "instrutor_principal",
+            "instrutor_substituto",
+        ]
+
+class AulaReadSerializer(serializers.ModelSerializer):
+    modalidade = ModalidadeSerializer(read_only=True)
+    instrutor_principal = serializers.StringRelatedField(read_only=True)
+    instrutor_substituto = serializers.StringRelatedField(read_only=True)
+    studio = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = Aula
+        fields = [
+            "id",
+            "data_hora_inicio",
+            "capacidade_maxima",
+            "duracao_minutos",
+            "tipo_aula",
+            "modalidade",
+            "studio",
+            "instrutor_principal",
+            "instrutor_substituto",
         ]   
 
 class AulaAlunoSerializer(serializers.ModelSerializer):
@@ -45,7 +85,7 @@ class AgendamentoAlunoReadSerializer(serializers.ModelSerializer):
     Mostra os detalhes completos da aula aninhados, em vez de apenas o ID.
     """
     # Aninha o AulaSerializer
-    aula = AulaSerializer(read_only=True)
+    aula = AulaReadSerializer(read_only=True)
     
     # Podemos também aninhar os detalhes do aluno se quisermos (opcional)
     # aluno = AlunoSerializer(read_only=True) 
@@ -64,11 +104,13 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AulaAluno
-        fields = ['id', 'aula', 'aluno', 'status_presenca']
+        # --- CORREÇÃO (Dúvida do ID auto-increment) ---
+        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
         read_only_fields = [
-            'id',                   # ID é auto-increment
-            'status_presenca',      # Status é 'AGENDADO' por default
-            'credito_utilizado'   # Crédito é gerido na lógica interna
+            'id',
+            'aluno', # Pego do request.user
+            'status_presenca',
+            'credito_utilizado'
         ]
 
     # --- INÍCIO DA NOVA LÓGICA (ISSUE #63 - FLUXO ALUNO) ---
@@ -130,9 +172,10 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
         if aula.tipo_aula == Aula.TipoAula.REGULAR:
             credito_disponivel = CreditoAula.objects.filter(
                 aluno=aluno,
-                status=CreditoAula.StatusCredito.DISPONIVEL,
-                data_expiracao__gte=horario_inicio_desejado.date()
-            ).order_by('data_expiracao').first()
+                # ANTES: status=CreditoAula.StatusCredito.DISPONIVEL,
+                data_invalidacao__isnull=True, # Significa que não foi usado/invalidado
+                data_validade__gte=horario_inicio_desejado.date()
+            ).order_by('data_validade').first()
 
             if not credito_disponivel:
                  raise ValidationError("Você não possui créditos de aula disponíveis ou válidos para este agendamento.")
@@ -151,8 +194,14 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AulaAluno
-        fields = ['id', 'aula', 'aluno', 'status_presenca']
-        read_only_fields = ['status_presenca', 'credito_utilizado'] # credito_utilizado é gerenciado no backend
+        # --- CORREÇÃO (Dúvida do ID auto-increment) ---
+        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
+        read_only_fields = [
+            'id',
+            'status_presenca',
+            'credito_utilizado'
+        ]
+        # (Agora 'aula' e 'aluno' são de escrita, que é o correto)
 
     # --- INÍCIO DA NOVA LÓGICA (ISSUE #63) ---
     def validate(self, attrs):
@@ -214,9 +263,9 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         if aula.tipo_aula == Aula.TipoAula.REGULAR:
             credito_disponivel = CreditoAula.objects.filter(
                 aluno=aluno,
-                status=CreditoAula.StatusCredito.DISPONIVEL,
-                data_expiracao__gte=horario_inicio_desejado.date()
-            ).order_by('data_expiracao').first() # Usa o crédito mais antigo primeiro?
+                data_invalidacao__isnull=True, # Significa que não foi usado/invalidado
+                data_validade__gte=horario_inicio_desejado.date()
+            ).order_by('data_validade').first()
 
             if not credito_disponivel:
                  raise ValidationError("Aluno não possui créditos de aula disponíveis ou válidos para este agendamento.")
@@ -232,10 +281,14 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         agendamento = super().create(validated_data) # Cria o AulaAluno
 
         if credito_a_utilizar:
-            agendamento.credito_utilizado = credito_a_utilizar
-            credito_a_utilizar.status = CreditoAula.StatusCredito.UTILIZADA
+            credito_a_utilizar.data_invalidacao = timezone.now()
+            # O 'invalidado_por' deve ser o Aluno, se ele mesmo agendou?
+            # Ou o Staff? O serializer do Staff não tem acesso ao request.user...
+            # Vamos assumir que invalidar a data é suficiente por agora.
+            # Se 'invalidado_por' for obrigatório, teremos de passar o request.user
+            # para o .create() a partir da view.
             credito_a_utilizar.save()
-            agendamento.save() 
+            agendamento.save()
 
         return agendamento
 
@@ -249,7 +302,8 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
 class ReposicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reposicao
-        fields = '__all__'
+        fields = "__all__"
+
 
 class ListaEsperaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -268,13 +322,82 @@ class CreditoAulaSerializer(serializers.ModelSerializer):
     # Opcional: Mostrar o ID do agendamento cancelado que gerou este crédito (se aplicável)
     agendamento_origem = serializers.PrimaryKeyRelatedField(read_only=True)
 
+    adicionado_por_nome = serializers.SerializerMethodField()
+    invalidado_por_nome = serializers.SerializerMethodField()
     class Meta:
         model = CreditoAula
         fields = [
-            'id', 
-            'status', 
-            'data_expiracao', 
-            'agendamento_origem', 
-            'agendamento_uso'   
+            "id",
+            "aluno",  # Será preenchido pela view (da URL)
+            "quantidade",  # Obrigatório no POST
+            "data_validade",  # Obrigatório no POST
+            "data_adicao",
+            "adicionado_por",
+            "adicionado_por_nome",  # Campo de auditoria (GET)
+            "data_invalidacao",
+            "invalidado_por",
+            "invalidado_por_nome",  # Campo de auditoria (GET)
+            "agendamento_origem",  # Para créditos de reposição
+            "agendamento_uso" 
         ]
-        read_only_fields = fields
+
+        # Define quais campos SÃO OBRIGATÓRIOS no POST/PATCH
+        # (Todos os outros em 'fields' serão 'read-only' por padrão)
+        extra_kwargs = {
+            # 'aluno' será 'read_only' no serializer, pois será
+            # definido pela View (baseado no aluno_id da URL).
+            "aluno": {"read_only": True},
+            # Campos de auditoria são sempre read-only
+            "data_adicao": {"read_only": True},
+            "adicionado_por": {"read_only": True},
+            "data_invalidacao": {"read_only": True},
+            "invalidado_por": {"read_only": True},
+            "agendamento_origem": {"read_only": True},
+            # Campos de entrada obrigatórios no POST
+            "agendamento_uso": {"read_only": True},
+            "quantidade": {"required": True},
+            "data_validade": {"required": True},
+            "adicionado_por_nome": {"read_only": True},
+            "invalidado_por_nome": {"read_only": True},
+        }
+        
+    def get_adicionado_por_nome(self, obj):
+        """
+        Retorna o nome completo do usuário (do campo 'adicionado_por').
+        """
+        if obj.adicionado_por:
+            # obj.adicionado_por é o objeto User (settings.AUTH_USER_MODEL)
+            return obj.adicionado_por.get_full_name()
+        return None
+
+    def get_invalidado_por_nome(self, obj):
+        """
+        Retorna o nome completo do usuário (do campo 'invalidado_por').
+        """
+        if obj.invalidado_por:
+            return obj.invalidado_por.get_full_name()
+        return None
+
+    def validate_data_validade(self, value):
+        """
+        [CRITÉRIO DE ACEITAÇÃO]
+        Validação: Não permitir data de validade no passado.
+        """
+        if value and value < datetime.date.today():
+            raise serializers.ValidationError(
+                "A data de validade não pode ser no passado."
+            )
+        return value
+
+    def validate_quantidade(self, value):
+        """
+        [CRITÉRIO DE ACEITAÇÃO]
+        Validação: Não adicionar créditos negativos ou zero.
+        (O 'PositiveIntegerField' no model já ajuda, mas
+         o 'MinValueValidator(1)' é a garantia).
+        """
+        if value <= 0:
+            raise serializers.ValidationError(
+                "A quantidade de créditos deve ser 1 ou mais."
+            )
+        return value

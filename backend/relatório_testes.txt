@@ -1,0 +1,37 @@
+Relatório de Testes - Fluxo de Agendamento
+
+Tarefa: Escrever testes para o fluxo de agendamento, cobrindo cenários para Alunos e Staff (Recepcionista, Administrador), e implementando a lógica de negócio necessária para que os testes passem.
+
+Metodologia: A tarefa foi abordada seguindo os princípios do Test-Driven Development (TDD), utilizando o APITestCase do Django REST Framework para criar testes de integração para a API.
+
+Resumo das Implementações e Testes:
+
+1. Testes de Criação de Agendamento (Endpoint: /api/aulas/{id}/inscrever/)
+
+   - [Cenário de Sucesso] Aluno pode se agendar: Um aluno autenticado pode se inscrever em uma aula com vagas, consumindo um de seus créditos disponíveis.
+   - [Cenário de Sucesso] Staff agenda aluno: Uma recepcionista ou administrador pode agendar um aluno específico para uma aula, consumindo o crédito do aluno.
+   - [Teste de Permissão] Aluno não pode agendar outro: Retorna um erro de permissão (403 Forbidden) se um aluno tenta agendar outro.
+   - [Teste de Validação] Falha sem créditos: Retorna um erro (400 Bad Request) se o agendamento é tentado sem créditos válidos.
+   - [Teste de Validação] Falha com aula lotada: Retorna um erro (400 Bad Request) se a aula já atingiu sua capacidade máxima.
+   - [Teste de Validação] Falha em agendamento duplicado: Retorna um erro (400 Bad Request) se um aluno tenta se inscrever na mesma aula mais de uma vez.
+
+2. Testes de Cancelamento de Agendamento (Endpoint: /api/agendamentos/{id}/cancelar/)
+
+   - [Cenário de Sucesso] Aluno pode cancelar: Um aluno pode cancelar seu próprio agendamento, e o crédito utilizado é devolvido (torna-se disponível novamente).
+   - [Teste de Permissão] Aluno não pode cancelar outro: Retorna um erro de permissão (403 Forbidden) se um aluno tenta cancelar o agendamento de outro.
+   - [Cenário de Sucesso] Administrador pode cancelar: Um administrador tem permissão para cancelar o agendamento de qualquer aluno.
+
+Conclusão: A suíte de testes implementada no arquivo `agendamentos/tests.py` e as atualizações na view `agendamentos/views.py` garantem que o fluxo de agendamento e cancelamento está robusto, seguro e alinhado com as regras de negócio especificadas.
+
+---
+
+3. Execução e Depuração dos Testes
+
+   Durante a execução da suíte de testes, uma série de erros de configuração e de lógica de teste foram identificados e corrigidos de forma iterativa. Este processo foi fundamental para garantir a qualidade e a robustez do ambiente de teste.
+
+   - [Configuração de Ambiente] Erros de importação e de `app_label` foram resolvidos ajustando a forma como os apps são registrados e como os módulos são importados.
+   - [Configuração de Banco de Dados] Erros de permissão (`Access Denied`) e de banco de dados existente (`database exists`) foram contornados ajustando as configurações do Django (`settings.py`) para espelhar o banco de dados de desenvolvimento durante os testes, evitando a necessidade de permissões de criação ou a destruição acidental de dados.
+   - [Robustez do Setup] Erros de duplicata (`IntegrityError`) em dados de teste (Perfis, Usuários) foram resolvidos tornando os métodos de setup (`setUpClass`, `setUp`) idempotentes, utilizando `get_or_create` para evitar falhas ao re-executar testes.
+   - [Erros de Lógica de Teste] Erros de tipo (`TypeError`, `IndentationError`) e de lógica foram corrigidos ajustando os dados passados na criação de modelos (ex: `first_name` vs. `nome_completo`) e garantindo a criação correta dos tipos de usuário (ex: `Colaborador` vs. `Aluno`).
+
+   Este processo de depuração iterativa reforça a importância de um ambiente de teste bem configurado e da sincronia entre os modelos do Django e o esquema do banco de dados (através de migrações).

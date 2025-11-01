@@ -1,6 +1,6 @@
 # alunos/permissions.py
 from rest_framework import permissions
-from usuarios.models import Colaborador, Perfil
+from usuarios.models import Colaborador
 
 class IsAdminOrRecepcionista(permissions.BasePermission):
     """
@@ -29,45 +29,38 @@ class IsAdminOrRecepcionista(permissions.BasePermission):
             # O usuário não tem um perfil de colaborador
             return False
 
-class IsOwnerOrAdminOrRecepcionista(permissions.BasePermission):
+STAFF_ROLES_PERMITIDOS = {
+    'ADMIN_MASTER', 
+    'ADMINISTRADOR', 
+    'RECEPCIONISTA'
+}
+
+class IsStaffAutorizado(permissions.BasePermission): # <--- Esta é a classe
     """
-    Permissão customizada para:
-    - Permitir que donos de perfis de aluno vejam/editem seus próprios dados.
-    - Permitir que Admins ou Recepcionistas acessem/editem qualquer dado.
-    - Negar a listagem de todos os alunos para não-admins.
+    Permissão customizada (Requisito da Sprint)
+    Verifica se o usuário é Colaborador e possui um dos Perfis de 
+    staff requeridos PARA TODOS OS MÉTODOS (GET, POST, PATCH, etc.)
     """
-    message = "Você não tem permissão para realizar esta ação."
+    message = "Você não tem permissão para gerenciar créditos. Acesso restrito ao Staff autorizado."
 
     def has_permission(self, request, view):
+        # 1. O usuário deve estar logado
         if not request.user or not request.user.is_authenticated:
             return False
 
-        # Apenas admins/recepcionistas podem listar todos os alunos
-        if view.action == 'list':
-            if request.user.is_superuser:
-                return True
-            try:
-                return request.user.colaborador.perfis.filter(
-                    nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
-                ).exists()
-            except Colaborador.DoesNotExist:
-                return False
-        
-        # Para outras ações (retrieve, create, update), a permissão é verificada no nível do objeto
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        # Admins/recepcionistas podem fazer tudo
+        # 2. Superusuário sempre tem permissão
         if request.user.is_superuser:
             return True
+        
+        # 3. O usuário deve ter um perfil de Colaborador
         try:
-            if request.user.colaborador.perfis.filter(
-                nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
-            ).exists():
-                return True
-        except Colaborador.DoesNotExist:
-            # Se não for colaborador, pode ser o próprio aluno
-            pass
-
-        # O dono do perfil pode ver/editar seus próprios dados
-        return obj.usuario == request.user
+            # Checagem eficiente usando .exists() e o set que definimos
+            perfis_do_usuario = request.user.colaborador.perfis.values_list('nome', flat=True)
+            
+            # Verifica se há qualquer intersecção
+            return bool(STAFF_ROLES_PERMITIDOS.intersection(perfis_do_usuario))
+            
+        except (Colaborador.DoesNotExist, AttributeError):
+            # Se request.user.colaborador não existir, ou
+            # se request.user não tiver 'colaborador' (ex: Aluno)
+            return False

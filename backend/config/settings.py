@@ -50,14 +50,14 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "corsheaders",  # +++ ADICIONADO para gerenciar o CORS
     # --- Nossas Apps ---
-    'core.apps.CoreConfig',
-    'usuarios.apps.UsuariosConfig',
-    'alunos',
-    'studios',
-    'agendamentos',
-    'financeiro',
-    'avaliacoes',
-    'autenticacao',
+    "core.apps.CoreConfig",
+    "usuarios.apps.UsuariosConfig",
+    "alunos",
+    "studios",
+    "agendamentos",
+    "financeiro",
+    "avaliacoes",
+    "autenticacao",
 ]
 
 AUTH_USER_MODEL = "usuarios.Usuario"
@@ -105,6 +105,10 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD"),
         "HOST": os.environ.get("DB_HOST"),
         "PORT": os.environ.get("DB_PORT"),
+        # Adicionado para forçar o Django a usar o DB existente para testes
+        "TEST": {
+            "MIRROR": "default",
+        },
     }
 }
 

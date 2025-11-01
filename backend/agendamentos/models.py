@@ -3,6 +3,9 @@ from django.db import models
 from studios.models import Studio
 from usuarios.models import Colaborador
 from alunos.models import Aluno
+from django.core.validators import MinValueValidator
+from django.conf import settings
+from django.core.validators import MinValueValidator
 
 
 class HorarioTrabalho(models.Model):
@@ -20,7 +23,7 @@ class HorarioTrabalho(models.Model):
         DOMINGO = 6, "Domingo"
 
     studio = models.ForeignKey(
-        Studio, on_delete=models.CASCADE, related_name="horarios_trabalho"
+        Studio, on_delete=models.CASCADE, related_name="horarios_trabalho", null=True
     )
     dia_semana = models.IntegerField(choices=DiaSemana.choices)
     hora_inicio = models.TimeField()
@@ -41,7 +44,7 @@ class BloqueioAgenda(models.Model):
     """
 
     studio = models.ForeignKey(
-        Studio, on_delete=models.CASCADE, related_name="bloqueios"
+        Studio, on_delete=models.CASCADE, related_name="bloqueios", null=True
     )
     data = models.DateField()
     descricao = models.CharField(max_length=255)
@@ -76,9 +79,11 @@ class Aula(models.Model):
         EXPERIMENTAL = "EXPERIMENTAL", "Experimental"
         REPOSICAO = "REPOSICAO", "Reposição"
 
-    studio = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name="aulas")
+    studio = models.ForeignKey(
+        Studio, on_delete=models.CASCADE, related_name="aulas", null=True
+    )
     modalidade = models.ForeignKey(
-        Modalidade, on_delete=models.PROTECT, related_name="aulas"
+        Modalidade, on_delete=models.PROTECT, related_name="aulas", null=True
     )
     instrutor_principal = models.ForeignKey(
         Colaborador,
@@ -121,16 +126,16 @@ class AulaAluno(models.Model):
         AGENDADO = "AGENDADO", "Agendado"
 
     aula = models.ForeignKey(
-        Aula, on_delete=models.CASCADE, related_name="alunos_inscritos"
+        Aula, on_delete=models.CASCADE, related_name="alunos_inscritos", null=True
     )
     aluno = models.ForeignKey(
-        Aluno, on_delete=models.CASCADE, related_name="aulas_agendadas"
+        Aluno, on_delete=models.CASCADE, related_name="aulas_agendadas", null=True
     )
     status_presenca = models.CharField(
         max_length=20, choices=StatusPresenca.choices, default=StatusPresenca.AGENDADO
     )
 
-    #Adicionando o campo credito_utilizado
+    # Adicionando o campo credito_utilizado
     credito_utilizado = models.ForeignKey(
         "CreditoAula",
         on_delete=models.SET_NULL,
@@ -159,7 +164,7 @@ class Reposicao(models.Model):
         EXPIRADA = "EXPIRADA", "Expirada"
 
     aluno = models.ForeignKey(
-        Aluno, on_delete=models.CASCADE, related_name="reposicoes"
+        Aluno, on_delete=models.CASCADE, related_name="reposicoes", null=True
     )
     agendamento_origem = models.ForeignKey(
         AulaAluno, on_delete=models.CASCADE, related_name="reposicao_gerada", null=True
@@ -185,10 +190,10 @@ class ListaEspera(models.Model):
         NOTIFICADO = "NOTIFICADO", "Notificado"
 
     aula = models.ForeignKey(
-        Aula, on_delete=models.CASCADE, related_name="lista_espera"
+        Aula, on_delete=models.CASCADE, related_name="lista_espera", null=True
     )
     aluno = models.ForeignKey(
-        Aluno, on_delete=models.CASCADE, related_name="lista_espera"
+        Aluno, on_delete=models.CASCADE, related_name="lista_espera", null=True
     )
     data_inscricao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
@@ -209,29 +214,53 @@ class CreditoAula(models.Model):
     """
     Gerencia os créditos de reposição de aulas para os alunos.
     """
+
     class StatusCredito(models.TextChoices):
-            DISPONIVEL = "DISPONIVEL", "Disponível"
-            UTILIZADA = "UTILIZADA", "Utilizada"
-            EXPIRADA = "EXPIRADA", "Expirada"
-    
+        DISPONIVEL = "DISPONIVEL", "Disponível"
+        UTILIZADA = "UTILIZADA", "Utilizada"
+        EXPIRADA = "EXPIRADA", "Expirada"
+
     aluno = models.ForeignKey(
         Aluno,
         on_delete=models.CASCADE,
-        related_name="creditos_aula",  #Nome diferente de "reposicoes"
+        related_name="creditos_aula",  # <== MUDANÇA 1: Nome diferente de "reposicoes"
+        null=True,
     )
+
+    quantidade = models.PositiveBigIntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Quantidade de créditos disponíveis",
+    )
+
     agendamento_origem = models.ForeignKey(
         AulaAluno,
         on_delete=models.CASCADE,
-        related_name="credito_aula_gerado",  #Nome diferente de "reposicao_gerada"
+        related_name="credito_aula_gerado",  # <== MUDANÇA 2: Nome diferente de "reposicao_gerada"
         null=True,
         blank=True, 
     )
-    data_expiracao = models.DateField()
-    status = models.CharField(
-        max_length=20,
-        choices=StatusCredito.choices, # Usando o nome da classe interna
-        default=StatusCredito.DISPONIVEL,
+
+    data_adicao = models.DateTimeField(auto_now_add=True)
+    data_invalidacao = models.DateTimeField(null=True, blank=True)
+
+    invalidado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="creditos_invalidados",
+        null=True,
+        blank=True,
     )
 
+    adicionado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="creditos_adicionados",
+        null=True,  # null=True permite que o sistema (ex: reposição) crie créditos
+        blank=True,
+    )
+
+    data_validade = models.DateField(db_index=True)
+
     def __str__(self):
-        return f"Reposição para {self.aluno} (expira em: {self.data_expiracao})"
+        return f"Reposição para {self.aluno} (expira em {self.data_validade})"
