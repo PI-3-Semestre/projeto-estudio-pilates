@@ -8,14 +8,14 @@ from .views import (
     AulaViewSet,
     AulaAlunoViewSet,
     ReposicaoViewSet,
-    ListaEsperaViewSet
+    ListaEsperaViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'horarios-trabalho', HorarioTrabalhoViewSet, basename='horariotrabalho')
 router.register(r'bloqueios-agenda', BloqueioAgendaViewSet, basename='bloqueioagenda')
 router.register(r'modalidades', ModalidadeViewSet, basename='modalidade')
-router.register(r'aulas', AulaViewSet, basename='aula')
+router.register(r'aulas', AulaViewSet, basename='agendamentoaula')
 router.register(r'aulas-alunos', AulaAlunoViewSet, basename='aulaaluno')
 router.register(r'reposicoes', ReposicaoViewSet, basename='reposicao')
 router.register(r'listas-espera', ListaEsperaViewSet, basename='listaespera')
