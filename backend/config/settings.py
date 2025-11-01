@@ -56,10 +56,11 @@ INSTALLED_APPS = [
     'usuarios.apps.UsuariosConfig',
     'alunos',
     'studios',
-    'agendamentos',
-    'financeiro',
+    'agendamentos.apps.AgendamentosConfig',
     'avaliacoes',
     'autenticacao',
+    'financeiro',
+    'colaborador',
 ]
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
