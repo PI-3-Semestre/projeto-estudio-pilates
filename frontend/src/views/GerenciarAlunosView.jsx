@@ -41,7 +41,7 @@ const GerenciarAlunosView = () => {
                             </div>
                         </div>
                         <div className="flex">
-                            <Link to="/alunos/cadastrar-usuario" className="flex min-w-[84px] max-w-[480px] w-full lg:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-action-primary text-text-light gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]">
+                            <Link to="/alunos/cadastrar-usuario" state={{ userType: 'aluno' }} className="flex min-w-[84px] max-w-[480px] w-full lg:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-action-primary text-text-light gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]">
                                 <div className="text-text-light">
                                     <span className="material-symbols-outlined">add</span>
                                 </div>
@@ -90,6 +90,42 @@ const GerenciarAlunosView = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile view */}
+                    <div className="lg:hidden space-y-4">
+                        {alunos.map(aluno => (
+                            <div key={aluno.cpf} className="bg-background-page dark:bg-background-dark rounded-lg p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14"
+                                            style={{ backgroundImage: `url(${aluno.foto || ''})` }}>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <p className="text-text-dark dark:text-text-light text-base font-bold leading-normal">
+                                                {aluno.nome}
+                                            </p>
+                                            <span className={`inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-0.5 rounded-full ${aluno.is_active ? 'bg-action-primary/20 text-text-dark' : 'bg-action-secondary text-text-dark'} mt-1 w-fit`}>
+                                                {aluno.is_active ? 'Ativo' : 'Inativo'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button className="text-text-dark dark:text-text-light">
+                                        <span className="material-symbols-outlined">more_vert</span>
+                                    </button>
+                                </div>
+                                <div className="mt-3 space-y-2">
+                                    <div>
+                                        <p className="text-text-subtle-light dark:text-text-subtle-dark text-xs font-semibold uppercase tracking-wider">
+                                            Contato
+                                        </p>
+                                        <p className="text-text-dark dark:text-text-light text-sm font-medium">
+                                            {aluno.email}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </main>

@@ -18,9 +18,9 @@ const DashboardAdminMasterView = () => {
                             <Link to="/alunos" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
                                 <span className="truncate">Gerenciar Alunos</span>
                             </Link>
-                            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
+                            <Link to="/colaboradores" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
                                 <span className="truncate">Gerenciar Colaboradores</span>
-                            </button>
+                            </Link>
                             <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-secondary text-text-dark text-base font-bold leading-normal tracking-[0.015em] w-full">
                                 <span className="truncate">Gerenciar Studios</span>
                             </button>

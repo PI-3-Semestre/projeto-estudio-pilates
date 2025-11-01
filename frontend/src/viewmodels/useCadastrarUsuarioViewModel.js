@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 
 const useCadastrarUsuarioViewModel = () => {
@@ -13,6 +13,8 @@ const useCadastrarUsuarioViewModel = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { userType } = location.state || { userType: 'aluno' }; // Default to 'aluno' if not provided
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -33,7 +35,11 @@ const useCadastrarUsuarioViewModel = () => {
                 definir_nome_completo: formData.nome_completo,
             });
             const userId = response.data.id;
-            navigate(`/alunos/cadastrar-perfil/${userId}`);
+            if (userType === 'aluno') {
+                navigate(`/alunos/cadastrar-perfil/${userId}`);
+            } else {
+                navigate(`/colaboradores/cadastrar-perfil/${userId}`);
+            }
         } catch (err) {
             setError(err.response?.data || err.message);
         } finally {
@@ -45,6 +51,7 @@ const useCadastrarUsuarioViewModel = () => {
         formData,
         loading,
         error,
+        userType,
         handleChange,
         handleSubmit,
     };

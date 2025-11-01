@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import useCadastrarUsuarioViewModel from '../viewmodels/useCadastrarUsuarioViewModel';
 
 const CadastrarUsuarioView = () => {
-    const { formData, loading, error, handleChange, handleSubmit } = useCadastrarUsuarioViewModel();
+    const { formData, loading, error, userType, handleChange, handleSubmit } = useCadastrarUsuarioViewModel();
 
     return (
         <div className="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-dark dark:text-text-light">
@@ -11,11 +11,12 @@ const CadastrarUsuarioView = () => {
                 <Link to="/alunos" className="flex size-10 items-center justify-center">
                     <span className="material-symbols-outlined text-3xl">arrow_back</span>
                 </Link>
-                <h1 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Criar Novo Usuário - Fase 1</h1>
+                <h1 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Criar Novo Usuário ({userType === 'aluno' ? 'Aluno' : 'Colaborador'}) - Fase 1</h1>
             </header>
             <main className="flex flex-1 flex-col items-center p-4 md:p-6">
                 <div className="w-full max-w-lg bg-card-light dark:bg-card-dark shadow-md rounded-xl p-6 md:p-8">
                     <h2 className="text-2xl font-bold leading-tight tracking-tight text-left pb-6">Dados de Acesso e Identificação</h2>
+
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                         <label className="flex flex-col w-full">
                             <p className="text-base font-medium leading-normal pb-2">Nome Completo *</p>

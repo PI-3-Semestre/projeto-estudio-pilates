@@ -11,6 +11,8 @@ import DashboardAdminMasterView from './views/DashboardAdminMasterView';
 import GerenciarAlunosView from './views/GerenciarAlunosView';
 import CadastrarUsuarioView from './views/CadastrarUsuarioView';
 import CadastrarAlunoView from './views/CadastrarAlunoView';
+import CadastrarColaboradorView from './views/CadastrarColaboradorView';
+import GerenciarColaboradoresView from './views/GerenciarColaboradoresView';
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -28,8 +30,10 @@ const PrivateRoutes = () => {
     <Routes>
       <Route path="/dashboard" element={<ProtectedRoute><DashboardAdminMasterView /></ProtectedRoute>} />
       <Route path="/alunos" element={<ProtectedRoute adminOnly={true}><GerenciarAlunosView /></ProtectedRoute>} />
+      <Route path="/colaboradores" element={<ProtectedRoute adminOnly={true}><GerenciarColaboradoresView /></ProtectedRoute>} />
       <Route path="/alunos/cadastrar-usuario" element={<ProtectedRoute adminOnly={true}><CadastrarUsuarioView /></ProtectedRoute>} />
       <Route path="/alunos/cadastrar-perfil/:userId" element={<ProtectedRoute adminOnly={true}><CadastrarAlunoView /></ProtectedRoute>} />
+      <Route path="/colaboradores/cadastrar-perfil/:userId" element={<ProtectedRoute adminOnly={true}><CadastrarColaboradorView /></ProtectedRoute>} />
       <Route 
         path="/admin/cadastrar-aluno" 
         element={

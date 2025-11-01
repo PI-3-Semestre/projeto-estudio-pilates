@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false }
 
   // 2. Verifica se a rota é apenas para Admin Master
   if (adminMasterOnly) {
-    const isMaster = user?.perfis?.includes('Admin_Master');
+    const isMaster = user?.perfis?.includes('Admin Master');
     if (!isMaster) {
       return <Navigate to="/" replace />;
     }
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false }
 
   // 3. Verifica se a rota é para administradores (Admin ou Admin_Master)
   if (adminOnly) {
-    const isAdmin = user?.perfis?.some(p => ['Administrador', 'Admin_Master'].includes(p));
+    const isAdmin = user?.perfis?.some(p => ['Administrador', 'Admin Master'].includes(p));
     
     if (!isAdmin) {
       // Se não for admin, redireciona para a página inicial.
