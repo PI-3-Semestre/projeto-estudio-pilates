@@ -37,7 +37,7 @@ urlpatterns = [
     # path('api/agendamentos/', include('agendamentos.urls')),
     path("api/", include("usuarios.urls")),
     # path /colaraboradores & /cargos
-    path("api/alunos", include("alunos.urls")),
+    path("api/", include("alunos.urls")),
     # path para o app studios
     path("api/studios/", include("studios.urls")),
     # path para app avaliacoes
