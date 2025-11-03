@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import Avatar from '../components/Avatar';
 import useGerenciarAlunosViewModel from '../viewmodels/useGerenciarAlunosViewModel';
 
 const GerenciarAlunosView = () => {
@@ -69,9 +70,7 @@ const GerenciarAlunosView = () => {
                                     <tr key={aluno.cpf} className="bg-card-light border-b">
                                         <th className="px-6 py-4 font-medium text-text-dark whitespace-nowrap" scope="row">
                                             <div className="flex items-center gap-3">
-                                                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 shrink-0"
-                                                    style={{ backgroundImage: `url(${aluno.foto || ''})` }}>
-                                                </div>
+                                                <Avatar imageUrl={aluno.foto} alt={`Foto de ${aluno.nome}`} className="h-10 w-10 shrink-0" />
                                                 <span>{aluno.nome}</span>
                                             </div>
                                         </th>
@@ -98,9 +97,7 @@ const GerenciarAlunosView = () => {
                             <div key={aluno.cpf} className="bg-background-page dark:bg-background-dark rounded-lg p-4">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14"
-                                            style={{ backgroundImage: `url(${aluno.foto || ''})` }}>
-                                        </div>
+                                        <Avatar imageUrl={aluno.foto} alt={`Foto de ${aluno.nome}`} className="h-14 w-14" />
                                         <div className="flex flex-col">
                                             <p className="text-text-dark dark:text-text-light text-base font-bold leading-normal">
                                                 {aluno.nome}

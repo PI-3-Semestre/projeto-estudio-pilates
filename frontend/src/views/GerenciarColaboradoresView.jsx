@@ -13,7 +13,7 @@ const GerenciarColaboradoresView = () => {
                 <div className="bg-card-light dark:bg-card-dark shadow-md rounded-xl w-full max-w-7xl mx-auto p-4 sm:p-6">
                     <div className="flex flex-col gap-4 mb-6">
                         {/* Toolbar */}
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                             <h1 className="text-xl font-bold">Gerenciar Colaboradores</h1>
                             <Link to="/alunos/cadastrar-usuario" state={{ userType: 'colaborador' }} className="flex items-center justify-center rounded-xl h-12 px-5 bg-action-primary text-text-light gap-2 text-base font-bold">
                                 <span className="material-symbols-outlined">add</span>
