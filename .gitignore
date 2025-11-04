@@ -54,3 +54,8 @@ local_settings.py
 *.env
 
 GEMINI.md
+
+
+
+
+node_modules

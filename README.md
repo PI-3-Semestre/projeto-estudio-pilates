@@ -82,6 +82,33 @@ O sistema atualmente suporta as seguintes funcionalidades:
    poetry run python manage.py runserver
    ```
 
+## Populando o Banco de Dados para Desenvolvimento
+
+Para facilitar o desenvolvimento e os testes, o projeto inclui um comando para popular o banco de dados com um conjunto completo de dados de teste (`seed`).
+
+Isso inclui:
+- 3 Estúdios de Pilates.
+- Usuários com todos os perfis (Admin, Instrutor, Fisioterapeuta, etc.).
+- 20 alunos aleatórios.
+- Horários de funcionamento e feriados para os estúdios.
+- Créditos de aula manuais e gerados por cancelamento.
+- 40 aulas com cenários complexos, incluindo aulas lotadas, listas de espera e cancelamentos.
+
+### Como usar
+
+Para popular o banco de dados, execute o seguinte comando a partir da pasta `backend/`:
+
+```bash
+poetry run python manage.py seed_db
+```
+
+Para limpar o banco de dados antes de popular com novos dados, use a flag `--clean`:
+
+```bash
+poetry run python manage.py seed_db --clean
+```
+**Atenção:** O comando com a flag `--clean` apagará todos os dados existentes nas tabelas gerenciadas pelo script antes de inserir os novos.
+
 ## Documentação da API
 
 A documentação da API é gerada automaticamente pelo `drf-spectacular` e pode ser acessada em:
