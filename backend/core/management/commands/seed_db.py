@@ -1,13 +1,17 @@
 import random
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 from django.core.management.base import BaseCommand
 from django.db import transaction, IntegrityError
 from django.utils.text import slugify
+from django.utils import timezone
 
 from studios.models import Studio, FuncaoOperacional, ColaboradorStudio
 from usuarios.models import Usuario, Perfil, Colaborador, Endereco
 from alunos.models import Aluno
 from avaliacoes.models import Avaliacao
+from agendamentos.models import (
+    Modalidade, Aula, AulaAluno, HorarioTrabalho, BloqueioAgenda, CreditoAula, ListaEspera
+)
 
 class Command(BaseCommand):
     help = 'Popula o banco de dados com um conjunto de dados de teste predefinidos. Use --clean para limpar o banco antes.'
@@ -109,8 +113,12 @@ class Command(BaseCommand):
             with transaction.atomic():
                 self._seed_base_data()
                 self._seed_studios(studios_data)
+                self._seed_horarios_trabalho()
+                self._seed_bloqueios_agenda()
                 self._seed_users(users_data, created_users_credentials)
                 self._seed_alunos(alunos_data, created_users_credentials)
+                self._seed_creditos_manuais()
+                self._seed_aulas()
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Ocorreu um erro durante o seeding: {e}'))
@@ -122,6 +130,18 @@ class Command(BaseCommand):
 
     def _clean_database(self):
         self.stdout.write(self.style.WARNING('\nLIMPANDO o banco de dados...'))
+        ListaEspera.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Lista de espera deletada.'))
+        CreditoAula.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Créditos de aula deletados.'))
+        BloqueioAgenda.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Bloqueios de agenda deletados.'))
+        HorarioTrabalho.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Horários de trabalho deletados.'))
+        Aula.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Aulas deletadas.'))
+        Modalidade.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Modalidades deletadas.'))
         Avaliacao.objects.all().delete()
         self.stdout.write(self.style.SUCCESS('Avaliações deletadas.'))
         ColaboradorStudio.objects.all().delete()
@@ -167,6 +187,61 @@ class Command(BaseCommand):
         for data in studios_data:
             Studio.objects.get_or_create(nome=data['nome'], defaults={'endereco': data.get('endereco', '')})
         self.stdout.write(self.style.SUCCESS('Studios populados.'))
+
+    def _seed_horarios_trabalho(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando horários de trabalho para os studios...'))
+        studios = Studio.objects.all()
+        if not studios.exists():
+            self.stdout.write(self.style.ERROR('Nenhum studio encontrado para definir horários.'))
+            return
+
+        horarios_funcionamento = {
+            HorarioTrabalho.DiaSemana.SEGUNDA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
+            HorarioTrabalho.DiaSemana.TERCA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
+            HorarioTrabalho.DiaSemana.QUARTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
+            HorarioTrabalho.DiaSemana.QUINTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
+            HorarioTrabalho.DiaSemana.SEXTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
+            HorarioTrabalho.DiaSemana.SABADO: [{"inicio": time(8, 0), "fim": time(12, 0)}],
+            HorarioTrabalho.DiaSemana.DOMINGO: []
+        }
+
+        for studio in studios:
+            for dia, turnos in horarios_funcionamento.items():
+                if not turnos:
+                    continue
+
+                # Une os turnos para criar um único bloco contínuo
+                hora_inicio = turnos[0]['inicio']
+                hora_fim = turnos[-1]['fim']
+
+                HorarioTrabalho.objects.update_or_create(
+                    studio=studio,
+                    dia_semana=dia,
+                    defaults={
+                        'hora_inicio': hora_inicio,
+                        'hora_fim': hora_fim
+                    }
+                )
+        self.stdout.write(self.style.SUCCESS(f'Horários de trabalho definidos para {studios.count()} studios.'))
+
+    def _seed_bloqueios_agenda(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando bloqueios de agenda (feriados)...'))
+        studios = Studio.objects.all()
+        if not studios.exists():
+            self.stdout.write(self.style.ERROR('Nenhum studio encontrado para definir bloqueios.'))
+            return
+
+        current_year = date.today().year
+        feriados = [
+            (date(current_year, 1, 1), "Confraternização Universal"),
+            (date(current_year, 12, 25), "Natal"),
+            (date(current_year + 1, 1, 1), "Confraternização Universal"),
+        ]
+
+        for studio in studios:
+            for data_feriado, desc in feriados:
+                BloqueioAgenda.objects.get_or_create(studio=studio, data=data_feriado, defaults={'descricao': desc})
+        self.stdout.write(self.style.SUCCESS(f'Bloqueios de agenda definidos para {studios.count()} studios.'))
 
     def _seed_users(self, users_data, credentials_list):
         if not users_data: return
@@ -337,3 +412,119 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(self.style.SUCCESS(f'{quantidade} alunos aleatórios e suas avaliações iniciais foram criados.'))
+
+    def _seed_creditos_manuais(self, num_alunos=5, num_creditos=3):
+        self.stdout.write(self.style.HTTP_INFO(f'\nConcedendo {num_creditos} créditos para {num_alunos} alunos aleatórios...'))
+        alunos = list(Aluno.objects.all())
+        admin_user = Usuario.objects.filter(is_superuser=True).first()
+
+        if not all([alunos, admin_user]):
+            self.stdout.write(self.style.ERROR('Faltam alunos ou superusuário para conceder créditos.'))
+            return
+
+        alunos_selecionados = random.sample(alunos, min(len(alunos), num_alunos))
+        for aluno in alunos_selecionados:
+            CreditoAula.objects.create(
+                aluno=aluno,
+                quantidade=num_creditos,
+                adicionado_por=admin_user,
+                data_validade=date.today() + timedelta(days=90)
+            )
+        self.stdout.write(self.style.SUCCESS(f'Créditos manuais concedidos a {len(alunos_selecionados)} alunos.'))
+
+    def _seed_aulas(self, total_aulas=40, chance_aula_lotada=0.2, chance_cancelamento=0.15):
+        self.stdout.write(self.style.HTTP_INFO(f'\nPopulando modalidades e {total_aulas} aulas com cenários complexos...'))
+
+        # --- Seed Modalidades ---
+        modalidades_nomes = ["Pilates Clássico", "Pilates Avançado", "Pilates com Equipamentos", "Mat Pilates"]
+        modalidades = [Modalidade.objects.get_or_create(nome=nome)[0] for nome in modalidades_nomes]
+        self.stdout.write(self.style.SUCCESS('Modalidades populadas.'))
+
+        # --- Coleta de dados para criar aulas ---
+        studios = list(Studio.objects.all())
+        instrutores = list(Colaborador.objects.filter(perfis__nome='INSTRUTOR'))
+        alunos = list(Aluno.objects.all())
+        alunos_disponiveis = list(alunos)
+
+        if not all([studios, instrutores, alunos]):
+            self.stdout.write(self.style.ERROR('Faltam studios, instrutores ou alunos para criar aulas.'))
+            return
+
+        # --- Criação de Aulas e Agendamentos ---
+        aulas_criadas = 0
+        listas_espera_criadas = 0
+        creditos_gerados = 0
+
+        for _ in range(total_aulas):
+            try:
+                studio = random.choice(studios)
+                instrutor = random.choice(instrutores)
+                modalidade = random.choice(modalidades)
+                
+                dias_futuro = random.randint(1, 7)
+                hora_aula = random.randint(8, 18)
+                minuto_aula = random.choice([0, 30])
+                data_hora_inicio = timezone.now() + timedelta(days=dias_futuro)
+                data_hora_inicio = data_hora_inicio.replace(hour=hora_aula, minute=minuto_aula, second=0, microsecond=0)
+
+                # Evita criar aulas em dias bloqueados
+                if BloqueioAgenda.objects.filter(studio=studio, data=data_hora_inicio.date()).exists():
+                    continue
+
+                aula, created = Aula.objects.get_or_create(
+                    studio=studio,
+                    instrutor_principal=instrutor,
+                    modalidade=modalidade,
+                    data_hora_inicio=data_hora_inicio,
+                    defaults={
+                        'duracao_minutos': 60,
+                        'capacidade_maxima': 3,
+                        'tipo_aula': Aula.TipoAula.REGULAR
+                    }
+                )
+
+                if created:
+                    aulas_criadas += 1
+                    alunos_para_inscrever = random.sample(alunos_disponiveis, min(len(alunos_disponiveis), aula.capacidade_maxima + 2))
+
+                    # Cenário de Aula Lotada
+                    if random.random() < chance_aula_lotada:
+                        # Preenche a capacidade máxima
+                        for i in range(aula.capacidade_maxima):
+                            aluno = alunos_para_inscrever.pop(0)
+                            AulaAluno.objects.get_or_create(aula=aula, aluno=aluno)
+                        
+                        # Adiciona os restantes à lista de espera
+                        for aluno_extra in alunos_para_inscrever:
+                            if aula.alunos_inscritos.count() >= aula.capacidade_maxima:
+                                ListaEspera.objects.get_or_create(aula=aula, aluno=aluno_extra)
+                                listas_espera_criadas += 1
+                    
+                    # Cenário Normal de Inscrição
+                    else:
+                        num_alunos = random.randint(1, aula.capacidade_maxima)
+                        for i in range(num_alunos):
+                            aluno = alunos_para_inscrever.pop(0)
+                            # Chance de cancelamento com reposição
+                            if random.random() < chance_cancelamento:
+                                agendamento, _ = AulaAluno.objects.get_or_create(
+                                    aula=aula, 
+                                    aluno=aluno, 
+                                    defaults={'status_presenca': AulaAluno.StatusPresenca.AUSENTE_COM_REPO}
+                                )
+                                CreditoAula.objects.create(
+                                    aluno=aluno,
+                                    quantidade=1,
+                                    agendamento_origem=agendamento,
+                                    data_validade=date.today() + timedelta(days=30)
+                                )
+                                creditos_gerados += 1
+                            else:
+                                AulaAluno.objects.get_or_create(aula=aula, aluno=aluno)
+
+            except (IntegrityError, ValueError):
+                continue
+        
+        self.stdout.write(self.style.SUCCESS(f'{aulas_criadas} aulas criadas.'))
+        self.stdout.write(self.style.SUCCESS(f'{listas_espera_criadas} inscrições em lista de espera.'))
+        self.stdout.write(self.style.SUCCESS(f'{creditos_gerados} créditos de reposição gerados por ausência.'))

@@ -44,8 +44,11 @@ class AgendamentoAPITestCase(APITestCase):
         self.user_aluno.set_password("password123")
         self.user_aluno.save()
 
-        self.aluno, _ = Aluno.objects.get_or_create(usuario=self.user_aluno)
-        self.aluno.usuario.perfis.add(self.perfil_aluno)
+        self.aluno, _ = Aluno.objects.get_or_create(
+            usuario=self.user_aluno,
+            defaults={"dataNascimento": "1990-01-01"},
+        )
+
 
         self.user_recepcionista, _ = Usuario.objects.get_or_create(
             cpf="22222222222",
@@ -79,7 +82,7 @@ class AgendamentoAPITestCase(APITestCase):
             capacidade_maxima=3,
         )
         self.url_inscrever_aula = reverse(
-            "aula-inscrever-aluno", kwargs={"pk": self.aula.pk}
+            "aulaaluno-list"
         )
 
     def test_aluno_pode_agendar_a_si_mesmo_com_credito(self):
@@ -97,7 +100,7 @@ class AgendamentoAPITestCase(APITestCase):
         # Ação: Aluno faz a requisição para se inscrever
         self.client.force_authenticate(user=self.user_aluno)
         response = self.client.post(
-            self.url_inscrever_aula, data={}
+            self.url_inscrever_aula, data={"aula": self.aula.pk}
         )  # Aluno não passa aluno_id
 
         # Verificações
@@ -131,7 +134,7 @@ class AgendamentoAPITestCase(APITestCase):
         # Ação: Recepcionista faz a requisição para inscrever o aluno
         self.client.force_authenticate(user=self.user_recepcionista)
         response = self.client.post(
-            self.url_inscrever_aula, data={"aluno_id": self.aluno.pk}
+            self.url_inscrever_aula, data={"aluno_id": self.aluno.pk, "aula": self.aula.pk}
         )
 
         # Verificações
@@ -154,12 +157,12 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333333",
             first_name="Outro",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno)
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
 
         # Ação: Aluno 1 tenta agendar Aluno 2
         self.client.force_authenticate(user=self.user_aluno)
         response = self.client.post(
-            self.url_inscrever_aula, data={"aluno_id": outro_aluno.pk}
+            self.url_inscrever_aula, data={"aluno_id": outro_aluno.pk, "aula": self.aula.pk}
         )
 
         # Verificação
@@ -173,7 +176,7 @@ class AgendamentoAPITestCase(APITestCase):
 
         # Ação
         self.client.force_authenticate(user=self.user_aluno)
-        response = self.client.post(self.url_inscrever_aula, data={})
+        response = self.client.post(self.url_inscrever_aula, data={"aula": self.aula.pk})
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -195,18 +198,14 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333334",
             first_name="OutroLotado",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno)
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
         CreditoAula.objects.create(
             aluno=outro_aluno, quantidade=1, data_validade=timezone.now().date()
         )
         AulaAluno.objects.create(aula=self.aula, aluno=outro_aluno)
 
-        # Aluno principal tenta se inscrever na aula lotada
-        CreditoAula.objects.create(
-            aluno=self.aluno, quantidade=1, data_validade=timezone.now().date()
-        )
         self.client.force_authenticate(user=self.user_aluno)
-        response = self.client.post(self.url_inscrever_aula, data={})
+        response = self.client.post(self.url_inscrever_aula, data={"aula": self.aula.pk})
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -229,7 +228,7 @@ class AgendamentoAPITestCase(APITestCase):
 
         # Ação
         self.client.force_authenticate(user=self.user_aluno)
-        response = self.client.post(self.url_inscrever_aula, data={})
+        response = self.client.post(self.url_inscrever_aula, data={"aula": self.aula.pk})
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -276,7 +275,7 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333335",
             first_name="OutroCancel",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno)
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
         agendamento_outro = AulaAluno.objects.create(aula=self.aula, aluno=outro_aluno)
 
         url_cancelar = reverse(
@@ -297,13 +296,16 @@ class AgendamentoAPITestCase(APITestCase):
         """
         # Pré-condição: Aluno tem um agendamento
         agendamento_aluno = AulaAluno.objects.create(aula=self.aula, aluno=self.aluno)
-        user_admin = Usuario.objects.create_user(
-            username="admin@teste.com",
-            email="admin@teste.com",
-            password="password123",
+        user_admin, _ = Usuario.objects.get_or_create(
             cpf="44444444444",
-            first_name="Admin",
+            defaults={
+                "username": "admin@teste.com",
+                "email": "admin@teste.com",
+                "first_name": "Admin",
+            },
         )
+        user_admin.set_password("password123")
+        user_admin.save()
         admin, _ = Colaborador.objects.get_or_create(
             usuario=user_admin,
             defaults={

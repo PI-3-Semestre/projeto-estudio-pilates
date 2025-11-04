@@ -50,6 +50,15 @@ class HorarioTrabalhoViewSet(viewsets.ModelViewSet):
         return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
 
 
+@extend_schema(tags=['Agendamentos - Bloqueios'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todos os bloqueios de agenda"),
+    retrieve=extend_schema(summary="Busca um bloqueio pelo ID"),
+    create=extend_schema(summary="Cria um novo bloqueio de agenda"),
+    update=extend_schema(summary="Atualiza um bloqueio"),
+    partial_update=extend_schema(summary="Atualiza parcialmente um bloqueio"),
+    destroy=extend_schema(summary="Deleta um bloqueio"),
+)
 class BloqueioAgendaViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar Bloqueios de Agenda."""
 
@@ -62,6 +71,15 @@ class BloqueioAgendaViewSet(viewsets.ModelViewSet):
         return BloqueioAgendaWriteSerializer
 
 
+@extend_schema(tags=['Agendamentos - Modalidades'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todas as modalidades de aula"),
+    retrieve=extend_schema(summary="Busca uma modalidade pelo ID"),
+    create=extend_schema(summary="Cria uma nova modalidade"),
+    update=extend_schema(summary="Atualiza uma modalidade"),
+    partial_update=extend_schema(summary="Atualiza parcialmente uma modalidade"),
+    destroy=extend_schema(summary="Deleta uma modalidade"),
+)
 class ModalidadeViewSet(viewsets.ModelViewSet):
     """ViewSet para gerenciar as Modalidades de aula."""
 
@@ -148,6 +166,14 @@ class AulaViewSet(viewsets.ModelViewSet):
         return Aula.objects.none()
     
 @extend_schema(tags=['Agendamentos - Inscrições (Aulas-Alunos)'])
+@extend_schema_view(
+    list=extend_schema(summary="Lista todas as inscrições (agendamentos)"),
+    retrieve=extend_schema(summary="Busca um agendamento pelo ID"),
+    create=extend_schema(summary="Cria um novo agendamento (inscrição) para um aluno em uma aula"),
+    update=extend_schema(summary="Atualiza um agendamento (ex: marcar presença) - Apenas Staff"),
+    partial_update=extend_schema(summary="Atualiza parcialmente um agendamento - Apenas Staff"),
+    destroy=extend_schema(summary="Cancela um agendamento (aluno ou staff)"),
+)
 class AulaAlunoViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gerenciar as inscrições (Agendamentos) dos alunos nas aulas.
