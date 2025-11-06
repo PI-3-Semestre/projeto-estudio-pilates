@@ -3,9 +3,11 @@ from .models import Plano, Matricula, Pagamento, Produto, Venda
 from .serializers import (
     PlanoSerializer,
     MatriculaSerializer,
+    MatriculaReadSerializer,
     PagamentoSerializer,
     ProdutoSerializer,
-    VendaSerializer
+    VendaSerializer,
+    VendaReadSerializer
 )
 from .permissions import IsAdminFinanceiro, CanManagePagamentos
 
@@ -24,8 +26,11 @@ class MatriculaViewSet(viewsets.ModelViewSet):
     Acesso restrito a Admin Master e Administradores.
     """
     queryset = Matricula.objects.all()
-    serializer_class = MatriculaSerializer
-    permission_classes = [IsAdminFinanceiro]
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return MatriculaReadSerializer
+        return MatriculaSerializer
 
 class PagamentoViewSet(viewsets.ModelViewSet):
     """
@@ -55,5 +60,8 @@ class VendaViewSet(viewsets.ModelViewSet):
     - Outros: Apenas visualizar.
     """
     queryset = Venda.objects.all()
-    serializer_class = VendaSerializer
-    permission_classes = [CanManagePagamentos]
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return VendaReadSerializer
+        return VendaSerializer
