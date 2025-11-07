@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import Plano, Matricula, Pagamento, Produto, Venda, Parcela
 from alunos.serializers import AlunoSerializer
 from alunos.models import Aluno
+from usuarios.models import Usuario 
 
 class PlanoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,15 +14,16 @@ class PlanoSerializer(serializers.ModelSerializer):
             'duracao_dias',
             'creditos_semanais',
             'preco',
-            'data_criacao',
-            'data_ultima_modificacao'
         ]
-
 class MatriculaSerializer(serializers.ModelSerializer):
-    aluno = AlunoSerializer(read_only=True)
+    aluno = AlunoSerializer(source='aluno.aluno', read_only=True)
+    
     plano = PlanoSerializer(read_only=True)
+    
     aluno_id = serializers.PrimaryKeyRelatedField(
-        queryset=Aluno.objects.all(), source='aluno', write_only=True
+        queryset=Usuario.objects.filter(aluno__isnull=False),
+        source='aluno',
+        write_only=True
     )
     plano_id = serializers.PrimaryKeyRelatedField(
         queryset=Plano.objects.all(), source='plano', write_only=True
@@ -37,12 +39,16 @@ class MatriculaSerializer(serializers.ModelSerializer):
             'plano_id',
             'data_inicio',
             'data_fim',
-            'valor_pago',
-            'status',
         ]
+        
+class VendaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Venda
+        fields = '__all__'
 
 class PagamentoSerializer(serializers.ModelSerializer):
-    matricula = MatriculaSerializer(read_only=True)
+    matricula = MatriculaSerializer(read_only=True) 
+    
     venda = VendaSerializer(read_only=True)
     matricula_id = serializers.PrimaryKeyRelatedField(
         queryset=Matricula.objects.all(), source='matricula', write_only=True, required=False
@@ -64,8 +70,11 @@ class PagamentoSerializer(serializers.ModelSerializer):
             'status',
             'data_vencimento',
             'data_pagamento',
+            'comprovante_pagamento', 
         ]
-
+        # Definido read_only para upload seja feita pela action, sem ser feito nas rotas post/put
+        read_only_fields = ['comprovante_pagamento']
+        
     def validate(self, data):
         if not data.get('matricula') and not data.get('venda'):
             raise serializers.ValidationError("Um pagamento deve estar associado a uma matrícula ou a uma venda.")
@@ -77,12 +86,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         fields = ['id', 'nome', 'preco', 'quantidade_estoque']
-
-class VendaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Venda
-        fields = '__all__'
-
+        
 class ParcelaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parcela
