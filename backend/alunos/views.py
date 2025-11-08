@@ -89,4 +89,4 @@ class AlunoViewSet(viewsets.ModelViewSet):
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
     permission_classes = [IsAdminOrRecepcionista]
-    lookup_field = 'cpf'
+    lookup_field = 'usuario__cpf'
