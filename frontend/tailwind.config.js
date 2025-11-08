@@ -19,10 +19,10 @@ export default {
           "dark": "#1a2c2a"
         },
         "text": {
-          "light": "#f8fcfb",
-          "dark": "#0d1b1a",
+          "light": "#000000",
+          "dark": "#e0e0e0",
           "subtle": {
-            "light": "#4c9a92",
+            "light": "#6b7280",
             "dark": "#8cd4cb"
           }
         },
@@ -34,6 +34,14 @@ export default {
           "background": {
             "light": "#e7f3f2",
             "dark": "#1f3a37"
+          },
+          "placeholder": {
+            "light": "#666666",
+            "dark": "#a0a0a0"
+          },
+          "icon": {
+            "light": "#4b5563",
+            "dark": "#9ca3af"
           }
         }
       },
