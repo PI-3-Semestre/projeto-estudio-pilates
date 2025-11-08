@@ -324,13 +324,29 @@ class CreditoAulaSerializer(serializers.ModelSerializer):
 
     adicionado_por_nome = serializers.SerializerMethodField()
     invalidado_por_nome = serializers.SerializerMethodField()
+    
+    matricula_id = serializers.IntegerField(
+        source='matricula_origem.id', 
+        read_only=True,
+        allow_null=True # Permite que seja nulo (p/ créditos manuais)
+    )
+    
+    # Isto irá "pular" da Matrícula para o Plano e pegar o nome
+    plano_nome = serializers.CharField(
+        source='matricula_origem.plano.nome', 
+        read_only=True,
+        allow_null=True # Permite que seja nulo (p/ créditos manuais)
+    )
+    
     class Meta:
         model = CreditoAula
         fields = [
             "id",
             "aluno",  # Será preenchido pela view (da URL)
             "quantidade",  # Obrigatório no POST
-            "data_validade",  # Obrigatório no POST
+            "data_validade",
+            "matricula_id",      
+            "plano_nome",
             "data_adicao",
             "adicionado_por",
             "adicionado_por_nome",  # Campo de auditoria (GET)
