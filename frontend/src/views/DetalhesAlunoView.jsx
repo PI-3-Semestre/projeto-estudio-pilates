@@ -1,116 +1,113 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useDetalhesAlunoViewModel from '../viewmodels/useDetalhesAlunoViewModel';
+import { format } from 'date-fns';
 
 const DetalhesAlunoView = () => {
-    const navigate = useNavigate();
-    const { cpf } = useParams();
-    const { aluno, usuario, loading, error, formatarData } = useDetalhesAlunoViewModel(cpf);
+  const { aluno, studioNames, loading, error } = useDetalhesAlunoViewModel();
 
-    if (loading) {
-        return <div className="flex justify-center items-center h-screen"><p>Carregando...</p></div>;
-    }
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
-    if (error) {
-        return <div className="flex justify-center items-center h-screen"><p>Erro ao carregar os dados do aluno: {error.message}</p></div>;
-    }
+  if (error) {
+    return <div>Erro ao carregar os detalhes do aluno.</div>;
+  }
 
-    if (!aluno) {
-        return null;
-    }
+  if (!aluno) {
+    return <div>Aluno não encontrado.</div>;
+  }
 
-    const DetailRow = ({ label, value, isStatus = false }) => (
-        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</dt>
-            <dd className={`mt-1 text-sm sm:col-span-2 sm:mt-0 ${value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 italic'}`}>
-                {isStatus ? (
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${value ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
-                        {value ? 'Ativo' : 'Inativo'}
-                    </span>
-                ) : (value || 'Não informado')}
-            </dd>
+  return (
+    <div className="bg-background-light dark:bg-background-dark font-display min-h-screen">
+      <div className="relative flex flex-col w-full p-4 pt-0">
+        <div className="flex items-center bg-background-light dark:bg-background-dark py-4 sticky top-0 z-10">
+          <Link to="/gerenciar-alunos" className="flex size-10 shrink-0 items-center justify-center text-gray-800 dark:text-white">
+            <span className="material-symbols-outlined text-2xl">arrow_back</span>
+          </Link>
+          <h1 className="flex-1 text-lg font-bold text-center text-gray-900 dark:text-gray-100 mr-10">
+            Detalhes do Aluno
+          </h1>
         </div>
-    );
-
-    return (
-        <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
-            <header className="flex items-center p-4 justify-between bg-background-light dark:bg-background-dark sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800">
-                <button onClick={() => navigate(-1)} className="flex size-10 shrink-0 items-center justify-center text-gray-700 dark:text-gray-300">
-                    <span className="material-symbols-outlined text-2xl">arrow_back</span>
-                </button>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex-1 text-center">Detalhes do Aluno</h1>
-                <div className="size-10"></div>
-            </header>
-
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                <div className="mx-auto max-w-2xl bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
-                    <div className="p-6 md:p-8">
-                        <h2 className="text-gray-900 dark:text-white text-3xl font-bold leading-tight">{aluno.nome}</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">{usuario?.username || ''}</p>
-
-                        {/* Dados de Acesso */}
-                        <div className="mt-8">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-[-0.015em]">Dados de Acesso</h3>
-                            <div className="mt-4 border-t border-gray-200 dark:border-gray-700">
-                                <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <DetailRow label="E-mail" value={usuario?.email} />
-                                    <DetailRow label="CPF" value={aluno.cpf} />
-                                </dl>
-                            </div>
-                        </div>
-
-                        {/* Dados Pessoais */}
-                        <div className="mt-8">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-[-0.015em]">Dados Pessoais</h3>
-                            <div className="mt-4 border-t border-gray-200 dark:border-gray-700">
-                                <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <DetailRow label="Nome Completo" value={aluno.nome} />
-                                    <DetailRow label="Data de Nascimento" value={formatarData(aluno.dataNascimento)} />
-                                    <DetailRow label="Telefone / Contato" value={aluno.contato} />
-                                    <DetailRow label="Profissão" value={aluno.profissao} />
-                                    <DetailRow label="Status" value={aluno.is_active} isStatus={true} />
-                                </dl>
-                            </div>
-                        </div>
-
-                        {/* Unidades */}
-                        {aluno.unidades && aluno.unidades.length > 0 && (
-                            <div className="mt-8">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-[-0.015em]">Unidades</h3>
-                                <div className="mt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                                        {aluno.unidades.map((unidade, index) => (
-                                            <DetailRow key={unidade.id || index} label={`Unidade ${index + 1}`} value={unidade.nome} />
-                                        ))}
-                                    </dl>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Ações */}
-                    <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
-                        <div className="space-y-3">
-                            <button
-                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                                type="button"
-                            >
-                                <span className="material-symbols-outlined text-xl">edit</span>
-                                Editar Aluno
-                            </button>
-                            <button
-                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                                type="button"
-                            >
-                                <span className="material-symbols-outlined text-xl">delete</span>
-                                Deletar Aluno
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+        <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center mt-4">
+          <div className="flex w-full flex-col gap-4 items-center -mt-20">
+            <div
+              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 border-4 border-white dark:border-gray-800 shadow-lg"
+              style={{ backgroundImage: `url(${aluno.foto || 'https://via.placeholder.com/150'})` }}
+            ></div>
+            <div className="flex flex-col items-center justify-center text-center">
+              <p className="text-gray-900 dark:text-white text-xl font-bold leading-tight">{aluno.nome}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{aluno.email}</p>
+            </div>
+          </div>
+          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-6"></div>
+          <div className="w-full">
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">Nome Completo</p>
+              <p className="text-gray-800 dark:text-gray-200 text-sm font-medium text-right">{aluno.nome}</p>
+            </div>
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">CPF</p>
+              <p className="text-gray-800 dark:text-gray-200 text-sm font-medium text-right">{aluno.cpf}</p>
+            </div>
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">Data de Nascimento</p>
+              <p className="text-gray-800 dark:text-gray-200 text-sm font-medium text-right">
+                {format(new Date(aluno.dataNascimento), 'dd/MM/yyyy')}
+              </p>
+            </div>
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">Telefone</p>
+              <p className="text-gray-800 darktext-gray-200 text-sm font-medium text-right">{aluno.contato}</p>
+            </div>
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">Profissão</p>
+              <p className="text-gray-800 dark:text-gray-200 text-sm font-medium text-right">{aluno.profissao}</p>
+            </div>
+            <div className="flex justify-between gap-x-4 py-2.5">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-normal">Unidades</p>
+              <p className="text-gray-800 dark:text-gray-200 text-sm font-medium text-right">{studioNames.join(', ')}</p>
+            </div>
+          </div>
+          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-6"></div>
+          <div className="flex items-center w-full justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-primary flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-10">
+                <span className="material-symbols-outlined">verified_user</span>
+              </div>
+              <p className="text-gray-800 dark:text-gray-200 text-base font-medium">Status</p>
+            </div>
+            <div className="shrink-0">
+              <div
+                className={`flex items-center justify-center rounded-full px-3 py-1 ${
+                  aluno.is_active
+                    ? 'bg-green-100 dark:bg-green-900/50'
+                    : 'bg-red-100 dark:bg-red-900/50'
+                }`}
+              >
+                <div className={`size-2 rounded-full mr-2 ${aluno.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span
+                  className={`text-sm font-medium ${
+                    aluno.is_active ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
+                  }`}
+                >
+                  {aluno.is_active ? 'Ativo' : 'Inativo'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+        <div className="w-full max-w-lg mx-auto mt-6 space-y-3">
+          <button className="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+            <span className="truncate">Editar Perfil</span>
+          </button>
+          <button className="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-red-600 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors">
+            <span className="truncate">Deletar Aluno</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default DetalhesAlunoView;
