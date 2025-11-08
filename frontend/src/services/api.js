@@ -75,3 +75,7 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+export const getAlunoPorCpf = (cpf) => api.get(`/alunos/${cpf}/`);
+export const getUsuario = (userId) => api.get(`/usuarios/${userId}/`);
+export const getColaboradorPorCpf = (cpf) => api.get(`/colaboradores/${cpf}/`);

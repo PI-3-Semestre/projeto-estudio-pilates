@@ -66,7 +66,7 @@ const useCadastrarAlunoViewModel = () => {
         setError(null);
 
         try {
-            await api.post('/alunosalunos/', {
+            await api.post('/alunos/', {
                 usuario: userId,
                 dataNascimento: formData.dataNascimento,
                 contato: formData.contato,
