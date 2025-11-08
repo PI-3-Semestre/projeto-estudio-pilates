@@ -28,51 +28,19 @@ Fornece endpoints para:
         description='Lista todos os alunos.'
     ),
     retrieve=extend_schema(
-        description='Retorna os detalhes de um aluno específico.',
-        parameters=[
-            OpenApiParameter(
-                name='cpf',
-                type=str,
-                location=OpenApiParameter.PATH,
-                description='CPF do Aluno (utilizado como identificador na URL).'
-            )
-        ]
+        description='Retorna os detalhes de um aluno específico.'
     ),
     create=extend_schema(
         description='Cria um novo aluno.'
     ),
     update=extend_schema(
-        description='Atualiza completamente um aluno.',
-        parameters=[
-            OpenApiParameter(
-                name='cpf',
-                type=str,
-                location=OpenApiParameter.PATH,
-                description='CPF do Aluno (utilizado como identificador na URL).'
-            )
-        ]
+        description='Atualiza completamente um aluno.'
     ),
     partial_update=extend_schema(
-        description='Atualiza parcialmente um aluno.',
-        parameters=[
-            OpenApiParameter(
-                name='cpf',
-                type=str,
-                location=OpenApiParameter.PATH,
-                description='CPF do Aluno (utilizado como identificador na URL).'
-            )
-        ]
+        description='Atualiza parcialmente um aluno.'
     ),
     destroy=extend_schema(
-        description='Remove um aluno.',
-        parameters=[
-            OpenApiParameter(
-                name='cpf',
-                type=str,
-                location=OpenApiParameter.PATH,
-                description='CPF do Aluno (utilizado como identificador na URL).'
-            )
-        ]
+        description='Remove um aluno.'
     )
 )
 class AlunoViewSet(viewsets.ModelViewSet):
@@ -89,4 +57,4 @@ class AlunoViewSet(viewsets.ModelViewSet):
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
     permission_classes = [IsAdminOrRecepcionista]
-    lookup_field = 'cpf'
+    lookup_field = 'usuario__cpf'

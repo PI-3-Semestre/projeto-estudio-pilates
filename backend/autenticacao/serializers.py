@@ -53,3 +53,36 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['user'] = perfil_serializer.data
 
         return data
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer para solicitar a redefinição de senha.
+    Recebe um 'identifier' que pode ser o email ou o CPF do usuário.
+    """
+    identifier = serializers.CharField(max_length=255, write_only=True)
+
+    def validate_identifier(self, value):
+        # Esta validação é apenas para garantir que o campo não está vazio.
+        # A lógica de busca do usuário fica na view.
+        if not value:
+            raise serializers.ValidationError("O campo de identificador não pode ser vazio.")
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer para confirmar a redefinição de senha.
+    Recebe o token, a nova senha e a confirmação da nova senha.
+    """
+    token = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    password_confirm = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    def validate(self, data):
+        """
+        Verifica se as senhas coincidem.
+        """
+        if data['password'] != data['password_confirm']:
+            raise serializers.ValidationError({"password_confirm": "As senhas não coincidem."})
+        return data
