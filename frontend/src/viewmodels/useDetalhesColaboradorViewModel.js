@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getColaboradorPorCpf } from '../services/api';
+import { getColaboradorPorCpf, getUsuario } from '../services/api';
 
 const useDetalhesColaboradorViewModel = () => {
     const { cpf } = useParams();
@@ -9,11 +9,23 @@ const useDetalhesColaboradorViewModel = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchColaborador = async () => {
+        const fetchDetalhesColaborador = async () => {
             try {
-                const response = await getColaboradorPorCpf(cpf);
-                console.log(response.data);
-                setColaborador(response.data);
+                const colaboradorResponse = await getColaboradorPorCpf(cpf);
+                const colaboradorData = colaboradorResponse.data;
+
+                if (colaboradorData && colaboradorData.usuario) {
+                    const usuarioResponse = await getUsuario(colaboradorData.usuario);
+                    const usuarioData = usuarioResponse.data;
+                    
+                    // Combina os dados do colaborador com os dados do usuário
+                    setColaborador({
+                        ...colaboradorData,
+                        usuario: usuarioData
+                    });
+                } else {
+                    setColaborador(colaboradorData);
+                }
             } catch (err) {
                 setError(err);
             } finally {
@@ -22,7 +34,7 @@ const useDetalhesColaboradorViewModel = () => {
         };
 
         if (cpf) {
-            fetchColaborador();
+            fetchDetalhesColaborador();
         }
     }, [cpf]);
 
