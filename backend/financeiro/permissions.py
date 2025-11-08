@@ -51,3 +51,22 @@ class CanManagePagamentos(BasePermission):
 
         # Outros perfis autenticados (Instrutor, Fisio) podem ter acesso de leitura.
         return request.method in SAFE_METHODS
+
+class IsPaymentOwner(BasePermission):
+    """
+    Permite acesso apenas se o request.user for o aluno associado ao pagamento.
+    """
+
+    message = "Você não tem permissão para acessar este pagamento."
+
+    def has_object_permission(self, request, view, obj):
+        # 'obj' é a instância do Pagamento (que é o 'obj' que estamos verificando)
+        
+        # Verificamos se o pagamento está ligado a uma matrícula
+        if obj.matricula:
+            return obj.matricula.aluno == request.user
+    
+        # Verificamos se o pagamento está ligado a uma venda
+        if obj.venda:
+            return obj.venda.aluno == request.user            
+        return False

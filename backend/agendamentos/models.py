@@ -3,6 +3,7 @@ from django.db import models
 from studios.models import Studio
 from usuarios.models import Colaborador
 from alunos.models import Aluno
+from financeiro.models import Matricula
 from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -261,6 +262,15 @@ class CreditoAula(models.Model):
     )
 
     data_validade = models.DateField(db_index=True)
+    
+    # Adicionando o "link" para a Matrícula que gerou este crédito.
+    matricula_origem = models.ForeignKey(
+        Matricula,
+        on_delete=models.SET_NULL, # Se a matrícula for deletada, o crédito não some.
+        null=True,                 # Permite que o campo fique vazio (p/ créditos manuais)
+        blank=True,                # Permite que o campo seja nulo no Admin
+        related_name='creditos_gerados'
+    )
 
     def __str__(self):
         return f"Reposição para {self.aluno} (expira em {self.data_validade})"

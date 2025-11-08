@@ -1,108 +1,91 @@
 from django.db import models
-from alunos.models import Aluno
+from django.conf import settings
+
 
 class Plano(models.Model):
-    """ Define um pacote de serviço vendável (plano de aulas). """
-    nome = models.CharField(max_length=100, unique=True)
-    duracao_dias = models.IntegerField(default=30)
+    nome = models.CharField(max_length=100)
+    duracao_dias = models.IntegerField()
     creditos_semanais = models.IntegerField()
     preco = models.DecimalField(max_digits=10, decimal_places=2)
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_ultima_modificacao = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        db_table = 'planos'
-        verbose_name = "Plano"
-        verbose_name_plural = "Planos"
+
     def __str__(self):
         return self.nome
 
-class Matricula(models.Model):
-    """ Representa a matrícula de um aluno em um plano específico. """
-    class Status(models.TextChoices):
-        ATIVA = 'ATIVA', 'Ativa'
-        CANCELADA = 'CANCELADA', 'Cancelada'
-        CONCLUIDA = 'CONCLUIDA', 'Concluída'
 
-    aluno = models.ForeignKey(Aluno, on_delete=models.CASCADE, related_name="matriculas")
-    plano = models.ForeignKey(Plano, on_delete=models.PROTECT, related_name="matriculas")
+class Produto(models.Model):
+    nome = models.CharField(max_length=100)
+    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    quantidade_estoque = models.IntegerField()
+
+    def __str__(self):
+        return self.nome
+
+
+class Matricula(models.Model):
+    aluno = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    plano = models.ForeignKey(Plano, on_delete=models.CASCADE)
     data_inicio = models.DateField()
     data_fim = models.DateField()
-    valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ATIVA)
-    
-    class Meta:
-        db_table = 'matriculas'
-        verbose_name = "Matrícula"
-        verbose_name_plural = "Matrículas"
+
     def __str__(self):
         return f"{self.aluno} - {self.plano}"
 
-class Produto(models.Model):
-    """ Representa um produto físico para venda no estúdio. """
-    nome = models.CharField(max_length=100)
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
-    quantidade_estoque = models.PositiveIntegerField(default=0)
-    
-    class Meta:
-        db_table = 'produtos'
-        verbose_name = "Produto"
-        verbose_name_plural = "Produtos"
-    def __str__(self):
-        return self.nome
 
 class Venda(models.Model):
-    """ Registra uma venda (geralmente de produtos) para um aluno. """
-    aluno = models.ForeignKey(Aluno, on_delete=models.SET_NULL, null=True, related_name="vendas")
-    data_venda = models.DateTimeField(auto_now_add=True)
-    produtos = models.ManyToManyField(Produto, through='VendaProduto')
-    
-    class Meta:
-        db_table = 'vendas'
-        verbose_name = "Venda"
-        verbose_name_plural = "Vendas"
+    aluno = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
+    data_venda = models.DateField(auto_now_add=True)
+    produtos = models.ManyToManyField(Produto, through="VendaProduto")
+
+    def __str__(self):
+        return f"Venda {self.id} - {self.aluno}"
+
 
 class VendaProduto(models.Model):
-    """ Tabela de ligação para registrar produtos em uma venda. """
     venda = models.ForeignKey(Venda, on_delete=models.CASCADE)
-    produto = models.ForeignKey(Produto, on_delete=models.PROTECT)
-    quantidade = models.PositiveIntegerField()
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    quantidade = models.IntegerField()
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    class Meta:
-        db_table = 'venda_produtos'
-        unique_together = [['venda', 'produto']]
+
+    def __str__(self):
+        return f"{self.venda} - {self.produto}"
+
 
 class Pagamento(models.Model):
-    """ Centraliza um pagamento, que pode ser de uma matrícula ou venda. """
-    class Status(models.TextChoices):
-        PENDENTE = 'PENDENTE', 'Pendente'
-        PAGO = 'PAGO', 'Pago'
-        ATRASADO = 'ATRASADO', 'Atrasado'
-        
-    matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, null=True, blank=True)
+    STATUS_CHOICES = [
+        ("PENDENTE", "Pendente"),
+        ("PAGO", "Pago"),
+        ("ATRASADO", "Atrasado"),
+        ("CANCELADO", "Cancelado"),
+    ]
+    matricula = models.ForeignKey(
+        Matricula, on_delete=models.CASCADE, null=True, blank=True
+    )
     venda = models.ForeignKey(Venda, on_delete=models.CASCADE, null=True, blank=True)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)
-    metodo_pagamento = models.CharField(max_length=50)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDENTE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDENTE")
     data_vencimento = models.DateField()
-    data_pagamento = models.DateTimeField(null=True, blank=True)
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_ultima_modificacao = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        db_table = 'pagamentos'
-        verbose_name = "Pagamento"
-        verbose_name_plural = "Pagamentos"
+    data_pagamento = models.DateField(null=True, blank=True)
+    metodo_pagamento = models.CharField(max_length=50, null=True, blank=True)
+    comprovante_pagamento = models.FileField(
+        upload_to="comprovantes_pagamento/", null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"Pagamento {self.id} - {self.status}"
+
 
 class Parcela(models.Model):
-    """ Representa uma parcela de um pagamento. """
-    pagamento = models.ForeignKey(Pagamento, on_delete=models.CASCADE, related_name="parcelas")
+    pagamento = models.ForeignKey(
+        Pagamento, on_delete=models.CASCADE, related_name="parcelas"
+    )
     numero_parcela = models.IntegerField()
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data_vencimento = models.DateField()
-    status = models.CharField(max_length=20) # Ex: PAGA, PENDENTE
-    
-    class Meta:
-        db_table = 'parcelas'
-        unique_together = [['pagamento', 'numero_parcela']]
+    status = models.CharField(
+        max_length=10, choices=Pagamento.STATUS_CHOICES, default="PENDENTE"
+    )
+
+    def __str__(self):
+        return f"Parcela {self.numero_parcela} do Pagamento {self.pagamento.id}"
