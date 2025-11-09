@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { getColaboradorPorCpf, getUsuario } from '../services/api';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getColaboradorPorCpf, getUsuario, deleteColaborador } from '../services/api';
 
 const useDetalhesColaboradorViewModel = () => {
     const { cpf } = useParams();
+    const navigate = useNavigate();
     const [colaborador, setColaborador] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,10 +39,24 @@ const useDetalhesColaboradorViewModel = () => {
         }
     }, [cpf]);
 
+    const handleDelete = async () => {
+        if (window.confirm('Tem certeza que deseja deletar este colaborador?')) {
+            try {
+                await deleteColaborador(cpf);
+                alert('Colaborador deletado com sucesso!');
+                navigate('/gerenciar-colaboradores');
+            } catch (err) {
+                alert('Erro ao deletar colaborador.');
+                console.error(err);
+            }
+        }
+    };
+
     return {
         colaborador,
         loading,
         error,
+        handleDelete,
     };
 };
 

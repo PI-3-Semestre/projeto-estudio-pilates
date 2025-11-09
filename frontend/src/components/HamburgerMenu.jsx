@@ -11,7 +11,7 @@ const HamburgerMenu = ({ toggleMenu }) => {
     };
 
     return (
-        <aside className={'fixed inset-y-0 left-0 z-40 w-72 transform border-r border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark p-6 transition-transform duration-300 lg:relative lg:w-80 lg:translate-x-0'}>
+        <aside className={'fixed inset-y-0 left-0 z-40 w-72 transform border-r border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark p-6 transition-transform duration-300 lg:fixed lg:w-80 lg:translate-x-0'}>
             <div className="flex h-full w-full flex-col">
                 <div className="flex items-center justify-between pb-8">
                     <div className="flex items-center gap-3">

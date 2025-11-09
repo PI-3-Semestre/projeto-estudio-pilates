@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const useDetalhesAlunoViewModel = () => {
   const { cpf } = useParams();
+  const navigate = useNavigate();
   const [aluno, setAluno] = useState(null);
   const [studioNames, setStudioNames] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,8 +34,18 @@ const useDetalhesAlunoViewModel = () => {
     fetchAluno();
   }, [cpf]);
 
-  return { aluno, studioNames, loading, error };
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/alunos/${cpf}/`);
+      navigate('/gerenciar-alunos');
+    } catch (err) {
+      setError(err);
+      // Optionally, handle the error more gracefully (e.g., show a notification)
+      console.error("Failed to delete student:", err);
+    }
+  };
+
+  return { aluno, studioNames, loading, error, handleDelete };
 };
 
 export default useDetalhesAlunoViewModel;
-

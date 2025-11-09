@@ -6,7 +6,7 @@ const CadastrarUsuarioView = () => {
     const { formData, loading, error, userType, handleChange, handleSubmit } = useCadastrarUsuarioViewModel();
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-dark dark:text-text-light">
+        <div className="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
             <header className="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 md:px-6">
                 <Link to="/alunos" className="flex size-10 items-center justify-center">
                     <span className="material-symbols-outlined text-3xl">arrow_back</span>
@@ -24,7 +24,7 @@ const CadastrarUsuarioView = () => {
                                 name="nome_completo"
                                 value={formData.nome_completo}
                                 onChange={handleChange}
-                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-dark dark:text-text-light"
+                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
                                 placeholder="Digite o nome completo do aluno" type="text" />
                         </label>
                         <label className="flex flex-col w-full">
@@ -33,7 +33,7 @@ const CadastrarUsuarioView = () => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-dark dark:text-text-light"
+                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
                                 placeholder="exemplo@email.com" type="email" />
                         </label>
                         <label className="flex flex-col w-full">
@@ -42,7 +42,7 @@ const CadastrarUsuarioView = () => {
                                 name="username"
                                 value={formData.username}
                                 onChange={handleChange}
-                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-dark dark:text-text-light"
+                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
                                 placeholder="crie um nome de usuário" type="text" />
                         </label>
                         <label className="flex flex-col w-full">
@@ -51,7 +51,7 @@ const CadastrarUsuarioView = () => {
                                 name="cpf"
                                 value={formData.cpf}
                                 onChange={handleChange}
-                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-dark dark:text-text-light"
+                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
                                 placeholder="000.000.000-00" type="text" />
                         </label>
                         <label className="flex flex-col w-full">
@@ -61,7 +61,7 @@ const CadastrarUsuarioView = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 pr-12 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-dark dark:text-text-light"
+                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-background-light dark:bg-input-background-dark h-14 p-4 pr-12 text-base font-normal leading-normal placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark focus:ring-2 focus:ring-primary/50 text-text-light dark:text-text-dark"
                                     placeholder="Crie uma senha forte" type="password" />
                                 <button
                                     className="absolute right-0 flex h-14 w-12 items-center justify-center text-text-subtle-light dark:text-text-subtle-dark"
