@@ -55,7 +55,7 @@
             <div class="flex w-full flex-col gap-4 items-center -mt-20">
                 <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 border-4 border-white dark:border-gray-800 shadow-lg"
                     data-alt="Profile picture of Maria Souza"
-                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDu3gYilnmmna9i0NXQMUfC-AM27ChIbj7dvDbKyn7Y8uYk7TZgGXaGFwiSA4vommGaq7fOFg9onOqnxjOCHBIdeWeweEb2QUAlBGn3WFdFYlx03L7RyCh1nvKF9rTZhq0h0BNIoUWfqRgA6OZsKaRR3agSTyGiB3AYwT-FTpgeF_RCYjCVku-HPKY8MCLeiYJKqdhTzMTGfZWq9jnA-Kymf1aBRLhkZ7XNmIsRHLo1wXvwX9cxIJuc2qBh6nG1jUuDmNOslAUh5lci");'>
+                    style='background-image: url("https://picsum.photos/200");'>
                 </div>
                 <div class="flex flex-col items-center justify-center text-center">
                     <p class="text-gray-900 dark:text-white text-xl font-bold leading-tight">Maria Souza</p>
@@ -113,13 +113,13 @@
                 class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
                 <span class="truncate">Editar Perfil</span>
             </button>
-            <button
+            <button id="delete-button"
                 class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-red-600 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors">
                 <span class="truncate">Deletar Aluno</span>
             </button>
         </div>
     </div>
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-sm w-full text-center">
             <div
                 class="flex justify-center items-center size-14 rounded-full bg-red-100 dark:bg-red-900/50 mx-auto mb-4">
@@ -130,17 +130,64 @@
                 Você tem certeza que deseja deletar o perfil de Maria Souza? Esta ação não pode ser desfeita.
             </p>
             <div class="mt-6 flex justify-center gap-4">
-                <button
+                <button id="cancel-button"
                     class="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                     Cancelar
                 </button>
-                <button
+                <button id="confirm-delete-button"
                     class="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors">
                     Deletar
                 </button>
             </div>
         </div>
     </div>
+
+    <script>
+        const deleteButton = document.getElementById('delete-button');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const cancelButton = document.getElementById('cancel-button');
+        const confirmDeleteButton = document.getElementById('confirm-delete-button');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const cpf = urlParams.get('cpf');
+
+        deleteButton.addEventListener('click', () => {
+            confirmationModal.classList.remove('hidden');
+        });
+
+        cancelButton.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+        });
+
+        confirmDeleteButton.addEventListener('click', () => {
+            if (!cpf) {
+                alert('CPF do aluno não encontrado na URL.');
+                confirmationModal.classList.add('hidden');
+                return;
+            }
+
+            fetch(`http://127.0.0.1:8000/api/alunos/${cpf}/`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Aluno deletado com sucesso!');
+                    window.location.href = 'tela_gerenciar_aluno.html';
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.detail || 'Falha ao deletar o aluno.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert(error.message);
+            })
+            .finally(() => {
+                confirmationModal.classList.add('hidden');
+            });
+        });
+    </script>
 </body>
 
 </html>
