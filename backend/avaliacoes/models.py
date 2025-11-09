@@ -45,7 +45,8 @@ class Avaliacao(models.Model):
 
     def __str__(self):
         """Representação em string do objeto, útil no admin do Django e para debugging."""
-        return f"Avaliação de {self.aluno.nome} em {self.data_avaliacao.strftime('%d/%m/%Y')}"
+        aluno_nome = self.aluno.nome if self.aluno else "Aluno não definido"
+        return f"Avaliação de {aluno_nome} em {self.data_avaliacao.strftime('%d/%m/%Y')}"
 
 
 class RegistroClinico(models.Model):

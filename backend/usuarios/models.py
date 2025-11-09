@@ -104,6 +104,13 @@ class Endereco(models.Model):
     def __str__(self):
         return f"{self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
 
+class ColaboradorManager(models.Manager):
+    """Manager para retornar apenas colaboradores ativos."""
+    def get_queryset(self):
+        return super().get_queryset().filter(status=Colaborador.Status.ATIVO)
+
+from django.utils import timezone
+
 class Colaborador(models.Model):
     """
     Modelo que representa o perfil profissional de um usuário.
@@ -138,6 +145,10 @@ class Colaborador(models.Model):
         related_name="colaboradores"
     )
 
+    # Managers do modelo
+    objects = ColaboradorManager()  # O manager padrão que retorna apenas ativos.
+    todos_objetos = models.Manager()  # Manager para acessar todos os objetos.
+
     class Meta:
         db_table = 'colaboradores'
         verbose_name = "Colaborador"
@@ -146,3 +157,16 @@ class Colaborador(models.Model):
     def __str__(self):
         """Retorna o nome do usuário associado a este perfil de colaborador. """
         return self.usuario.get_full_name() or self.usuario.email
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Sobrescreve o método de exclusão para implementar a "exclusão suave" (soft delete).
+        Marca o colaborador como inativo e desativa o usuário associado.
+        """
+        self.status = self.Status.INATIVO
+        self.data_demissao = timezone.now().date()
+        self.save()
+
+        # Desativa o usuário associado para que ele não possa mais fazer login.
+        self.usuario.is_active = False
+        self.usuario.save()
