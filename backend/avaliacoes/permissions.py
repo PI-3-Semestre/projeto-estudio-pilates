@@ -6,9 +6,8 @@ class CanManageAvaliacaoObject(BasePermission):
     """
     Permissão customizada para o gerenciamento de Avaliações.
     - Admin Master/Administrador: Acesso total.
-    - Fisioterapeuta: Acesso total apenas às avaliações que ele criou.
-    - Recepcionista: Pode apenas criar novas avaliações (agendar).
-    - Instrutor: Apenas leitura de lista (sem acesso ao detalhe).
+    - Fisioterapeuta/Instrutor: Acesso total às avaliações que criou.
+    - Recepcionista: Apenas leitura dos detalhes.
     """
     message = "Você não tem permissão para realizar esta ação."
 
@@ -25,12 +24,11 @@ class CanManageAvaliacaoObject(BasePermission):
         except Colaborador.DoesNotExist:
             return False
 
-        # Permite a criação (POST) para perfis administrativos e fisios.
+        # Permite a criação (POST) para perfis administrativos, fisios e instrutores.
         if request.method == 'POST':
-            return any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA', 'FISIOTERAPEUTA'] for perfil in user_perfis)
+            return any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'FISIOTERAPEUTA', 'INSTRUTOR'] for perfil in user_perfis)
 
         # Permite o acesso à lista (GET) para qualquer colaborador autenticado.
-        # A sensibilidade está no acesso ao objeto individual.
         return True
 
     def has_object_permission(self, request, view, obj):
@@ -47,12 +45,12 @@ class CanManageAvaliacaoObject(BasePermission):
         if 'ADMIN_MASTER' in user_perfis or 'ADMINISTRADOR' in user_perfis:
             return True
 
-        # Fisioterapeuta só pode acessar/modificar a avaliação que ele mesmo criou.
-        if 'FISIOTERAPEUTA' in user_perfis:
+        # Fisioterapeuta e Instrutor podem gerenciar a avaliação que eles mesmos criaram.
+        if 'FISIOTERAPEUTA' in user_perfis or 'INSTRUTOR' in user_perfis:
             return obj.instrutor == request.user.colaborador
 
-        # Recepcionista e Instrutor não podem ver/editar/deletar o conteúdo de uma avaliação.
-        if 'RECEPCIONISTA' in user_perfis or 'INSTRUTOR' in user_perfis:
-            return False
+        # Recepcionista pode apenas visualizar os detalhes (GET, HEAD, OPTIONS).
+        if 'RECEPCIONISTA' in user_perfis:
+            return request.method in SAFE_METHODS
 
         return False
