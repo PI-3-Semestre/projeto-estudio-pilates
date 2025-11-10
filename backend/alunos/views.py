@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiPara
 from .models import Aluno
 from .serializers import AlunoSerializer
 from .permissions import IsAdminOrRecepcionista
+from core.permissions import StudioPermissionMixin
 
 @extend_schema(
     tags=['Alunos'],
@@ -43,7 +44,7 @@ Fornece endpoints para:
         description='Remove um aluno.'
     )
 )
-class AlunoViewSet(viewsets.ModelViewSet):
+class AlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet que fornece a API completa para o gerenciamento de Alunos.
     
@@ -58,3 +59,4 @@ class AlunoViewSet(viewsets.ModelViewSet):
     serializer_class = AlunoSerializer
     permission_classes = [IsAdminOrRecepcionista]
     lookup_field = 'usuario__cpf'
+    studio_filter_field = 'unidades'
