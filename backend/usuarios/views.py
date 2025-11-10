@@ -3,6 +3,7 @@ from rest_framework import viewsets, permissions
 from drf_spectacular.utils import extend_schema
 from .models import Usuario, Colaborador
 from .serializers import UsuarioSerializer, ColaboradorSerializer
+from core.permissions import StudioPermissionMixin
 
 from .permissions import IsAdminMaster, IsAdminMasterOrAdministrador
 
@@ -53,7 +54,7 @@ Fornece endpoints para:
 **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
 '''
 )
-class ColaboradorViewSet(viewsets.ModelViewSet):
+class ColaboradorViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar os perfis de colaborador (modelo Colaborador).
     
@@ -70,4 +71,5 @@ class ColaboradorViewSet(viewsets.ModelViewSet):
     
     # Apenas o Admin Master pode gerenciar perfis de colaborador.
     # Esta é uma permissão mais restrita para uma ação mais sensível.
-    permission_classes = [IsAdminMaster]
+    permission_classes = [IsAdminMasterOrAdministrador]
+    studio_filter_field = 'unidades'

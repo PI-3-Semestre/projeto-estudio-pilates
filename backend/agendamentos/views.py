@@ -29,6 +29,7 @@ from .permissions import HasRole, CanUpdateAula, IsOwnerDoAgendamento, Colaborad
 from alunos.permissions import IsStaffAutorizado
 from alunos.models import Aluno
 from rest_framework.exceptions import PermissionDenied
+from core.permissions import StudioPermissionMixin
 
 
 # ... (ViewSets de HorarioTrabalho, BloqueioAgenda, Modalidade - Inalterados) ...
@@ -41,13 +42,13 @@ from rest_framework.exceptions import PermissionDenied
     partial_update=extend_schema(summary="Atualiza parcialmente um horário de trabalho"),
     destroy=extend_schema(summary="Deleta um horário de trabalho"),
 )
-class HorarioTrabalhoViewSet(viewsets.ModelViewSet):
+class HorarioTrabalhoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar Horários de Trabalho."""
 
     queryset = HorarioTrabalho.objects.all()
     serializer_class = HorarioTrabalhoSerializer
-    def get_permissions(self):
-        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
+    permission_classes = [IsAuthenticated]
+    studio_filter_field = 'studio'
 
 
 @extend_schema(tags=['Agendamentos - Bloqueios'])
@@ -59,12 +60,13 @@ class HorarioTrabalhoViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(summary="Atualiza parcialmente um bloqueio"),
     destroy=extend_schema(summary="Deleta um bloqueio"),
 )
-class BloqueioAgendaViewSet(viewsets.ModelViewSet):
+class BloqueioAgendaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar Bloqueios de Agenda."""
 
     queryset = BloqueioAgenda.objects.all()
-    def get_permissions(self):
-        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
+    permission_classes = [IsAuthenticated]
+    studio_filter_field = 'studio'
+
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return BloqueioAgendaReadSerializer
@@ -98,13 +100,14 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(summary="Atualiza parcialmente uma aula (Admin/Recep/Dono)"),
     destroy=extend_schema(summary="Deleta uma aula (Apenas Admins)"),
 )
-class AulaViewSet(viewsets.ModelViewSet):
+class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar Aulas (CRUD de Aulas).
     Esta view NÃO lida com inscrições de alunos.
     """
     
-    # queryset = Aula.objects.all() # (Vamos usar o get_queryset abaixo)
+    queryset = Aula.objects.all().order_by('data_hora_inicio')
+    studio_filter_field = 'studio'
 
     def get_serializer_class(self):
         """
@@ -128,42 +131,6 @@ class AulaViewSet(viewsets.ModelViewSet):
             return [CanUpdateAula()] # Staff ou Dono podem Editar
         return [IsAuthenticated()]
 
-    def get_queryset(self):
-        """
-        Filtra as aulas que o usuário pode ver:
-        - Admin/Recep: Veem todas.
-        - Instrutor: Vê apenas suas próprias aulas.
-        - Aluno: Vê todas (para poder escolher onde se agendar).
-        """
-        user = self.request.user
-        
-        # Superusuário vê tudo
-        if user.is_superuser:
-            return Aula.objects.all().order_by('data_hora_inicio')
-            
-        # Se for Aluno (não tem .colaborador), ele vê todas as aulas
-        if not hasattr(user, 'colaborador'):
-            return Aula.objects.all().order_by('data_hora_inicio')
-
-        # Se for Staff (Admin, Recep, Instrutor)
-        try:
-            perfis = user.colaborador.perfis.values_list('nome', flat=True)
-            
-            # Admin/Recep veem todas
-            if any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA'] for perfil in perfis):
-                return Aula.objects.all().order_by('data_hora_inicio')
-            
-            # Instrutor/Fisio veem apenas as suas
-            if any(perfil in ['INSTRUTOR', 'FISIOTERAPEUTA'] for perfil in perfis):
-                return Aula.objects.filter(
-                    Q(instrutor_principal=user.colaborador) | Q(instrutor_substituto=user.colaborador)
-                ).distinct().order_by('data_hora_inicio')
-                
-        except Colaborador.DoesNotExist:
-             return Aula.objects.all().order_by('data_hora_inicio') # Aluno (fallback)
-
-        # Se for um Colaborador sem perfil (raro), não vê nada
-        return Aula.objects.none()
     
 @extend_schema(tags=['Agendamentos - Inscrições (Aulas-Alunos)'])
 @extend_schema_view(
@@ -174,12 +141,13 @@ class AulaViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(summary="Atualiza parcialmente um agendamento - Apenas Staff"),
     destroy=extend_schema(summary="Cancela um agendamento (aluno ou staff)"),
 )
-class AulaAlunoViewSet(viewsets.ModelViewSet):
+class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar as inscrições (Agendamentos) dos alunos nas aulas.
     Endpoint: /api/agendamentos/aulas-alunos/
     """
     queryset = AulaAluno.objects.all()
+    studio_filter_field = 'aula__studio'
     # As permissões de base são verificadas, e depois as permissões de objeto
     permission_classes = [IsAuthenticated] 
 
