@@ -107,14 +107,13 @@ const HamburgerMenu = ({ toggleMenu }) => {
                         </div>
                         <span className="material-symbols-outlined text-2xl text-[#4c9a92]">chevron_right</span>
                     </a>
-                    <a className="flex items-center gap-4 p-4 min-h-[56px] justify-between border-t border-gray-200 active:bg-gray-100 dark:active:bg-slate-800 transition-colors duration-150"
-                        href="#">
+                    <Link to="/modalidades" className="flex items-center gap-4 p-4 min-h-[56px] justify-between border-t border-gray-200 active:bg-gray-100 dark:active:bg-slate-800 transition-colors duration-150">
                         <div className="flex items-center gap-4">
                             <span className="material-symbols-outlined text-2xl text-[#0fbdac]">category</span>
                             <p className="flex-1 truncate text-base font-normal text-[#0d1b1a]">Modalidades de Aula</p>
                         </div>
                         <span className="material-symbols-outlined text-2xl text-[#4c9a92]">chevron_right</span>
-                    </a>
+                    </Link>
                     <a className="flex items-center gap-4 p-4 min-h-[56px] justify-between border-t border-gray-200 active:bg-gray-100 dark:active:bg-slate-800 transition-colors duration-150"
                         href="#">
                         <div className="flex items-center gap-4">

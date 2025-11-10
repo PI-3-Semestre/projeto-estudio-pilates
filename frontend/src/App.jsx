@@ -16,6 +16,7 @@ import GerenciarColaboradoresView from "./views/GerenciarColaboradoresView";
 import DetalhesColaboradorView from "./views/DetalhesColaboradorView";
 import DetalhesAlunoView from "./views/DetalhesAlunoView";
 import EditarColaboradorView from "./views/EditarColaboradorView";
+import ModalidadesView from "./views/ModalidadesView";
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -108,6 +109,14 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <AdminCadastroView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/modalidades"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <ModalidadesView />
           </ProtectedRoute>
         }
       />
