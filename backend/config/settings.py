@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     "alunos",
     "studios",
     "agendamentos",
-    "financeiro",
+    "financeiro.apps.FinanceiroConfig",
     "avaliacoes",
     "autenticacao",
 ]
@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    # Define o spectacular como gerador de schema padrão
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -181,3 +182,18 @@ CORS_ALLOWED_ORIGINS = [
 # Configuração de Mídia para salvar as fotos dos alunos
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# --- CONFIGURAÇÃO CHAVE PARA O SWAGGER ---
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Estúdio de Pilates',
+    'DESCRIPTION': 'Documentação completa da API para o sistema do Estúdio de Pilates',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    
+    # --- A CORREÇÃO ---
+    # Define como 'False' para forçar o Swagger a usar as 'tags'
+    # que definimos nas ViewSets, em vez de agrupar pela URL.
+    'SCHEMA_COALESCE_PATH_PREFIXES': False,
+    
+    'SORT_OPERATION_PARAMETERS': True,
+}

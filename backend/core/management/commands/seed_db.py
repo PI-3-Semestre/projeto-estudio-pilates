@@ -56,6 +56,16 @@ class Command(BaseCommand):
                 "email": "admin@pilates.com", "password": "admin", "cpf": "00000000000"
             },
             {
+                "role": "colaborador", "definir_nome_completo": "Master Admin Profile",
+                "email": "master.admin@pilates.com", "password": "123456", "cpf": "99999999999",
+                "colaborador_info": {
+                    "perfis": ["ADMIN_MASTER"],
+                    "data_nascimento": "1980-01-01", "telefone": "+5511999999999",
+                    "endereco": {"logradouro": "Rua Principal", "numero": "1", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01000-000"},
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_ids": [1]}]
+                }
+            },
+            {
                 "role": "colaborador", "definir_nome_completo": "Ana Silva (Instrutora)",
                 "email": "ana.silva@pilates.com", "password": "123456", "cpf": "11111111111",
                 "colaborador_info": {
