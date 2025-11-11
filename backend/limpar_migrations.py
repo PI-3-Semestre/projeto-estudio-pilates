@@ -83,4 +83,4 @@ def limpar_migracoes_do_backend():
 
 # Padrão em Python para garantir que o código só é executado quando o ficheiro é chamado diretamente.
 if __name__ == "__main__":
-    limpar_migracoes_do_backend()s
+    limpar_migracoes_do_backend()
