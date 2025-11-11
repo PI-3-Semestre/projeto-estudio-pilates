@@ -1,8 +1,39 @@
 # usuarios/views.py
-from rest_framework import viewsets, permissions
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework import viewsets, permissions, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
-from .models import Usuario, Colaborador
-from .serializers import UsuarioSerializer, ColaboradorSerializer
+
+from .models import Usuario, Colaborador, Perfil
+from .serializers import UsuarioSerializer, ColaboradorSerializer, PerfilSerializer
+
+
+@extend_schema(
+    tags=['Colaboradores'],
+    description="Retorna a lista de todos os perfis de colaborador disponíveis (ex: Instrutor, Fisioterapeuta) para serem usados em seletores no frontend."
+)
+class PerfisListView(APIView):
+    """
+    View para listar todos os perfis de usuário disponíveis no sistema.
+    
+    - Retorna uma lista de objetos, cada um contendo o `id` e o `nome` do perfil.
+    - O acesso é permitido a qualquer usuário autenticado.
+    - Utiliza cache para otimizar o desempenho, uma vez que os perfis mudam com pouca frequência.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(cache_page(60 * 15)) # Cache de 15 minutos
+    def get(self, request, *args, **kwargs):
+        """
+        Manipula requisições GET para retornar a lista de todos os perfis.
+        """
+        perfis = Perfil.objects.all().order_by('nome')
+        serializer = PerfilSerializer(perfis, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 from core.permissions import StudioPermissionMixin
 
 from .permissions import IsAdminMaster, IsAdminMasterOrAdministrador

@@ -1,8 +1,20 @@
 # usuarios/serializers.py
 from rest_framework import serializers
 from django.db import IntegrityError
-from .models import Usuario, Colaborador, Endereco
+from .models import Usuario, Colaborador, Endereco, Perfil
 from studios.models import Studio, ColaboradorStudio, FuncaoOperacional
+
+
+class PerfilSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o modelo Perfil. Retorna o ID e o nome legível do perfil.
+    """
+    nome = serializers.CharField(source='get_nome_display', read_only=True)
+
+    class Meta:
+        model = Perfil
+        fields = ['id', 'nome']
+
 
 class EnderecoSerializer(serializers.ModelSerializer):
     """
@@ -92,6 +104,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
     """
     Serializer para o modelo Colaborador. Gerencia o perfil profissional do usuário.
     """
+    perfis = PerfilSerializer(many=True, read_only=True)
     endereco = EnderecoSerializer()
     nome_completo = serializers.CharField(source='usuario.get_full_name', read_only=True)
     definir_nome_completo = serializers.CharField(write_only=True, required=False, help_text="Defina o nome completo para atualizar o usuário relacionado.")

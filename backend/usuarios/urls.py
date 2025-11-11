@@ -1,22 +1,17 @@
 # usuarios/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UsuarioViewSet, ColaboradorViewSet
+from .views import (
+    UsuarioViewSet, 
+    ColaboradorViewSet,
+    PerfisListView,
+)
 
-# DefaultRouter é uma ferramenta do Django Rest Framework que cria automaticamente
-# as URLs para um ViewSet.
 router = DefaultRouter()
+router.register(r'usuarios', UsuarioViewSet, basename='usuario')
+router.register(r'colaboradores', ColaboradorViewSet, basename='colaborador')
 
-# Registra o ViewSet de usuários com o prefixo de URL 'usuarios'.
-# Isso irá gerar rotas como /usuarios/, /usuarios/{id}/, etc.
-router.register(r'usuarios', UsuarioViewSet)
-
-# Registra o ViewSet de colaboradores com o prefixo de URL 'colaboradores'.
-# Isso irá gerar rotas como /colaboradores/, /colaboradores/{usuario__cpf}/, etc.
-router.register(r'colaboradores', ColaboradorViewSet)
-
-# As URLs da API são incluídas no padrão de URL principal do aplicativo.
-# O router lida com a criação de todas as rotas necessárias para os ViewSets registrados.
 urlpatterns = [
     path('', include(router.urls)),
+    path('perfis/', PerfisListView.as_view(), name='perfis-list'),
 ]
