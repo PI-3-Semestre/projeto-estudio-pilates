@@ -58,7 +58,7 @@ const GerenciarColaboradoresView = () => {
                       {colaborador.nome_completo}
                     </td>
                     <td className="px-6 py-4 text-text-subtle-light dark:text-text-subtle-dark">
-                      {colaborador.perfis.join(", ")}
+                      {colaborador.perfis.map((p) => p.nome).join(", ")}
                     </td>
                     <td className="px-6 py-4 text-text-subtle-light dark:text-text-subtle-dark">
                       {colaborador.unidades
@@ -130,7 +130,7 @@ const GerenciarColaboradoresView = () => {
                       Perfis
                     </p>
                     <p className="text-text-light dark:text-text-dark text-sm font-medium">
-                      {colaborador.perfis.join(", ")}
+                      {colaborador.perfis.map((p) => p.nome).join(", ")}
                     </p>
                   </div>
                   <div>

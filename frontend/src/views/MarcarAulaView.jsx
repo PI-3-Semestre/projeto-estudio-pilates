@@ -8,7 +8,7 @@ const MarcarAulaView = () => {
         formData,
         modalidades,
         studios,
-        colaboradores,
+        instrutores, // Alterado de colaboradores para instrutores
         loading,
         error,
         success,
@@ -106,8 +106,9 @@ const MarcarAulaView = () => {
                                 onChange={handleChange}
                                 required
                             >
-                                {colaboradores.map(colab => (
-                                    <option key={colab.usuario.id} value={colab.usuario.id}>{colab.usuario.first_name}</option>
+                                <option disabled value="">Selecione um instrutor</option>
+                                {instrutores.map(colab => (
+                                    <option key={colab.usuario} value={colab.usuario}>{colab.nome_completo}</option>
                                 ))}
                             </select>
                         </div>
@@ -125,8 +126,8 @@ const MarcarAulaView = () => {
                                 onChange={handleChange}
                             >
                                 <option value="">Nenhum</option>
-                                {colaboradores.map(colab => (
-                                    <option key={colab.usuario.id} value={colab.usuario.id}>{colab.usuario.first_name}</option>
+                                {instrutores.map(colab => (
+                                    <option key={colab.usuario} value={colab.usuario}>{colab.nome_completo}</option>
                                 ))}
                             </select>
                         </div>

@@ -65,10 +65,23 @@ const useCadastrarAlunoViewModel = () => {
         setLoading(true);
         setError(null);
 
+        let formattedDate = null;
+        const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+        if (formData.dataNascimento) {
+            if (!dateRegex.test(formData.dataNascimento)) {
+                setError({ dataNascimento: 'Por favor, insira a data no formato DD/MM/AAAA.' });
+                setLoading(false);
+                return;
+            }
+            const [, dia, mes, ano] = formData.dataNascimento.match(dateRegex);
+            formattedDate = `${ano}-${mes}-${dia}`;
+        }
+
         try {
             await api.post('/alunos/', {
                 usuario: userId,
-                dataNascimento: formData.dataNascimento,
+                dataNascimento: formattedDate,
                 contato: formData.contato,
                 profissao: formData.profissao,
                 unidades: [formData.unidade],

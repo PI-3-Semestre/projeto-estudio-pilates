@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getModalidades } from '../services/modalidadesService';
 import { getStudios } from '../services/studiosService';
 import { getColaboradores } from '../services/colaboradoresService';
+
 import { createAula } from '../services/aulasService';
 import { formatISO } from 'date-fns';
 
@@ -22,7 +23,7 @@ const useMarcarAulaViewModel = () => {
     });
     const [modalidades, setModalidades] = useState([]);
     const [studios, setStudios] = useState([]);
-    const [colaboradores, setColaboradores] = useState([]);
+    const [instrutores, setInstrutores] = useState([]); // Estado para instrutores
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -39,17 +40,21 @@ const useMarcarAulaViewModel = () => {
             return;
         }
         try {
+            // 1. Buscar modalidades, estúdios e todos os colaboradores
             const [modalidadesRes, studiosRes, colaboradoresRes] = await Promise.all([
                 getModalidades(),
                 getStudios(),
                 getColaboradores(),
             ]);
-            const instrutores = colaboradoresRes.data.filter(colab =>
-                colab.perfis.includes('INSTRUTOR')
+
+            // 2. Filtrar colaboradores que têm o perfil de "INSTRUTOR" pelo nome
+            const instrutoresFiltrados = colaboradoresRes.data.filter(colab =>
+                colab.perfis.some(p => p.nome.toUpperCase() === 'INSTRUTOR')
             );
+            
             setModalidades(modalidadesRes.data);
             setStudios(studiosRes.data);
-            setColaboradores(instrutores);
+            setInstrutores(instrutoresFiltrados); // Armazenar a lista de instrutores
 
             // Set default values if data is available
             if (modalidadesRes.data.length > 0) {
@@ -58,8 +63,8 @@ const useMarcarAulaViewModel = () => {
             if (studiosRes.data.length > 0) {
                 setFormData(prev => ({ ...prev, studio: studiosRes.data[0].id }));
             }
-            if (instrutores.length > 0) {
-                setFormData(prev => ({ ...prev, instrutor_principal: instrutores[0].usuario.id }));
+            if (instrutoresFiltrados.length > 0) {
+                setFormData(prev => ({ ...prev, instrutor_principal: instrutoresFiltrados[0].usuario }));
             }
 
         } catch (err) {
@@ -130,7 +135,7 @@ const useMarcarAulaViewModel = () => {
         formData,
         modalidades,
         studios,
-        colaboradores,
+        instrutores, // Retornar a lista de instrutores
         loading,
         error,
         success,
