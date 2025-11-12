@@ -105,6 +105,9 @@ class ColaboradorSerializer(serializers.ModelSerializer):
     Serializer para o modelo Colaborador. Gerencia o perfil profissional do usuário.
     """
     perfis = PerfilSerializer(many=True, read_only=True)
+    perfis_ids = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False
+    )
     endereco = EnderecoSerializer()
     nome_completo = serializers.CharField(source='usuario.get_full_name', read_only=True)
     definir_nome_completo = serializers.CharField(write_only=True, required=False, help_text="Defina o nome completo para atualizar o usuário relacionado.")
@@ -115,7 +118,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Colaborador
         fields = [
-            'usuario', 'nome_completo', 'definir_nome_completo', 'perfis',
+            'usuario', 'nome_completo', 'definir_nome_completo', 'perfis', 'perfis_ids',
             'registro_profissional', 'data_nascimento', 'telefone', 'data_admissao',
             'data_demissao', 'status', 'endereco', 'unidades', 'vinculos_studio'
         ]
@@ -125,7 +128,7 @@ class ColaboradorSerializer(serializers.ModelSerializer):
         validated_data.pop('definir_nome_completo', None)
         endereco_data = validated_data.pop('endereco')
         vinculos_data = validated_data.pop('vinculos_studio')
-        perfis_data = validated_data.pop('perfis')
+        perfis_ids = validated_data.pop('perfis_ids', [])
         usuario = validated_data.pop('usuario')
 
         endereco = Endereco.objects.create(**endereco_data)
@@ -135,7 +138,8 @@ class ColaboradorSerializer(serializers.ModelSerializer):
         except IntegrityError:
             raise serializers.ValidationError({"usuario": "Já existe um colaborador para este usuário."})
 
-        colaborador.perfis.set(perfis_data)
+        if perfis_ids:
+            colaborador.perfis.set(perfis_ids)
 
         for vinculo_data in vinculos_data:
             studio_id = vinculo_data['studio_id']
@@ -173,8 +177,8 @@ class ColaboradorSerializer(serializers.ModelSerializer):
                         permissao_id=permissao_id
                     )
         
-        if 'perfis' in validated_data:
-            perfis_data = validated_data.pop('perfis')
-            instance.perfis.set(perfis_data)
+        if 'perfis_ids' in validated_data:
+            perfis_ids = validated_data.pop('perfis_ids')
+            instance.perfis.set(perfis_ids)
 
         return super().update(instance, validated_data)
