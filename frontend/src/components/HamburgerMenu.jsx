@@ -33,6 +33,12 @@ const HamburgerMenu = ({ toggleMenu }) => {
                         </Link>
                     </li>
                     <li>
+                        <Link to="/agenda" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">calendar_month</span>
+                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Agenda</p>
+                        </Link>
+                    </li>
+                    <li>
                         <Link to="/alunos" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
                             <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">school</span>
                             <p className="text-base font-semibold text-text-light dark:text-text-dark">Alunos</p>

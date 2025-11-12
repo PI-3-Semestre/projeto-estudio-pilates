@@ -1,10 +1,20 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    setUser(null);
+    setIsAuthenticated(false);
+    // Opcional: redirecionar para o login
+    // window.location.href = '/login';
+  }, []);
 
   useEffect(() => {
     // Tenta carregar dados da sessão ao iniciar o app
@@ -21,32 +31,22 @@ export const AuthProvider = ({ children }) => {
         logout();
       }
     }
-  }, []);
+  }, [logout]);
 
-  const login = (userData, accessToken, refreshToken) => {
+  const login = useCallback((userData, accessToken, refreshToken) => {
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
     setUser(userData);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setUser(null);
-    setIsAuthenticated(false);
-    // Opcional: redirecionar para o login
-    // window.location.href = '/login';
-  };
-
-  const authContextValue = {
+  const authContextValue = useMemo(() => ({
     user,
     isAuthenticated,
     login,
     logout,
-  };
+  }), [user, isAuthenticated, login, logout]);
 
   return (
     <AuthContext.Provider value={authContextValue}>

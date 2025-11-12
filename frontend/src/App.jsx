@@ -17,6 +17,8 @@ import DetalhesColaboradorView from "./views/DetalhesColaboradorView";
 import DetalhesAlunoView from "./views/DetalhesAlunoView";
 import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
+import AgendaView from "./views/AgendaView";
+import MarcarAulaView from "./views/MarcarAulaView";
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -117,6 +119,22 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <ModalidadesView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/agenda"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <AgendaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/marcar-aula"
+        element={
+          <ProtectedRoute adminOnly={true}> {/* Assuming adminOnly for staff for now */}
+            <MarcarAulaView />
           </ProtectedRoute>
         }
       />
