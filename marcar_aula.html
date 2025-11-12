@@ -189,22 +189,42 @@
             }
 
             try {
-                console.log("Buscando colaboradores da API...");
-                const response = await fetch('http://127.0.0.1:8000/api/colaboradores/', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                // Etapa 1: Obter o ID do perfil 'INSTRUTOR'
+                console.log("Buscando perfis da API...");
+                const perfisResponse = await fetch('http://127.0.0.1:8000/api/perfis/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição! Status: ${response.status}`);
+                if (!perfisResponse.ok) {
+                    throw new Error(`Erro ao buscar perfis! Status: ${perfisResponse.status}`);
                 }
 
-                const colaboradores = await response.json();
-                console.log("Colaboradores recebidos:", colaboradores);
+                const perfis = await perfisResponse.json();
+                console.log("Perfis recebidos:", perfis);
 
-                const instrutores = colaboradores.filter(c => c.perfis && c.perfis.includes('INSTRUTOR'));
+                const perfilInstrutor = perfis.find(p => p.nome === 'INSTRUTOR');
+                if (!perfilInstrutor) {
+                    throw new Error("Perfil 'INSTRUTOR' não encontrado na API de perfis.");
+                }
+                const idPerfilInstrutor = perfilInstrutor.id;
+                console.log(`ID do perfil 'INSTRUTOR' encontrado: ${idPerfilInstrutor}`);
+
+                // Etapa 2: Obter e filtrar os colaboradores
+                console.log("Buscando colaboradores da API...");
+                const colaboradoresResponse = await fetch('http://127.0.0.1:8000/api/colaboradores/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!colaboradoresResponse.ok) {
+                    throw new Error(`Erro ao buscar colaboradores! Status: ${colaboradoresResponse.status}`);
+                }
+
+                const todosColaboradores = await colaboradoresResponse.json();
+                console.log("Colaboradores recebidos:", todosColaboradores);
+
+                const instrutores = todosColaboradores.filter(colaborador =>
+                    colaborador.perfis.includes(idPerfilInstrutor)
+                );
                 console.log("Instrutores filtrados:", instrutores);
 
                 selects.forEach(select => select && (select.innerHTML = '')); // Limpa "Carregando..."
@@ -232,16 +252,12 @@
 
                 instrutores.forEach(instrutor => {
                     const option = document.createElement('option');
-                    option.value = instrutor.usuario.id;
-
-                    // Tenta obter o nome completo do instrutor. A API pode retornar 'nome' ou 'first_name'/'last_name'.
-                    const nomeCompleto = instrutor.usuario.nome || `${instrutor.usuario.first_name || ''} ${instrutor.usuario.last_name || ''}`.trim();
+                    // De acordo com a nova API, 'usuario' é o ID e 'nome_completo' é o nome.
+                    option.value = instrutor.usuario; 
+                    option.textContent = instrutor.nome_completo;
                     
-                    if (nomeCompleto) {
-                        option.textContent = nomeCompleto;
-                        principalSelect.appendChild(option.cloneNode(true));
-                        substitutoSelect.appendChild(option.cloneNode(true));
-                    }
+                    principalSelect.appendChild(option.cloneNode(true));
+                    substitutoSelect.appendChild(option.cloneNode(true));
                 });
 
                 console.log("Dropdowns de instrutores populados com sucesso.");
