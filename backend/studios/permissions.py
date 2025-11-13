@@ -65,6 +65,10 @@ class IsStudioAdminOrAdminMaster(BasePermission):
         
         try:
             colaborador = request.user.colaborador
+            # Admin Master tem acesso total a nível de objeto também
+            if colaborador.perfis.filter(nome='ADMIN_MASTER').exists():
+                return True
+            
             # Se o colaborador é um administrador e está associado a este studio
             if colaborador.perfis.filter(nome='ADMINISTRADOR').exists() and obj in colaborador.unidades.all():
                 return True
