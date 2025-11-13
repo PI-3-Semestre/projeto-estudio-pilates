@@ -13,6 +13,7 @@ import CadastrarUsuarioView from "./views/CadastrarUsuarioView";
 import CadastrarAlunoView from "./views/CadastrarAlunoView";
 import CadastrarColaboradorView from "./views/CadastrarColaboradorView";
 import GerenciarColaboradoresView from "./views/GerenciarColaboradoresView";
+import GestaoUsuariosView from "./views/GestaoUsuariosView";
 import DetalhesColaboradorView from "./views/DetalhesColaboradorView";
 import DetalhesAlunoView from "./views/DetalhesAlunoView";
 import EditarColaboradorView from "./views/EditarColaboradorView";
@@ -55,6 +56,14 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <GerenciarColaboradoresView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/usuarios"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <GestaoUsuariosView />
           </ProtectedRoute>
         }
       />
