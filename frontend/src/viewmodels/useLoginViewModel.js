@@ -18,6 +18,7 @@ const useLoginViewModel = () => {
 
     try {
       const data = await authService.login(emailCpf, password);
+      console.log('Dados recebidos do backend:', data); // Adicionado para depuração
       contextLogin(data.user, data.access, data.refresh);
     } catch (err) {
       setError(err.message);

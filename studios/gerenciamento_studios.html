@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gerenciamento de Unidades</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#0ac2ac",
+            "background-light": "#f5f8f8",
+            "background-dark": "#102220",
+          },
+          fontFamily: {
+            "display": ["Manrope", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style type="text/tailwindcss">
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden p-4 sm:p-6 lg:p-8">
+<header class="flex items-center pb-4 justify-between w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<button class="flex items-center justify-center p-2 rounded-full text-[#0d1b1a] dark:text-background-light hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-3xl">arrow_back</span>
+</button>
+<h1 class="text-xl sm:text-2xl font-bold text-[#0d1b1a] dark:text-background-light tracking-tight">Gerenciamento de Unidades</h1>
+</div>
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-primary/20 text-primary dark:bg-primary/30 dark:text-background-light">
+<span class="material-symbols-outlined">person</span>
+</button>
+</header>
+<main class="w-full max-w-7xl mx-auto bg-white dark:bg-[#1a2c2a] rounded-xl shadow-md p-4 sm:p-6">
+<div class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-6">
+<div class="w-full sm:max-w-xs">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#4c9a92] dark:text-primary flex border-none bg-[#e7f3f2] dark:bg-background-dark items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-[#0d1b1a] dark:text-background-light focus:outline-0 focus:ring-0 border-none bg-[#e7f3f2] dark:bg-background-dark h-full placeholder:text-[#4c9a92] dark:placeholder:text-primary/70 px-4 text-base font-normal leading-normal" placeholder="Buscar por nome..." value=""/>
+</div>
+</label>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-white dark:text-[#0d1b1a] gap-2 text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="truncate">Adicionar Novo Studio</span>
+</button>
+</div>
+<div>
+<div class="hidden md:block">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="border-b border-gray-200 dark:border-gray-700">
+<tr>
+<th class="p-4 text-sm font-semibold text-[#4c9a92] dark:text-primary/80 uppercase">Nome do Studio</th>
+<th class="p-4 text-sm font-semibold text-[#4c9a92] dark:text-primary/80 uppercase">Endereço</th>
+<th class="p-4 text-sm font-semibold text-[#4c9a92] dark:text-primary/80 uppercase text-right">Ações</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5">
+<td class="p-4 align-middle">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal">Studio Zen</p>
+</td>
+<td class="p-4 align-middle">
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal">Rua das Flores, 123, São Paulo</p>
+</td>
+<td class="p-4 align-middle text-right">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5">
+<td class="p-4 align-middle">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal">Espaço Sereno</p>
+</td>
+<td class="p-4 align-middle">
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal">Avenida da Paz, 456, Rio de Janeiro</p>
+</td>
+<td class="p-4 align-middle text-right">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+<td class="p-4 align-middle">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal">Corpo em Harmonia</p>
+</td>
+<td class="p-4 align-middle">
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal">Praça da Liberdade, 789, Belo Horizonte</p>
+</td>
+<td class="p-4 align-middle text-right">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="md:hidden space-y-3">
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark p-4 min-h-[72px] justify-between rounded-lg">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+<span class="material-symbols-outlined">home_work</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal line-clamp-1">Studio Zen</p>
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal line-clamp-2">Rua das Flores, 123, São Paulo</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark p-4 min-h-[72px] justify-between rounded-lg">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+<span class="material-symbols-outlined">home_work</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal line-clamp-1">Espaço Sereno</p>
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal line-clamp-2">Avenida da Paz, 456, Rio de Janeiro</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark p-4 min-h-[72px] justify-between rounded-lg">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+<span class="material-symbols-outlined">home_work</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0d1b1a] dark:text-background-light text-base font-medium leading-normal line-clamp-1">Corpo em Harmonia</p>
+<p class="text-[#4c9a92] dark:text-primary/90 text-sm font-normal leading-normal line-clamp-2">Praça da Liberdade, 789, Belo Horizonte</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

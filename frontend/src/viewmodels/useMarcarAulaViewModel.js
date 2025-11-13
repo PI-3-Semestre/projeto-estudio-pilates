@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getModalidades } from '../services/modalidadesService';
-import { getStudios } from '../services/studiosService';
+import studiosService from '../services/studiosService';
 import { getColaboradores } from '../services/colaboradoresService';
 
 import { createAula } from '../services/aulasService';
@@ -43,7 +43,7 @@ const useMarcarAulaViewModel = () => {
             // 1. Buscar modalidades, estúdios e todos os colaboradores
             const [modalidadesRes, studiosRes, colaboradoresRes] = await Promise.all([
                 getModalidades(),
-                getStudios(),
+                studiosService.getAllStudios(),
                 getColaboradores(),
             ]);
 

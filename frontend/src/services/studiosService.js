@@ -1,7 +1,25 @@
 import api from './api';
 
-const BASE_URL = '/studios/';
+const studiosService = {
+  getAllStudios: () => {
+    return api.get('/studios/');
+  },
 
-export const getStudios = () => {
-    return api.get(BASE_URL);
+  getStudioById: (id) => {
+    return api.get(`/studios/${id}/`);
+  },
+
+  createStudio: (studioData) => {
+    return api.post('/studios/', studioData);
+  },
+
+  updateStudio: (id, studioData) => {
+    return api.put(`/studios/${id}/`, studioData);
+  },
+
+  deleteStudio: (id) => {
+    return api.delete(`/studios/${id}/`);
+  },
 };
+
+export default studiosService;

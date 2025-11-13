@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
 
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -20,6 +21,10 @@ import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
+import GerenciamentoStudiosView from "./views/GerenciamentoStudiosView";
+import CadastrarStudioView from "./views/CadastrarStudioView";
+import DetalhesStudioView from "./views/DetalhesStudioView";
+import EditarStudioView from "./views/EditarStudioView";
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -140,6 +145,38 @@ const PrivateRoutes = () => {
         }
       />
       <Route
+        path="/studios"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <GerenciamentoStudiosView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/studios/cadastrar"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <CadastrarStudioView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/studios/:id"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <DetalhesStudioView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/studios/:id/editar"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <EditarStudioView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/marcar-aula"
         element={
           <ProtectedRoute adminOnly={true}> {/* Assuming adminOnly for staff for now */}
@@ -160,11 +197,13 @@ const AppRoutes = () => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <ErrorBoundary>
-          <AppRoutes />
-        </ErrorBoundary>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }

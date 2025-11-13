@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAulas } from '../services/aulasService';
-import { getStudios } from '../services/studiosService';
+import studiosService from '../services/studiosService';
 import { format, parseISO, isSameDay, addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -14,7 +14,7 @@ const useAgendaViewModel = () => {
 
     const fetchStudios = useCallback(async () => {
         try {
-            const response = await getStudios();
+            const response = await studiosService.getAllStudios();
             setStudios(response.data);
             if (response.data.length > 0) {
                 setSelectedStudioId(response.data[0].id); // Select the first studio by default
