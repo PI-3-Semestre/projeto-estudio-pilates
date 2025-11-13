@@ -36,6 +36,7 @@ class AvaliacaoSerializer(ModelSerializer):
             'data_reavalicao',
             'data_criacao', # Data de criação (geralmente definida automaticamente)
             'data_ultima_modificacao', # Data de modificação (geralmente definida automaticamente)
+            'studio',
         ]
         
         # Campos que não podem ser definidos diretamente pelo cliente ao criar/atualizar.

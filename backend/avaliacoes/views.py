@@ -34,11 +34,20 @@ class AvaliacaoListCreateView(generics.ListCreateAPIView):
         return Avaliacao.objects.filter(aluno__cpf=aluno_cpf).order_by('-data_avaliacao')
 
     def perform_create(self, serializer):
-        """Associa o aluno e o instrutor (usuário logado) automaticamente ao criar uma nova avaliação."""
+        """Associa o aluno, o instrutor (usuário logado) e o estúdio automaticamente ao criar uma nova avaliação."""
         aluno_cpf = self.kwargs.get('aluno_cpf')
         aluno = get_object_or_404(Aluno, cpf=aluno_cpf)
         instrutor = get_object_or_404(Colaborador, usuario=self.request.user)
-        serializer.save(aluno=aluno, instrutor=instrutor)
+
+        studio = None
+        # Try to get studio from request data first
+        if 'studio' in serializer.validated_data:
+            studio = serializer.validated_data['studio']
+        elif instrutor.unidades.count() == 1:
+            # If the instructor is associated with exactly one studio, use that
+            studio = instrutor.unidades.first()
+        
+        serializer.save(aluno=aluno, instrutor=instrutor, studio=studio)
 
 
 @extend_schema(
