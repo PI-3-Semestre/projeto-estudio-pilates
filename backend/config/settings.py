@@ -170,8 +170,9 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Lista de origens (seu frontend) que têm permissão para fazer requisições.
 # Altere a porta se o seu frontend rodar em uma porta diferente (ex: 8080, 4200).
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173"
 ]
 
 # Para testes rápidos, você pode permitir todas as origens (NÃO USE EM PRODUÇÃO)

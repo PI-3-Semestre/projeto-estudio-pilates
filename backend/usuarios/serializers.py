@@ -30,10 +30,12 @@ class UsuarioSerializer(serializers.ModelSerializer):
     """
     nome_completo = serializers.SerializerMethodField(help_text="Nome completo do usuário (para leitura).")
     definir_nome_completo = serializers.CharField(write_only=True, required=False, help_text="Defina o nome completo. Ex: 'Nome Sobrenome'.")
+    
+    tipo_usuario = serializers.SerializerMethodField(help_text="Tipo de perfil do usuário (Aluno, Colaborador, etc.).")
 
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email', 'password', 'cpf', 'nome_completo', 'definir_nome_completo']
+        fields = ['id', 'username', 'email', 'password', 'cpf', 'nome_completo', 'definir_nome_completo', 'is_active', 'tipo_usuario']
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -41,6 +43,19 @@ class UsuarioSerializer(serializers.ModelSerializer):
     def get_nome_completo(self, obj) -> str:
         """Método para obter o valor do campo 'nome_completo'."""
         return obj.get_full_name()
+    
+    def get_tipo_usuario(self, obj: Usuario) -> str | None:
+        """
+        Verifica se o usuário tem um perfil de Aluno ou Colaborador associado.
+        """
+        # hasattr verifica se a relação (ex: obj.aluno) existe
+        if hasattr(obj, 'aluno'):
+            return "Aluno"
+        if hasattr(obj, 'colaborador'):
+            return "Colaborador"
+        if obj.is_superuser:
+            return "Admin Master"
+        return None # Ou "Usuário" se preferir
 
     def create(self, validated_data):
         """Cria um novo usuário, tratando o nome completo e hasheando a senha."""
