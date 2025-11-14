@@ -3,8 +3,13 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth(); // Get loading state
   const location = useLocation();
+
+  // If authentication status is still loading, render a loading indicator
+  if (loading) {
+    return <div>Loading authentication...</div>; // Or a more sophisticated spinner component
+  }
 
   // 1. Verifica se o usuário está autenticado
   if (!isAuthenticated) {
