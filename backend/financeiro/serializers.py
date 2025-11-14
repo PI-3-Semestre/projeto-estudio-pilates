@@ -1,6 +1,7 @@
 # financeiro/serializers.py
 from rest_framework import serializers
-from .models import Plano, Matricula, Pagamento, Produto, Venda, Parcela
+from .models import Plano, Matricula, Pagamento, Produto, Venda, Parcela, EstoqueStudio
+from studios.models import Studio
 from alunos.serializers import AlunoSerializer
 from alunos.models import Aluno
 from usuarios.models import Usuario 
@@ -39,12 +40,16 @@ class MatriculaSerializer(serializers.ModelSerializer):
             'plano_id',
             'data_inicio',
             'data_fim',
+            'studio',
         ]
         
 class VendaSerializer(serializers.ModelSerializer):
+    studio = serializers.PrimaryKeyRelatedField(queryset=Studio.objects.all(), write_only=True)
+    studio_display = serializers.CharField(source='studio.nome', read_only=True)
+
     class Meta:
         model = Venda
-        fields = '__all__'
+        fields = ['id', 'aluno', 'data_venda', 'produtos', 'studio', 'studio_display']
 
 class PagamentoSerializer(serializers.ModelSerializer):
     matricula = MatriculaSerializer(read_only=True) 
@@ -82,10 +87,21 @@ class PagamentoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Um pagamento não pode estar associado a uma matrícula e a uma venda ao mesmo tempo.")
         return data
 
+class EstoqueStudioSerializer(serializers.ModelSerializer):
+    studio_nome = serializers.CharField(source='studio.nome', read_only=True)
+    produto_nome = serializers.CharField(source='produto.nome', read_only=True)
+
+    class Meta:
+        model = EstoqueStudio
+        fields = ['id', 'produto', 'produto_nome', 'studio', 'studio_nome', 'quantidade']
+        read_only_fields = ['produto_nome', 'studio_nome']
+
 class ProdutoSerializer(serializers.ModelSerializer):
+    estoque_studios = EstoqueStudioSerializer(many=True, read_only=True, source='estoquestudio_set')
+
     class Meta:
         model = Produto
-        fields = ['id', 'nome', 'preco', 'quantidade_estoque']
+        fields = ['id', 'nome', 'preco', 'estoque_studios']
         
 class ParcelaSerializer(serializers.ModelSerializer):
     class Meta:

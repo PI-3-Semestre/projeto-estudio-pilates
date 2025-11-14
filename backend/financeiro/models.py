@@ -15,7 +15,6 @@ class Plano(models.Model):
 class Produto(models.Model):
     nome = models.CharField(max_length=100)
     preco = models.DecimalField(max_digits=10, decimal_places=2)
-    quantidade_estoque = models.IntegerField()
 
     def __str__(self):
         return self.nome
@@ -26,6 +25,7 @@ class Matricula(models.Model):
     plano = models.ForeignKey(Plano, on_delete=models.CASCADE)
     data_inicio = models.DateField()
     data_fim = models.DateField()
+    studio = models.ForeignKey('studios.Studio', on_delete=models.PROTECT, related_name='matriculas', null=True)
 
     def __str__(self):
         return f"{self.aluno} - {self.plano}"
@@ -37,6 +37,7 @@ class Venda(models.Model):
     )
     data_venda = models.DateField(auto_now_add=True)
     produtos = models.ManyToManyField(Produto, through="VendaProduto")
+    studio = models.ForeignKey('studios.Studio', on_delete=models.PROTECT, related_name='vendas', null=True)
 
     def __str__(self):
         return f"Venda {self.id} - {self.aluno}"
@@ -89,3 +90,15 @@ class Parcela(models.Model):
 
     def __str__(self):
         return f"Parcela {self.numero_parcela} do Pagamento {self.pagamento.id}"
+
+
+class EstoqueStudio(models.Model):
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    studio = models.ForeignKey('studios.Studio', on_delete=models.CASCADE)
+    quantidade = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('produto', 'studio')
+
+    def __str__(self):
+        return f"{self.produto.nome} - {self.studio.nome} ({self.quantidade})"

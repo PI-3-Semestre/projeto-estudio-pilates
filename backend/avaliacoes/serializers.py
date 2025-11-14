@@ -14,6 +14,10 @@ class AvaliacaoSerializer(ModelSerializer):
     # Campo somente leitura para expor o nome completo do instrutor associado.
     # Utiliza o `source` para acessar o nome através da relação `instrutor.usuario`.
     instrutor_nome = CharField(source='instrutor.usuario.get_full_name', read_only=True)
+    
+    # Campo somente leitura para expor o nome completo do aluno associado.
+    # Utiliza o `source` para acessar o nome através da relação `aluno.usuario`.
+    aluno_nome = CharField(source='aluno.usuario.get_full_name', read_only=True)
 
     class Meta:
         model = Avaliacao
@@ -22,6 +26,7 @@ class AvaliacaoSerializer(ModelSerializer):
         fields = [
             'id', # ID da avaliação
             'aluno', # ID do aluno associado
+            'aluno_nome', # Nome do aluno (somente leitura)
             'instrutor', # ID do instrutor associado
             'instrutor_nome', # Nome do instrutor (somente leitura)
             'data_avaliacao',
@@ -36,6 +41,7 @@ class AvaliacaoSerializer(ModelSerializer):
             'data_reavalicao',
             'data_criacao', # Data de criação (geralmente definida automaticamente)
             'data_ultima_modificacao', # Data de modificação (geralmente definida automaticamente)
+            'studio',
         ]
         
         # Campos que não podem ser definidos diretamente pelo cliente ao criar/atualizar.

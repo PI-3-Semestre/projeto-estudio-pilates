@@ -1,6 +1,7 @@
 from django.db import models
 from usuarios.models import Colaborador
 from alunos.models import Aluno
+from studios.models import Studio
 # Create your models here.
 
 class Avaliacao(models.Model):
@@ -15,6 +16,7 @@ class Avaliacao(models.Model):
     # Define o instrutor que realizou a avaliação.
     # PROTECT impede que um colaborador seja deletado se tiver avaliações associadas a ele.
     instrutor = models.ForeignKey(Colaborador, on_delete=models.PROTECT, related_name="avaliacoes_realizadas", null=True, blank=True)
+    studio = models.ForeignKey(Studio, on_delete=models.SET_NULL, null=True, blank=True, related_name='avaliacoes')
     
     # --- Campos da Avaliação ---
     data_avaliacao = models.DateField(verbose_name="Data de Avaliação")

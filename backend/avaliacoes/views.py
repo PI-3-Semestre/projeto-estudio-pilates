@@ -31,14 +31,34 @@ class AvaliacaoListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         """Retorna as avaliações do aluno especificado na URL, ordenadas da mais recente para a mais antiga."""
         aluno_cpf = self.kwargs['aluno_cpf']
-        return Avaliacao.objects.filter(aluno__cpf=aluno_cpf).order_by('-data_avaliacao')
+        # --- CORRIGIDO ---
+        # O filtro agora usa o caminho correto através do modelo Usuario
+        return Avaliacao.objects.filter(aluno__usuario__cpf=aluno_cpf).order_by('-data_avaliacao')
 
     def perform_create(self, serializer):
-        """Associa o aluno e o instrutor (usuário logado) automaticamente ao criar uma nova avaliação."""
+        """Associa o aluno, o instrutor (usuário logado) e o estúdio automaticamente ao criar uma nova avaliação."""
         aluno_cpf = self.kwargs.get('aluno_cpf')
-        aluno = get_object_or_404(Aluno, cpf=aluno_cpf)
+        
+        # --- CORRIGIDO ---
+        # A busca do aluno agora usa o caminho correto (usuario__cpf)
+        aluno = get_object_or_404(Aluno, usuario__cpf=aluno_cpf)
+        
         instrutor = get_object_or_404(Colaborador, usuario=self.request.user)
-        serializer.save(aluno=aluno, instrutor=instrutor)
+
+        studio = None
+        # Prioritize studio from Aluno if there's only one associated studio
+        if aluno.unidades.count() == 1:
+            studio = aluno.unidades.first()
+        
+        # If Aluno has multiple studios or none, try to get studio from request data
+        if not studio and 'studio' in serializer.validated_data:
+            studio = serializer.validated_data['studio']
+        
+        # If still no studio, fall back to instructor's single associated studio
+        if not studio and instrutor.unidades.count() == 1:
+            studio = instrutor.unidades.first()
+        
+        serializer.save(aluno=aluno, instrutor=instrutor, studio=studio)
 
 
 @extend_schema(
@@ -73,7 +93,9 @@ class LatestAvaliacaoView(generics.RetrieveUpdateDestroyAPIView):
         """Encontra e retorna a avaliação mais recente do aluno especificado na URL."""
         aluno_cpf = self.kwargs['aluno_cpf']
         
-        avaliacao = Avaliacao.objects.filter(aluno__cpf=aluno_cpf).order_by('-data_avaliacao').first()
+        # --- CORRIGIDO ---
+        # O filtro agora usa o caminho correto através do modelo Usuario
+        avaliacao = Avaliacao.objects.filter(aluno__usuario__cpf=aluno_cpf).order_by('-data_avaliacao').first()
         
         if not avaliacao:
             raise Http404("Nenhuma avaliação encontrada para este aluno.")

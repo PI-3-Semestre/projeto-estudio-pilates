@@ -30,3 +30,49 @@ class IsAdminMasterOrReadOnly(BasePermission):
             ).exists()
         except Colaborador.DoesNotExist:
             return False
+
+
+class IsStudioAdminOrAdminMaster(BasePermission):
+    """
+    Permissão customizada que permite acesso a:
+    - ADMIN_MASTER: Acesso total.
+    - Administradores de um Studio: Acesso total ao seu próprio studio.
+    """
+    message = "Você não tem permissão para acessar o dashboard deste estúdio."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Admin Master tem acesso total
+        if request.user.is_superuser:
+            return True
+        
+        try:
+            colaborador = request.user.colaborador
+            if colaborador.perfis.filter(nome='ADMIN_MASTER').exists():
+                return True
+        except Colaborador.DoesNotExist:
+            pass
+        
+        # Para outros, a permissão é verificada no nível do objeto
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        # obj é a instância do Studio
+        if request.user.is_superuser:
+            return True
+        
+        try:
+            colaborador = request.user.colaborador
+            # Admin Master tem acesso total a nível de objeto também
+            if colaborador.perfis.filter(nome='ADMIN_MASTER').exists():
+                return True
+            
+            # Se o colaborador é um administrador e está associado a este studio
+            if colaborador.perfis.filter(nome='ADMINISTRADOR').exists() and obj in colaborador.unidades.all():
+                return True
+        except Colaborador.DoesNotExist:
+            pass
+        
+        return False

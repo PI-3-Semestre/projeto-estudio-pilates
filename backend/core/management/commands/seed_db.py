@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction, IntegrityError
 from django.utils.text import slugify
 from django.utils import timezone
+from faker import Faker
 
 from studios.models import Studio, FuncaoOperacional, ColaboradorStudio
 from usuarios.models import Usuario, Perfil, Colaborador, Endereco
@@ -12,6 +13,9 @@ from avaliacoes.models import Avaliacao
 from agendamentos.models import (
     Modalidade, Aula, AulaAluno, HorarioTrabalho, BloqueioAgenda, CreditoAula, ListaEspera
 )
+from financeiro.models import Plano, Produto, Matricula, Venda, VendaProduto, Pagamento
+
+fake = Faker('pt_BR')
 
 class Command(BaseCommand):
     help = 'Popula o banco de dados com um conjunto de dados de teste predefinidos. Use --clean para limpar o banco antes.'
@@ -59,60 +63,67 @@ class Command(BaseCommand):
                 "role": "colaborador", "definir_nome_completo": "Master Admin Profile",
                 "email": "master.admin@pilates.com", "password": "123456", "cpf": "99999999999",
                 "colaborador_info": {
-                    "perfis": ["ADMIN_MASTER"],
+                    "perfis": ['ADMIN_MASTER'],
                     "data_nascimento": "1980-01-01", "telefone": "+5511999999999",
+                    "registro_profissional": "ADM-001",
                     "endereco": {"logradouro": "Rua Principal", "numero": "1", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01000-000"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_ids": [1]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Admin"]}]
                 }
             },
             {
                 "role": "colaborador", "definir_nome_completo": "Ana Silva (Instrutora)",
                 "email": "ana.silva@pilates.com", "password": "123456", "cpf": "11111111111",
                 "colaborador_info": {
-                    "perfis": ["INSTRUTOR"],
+                    "perfis": ['INSTRUTOR'],
                     "data_nascimento": "1990-05-15", "telefone": "+5511987654321",
+                    "registro_profissional": "CREF-123456",
                     "endereco": {"logradouro": "Rua das Flores", "numero": "10", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01001-000"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_ids": [5]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Instrutor"]}]
                 }
             },
             {
                 "role": "colaborador", "definir_nome_completo": "Roberto Lima (Fisio)",
                 "email": "roberto.lima@pilates.com", "password": "123456", "cpf": "44444444444",
                 "colaborador_info": {
-                    "perfis": ["FISIOTERAPEUTA"],
+                    "perfis": ['FISIOTERAPEUTA'],
                     "data_nascimento": "1988-11-30", "telefone": "+5511977776666",
+                    "registro_profissional": "CREFITO-7890",
                     "endereco": {"logradouro": "Rua dos Sonhos", "numero": "45", "bairro": "Tatuapé", "cidade": "São Paulo", "estado": "SP", "cep": "03300-000"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_ids": [4]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Fisio"]}]
                 }
             },
             {
                 "role": "colaborador", "definir_nome_completo": "Carla Souza (Multi)",
                 "email": "carla.souza@pilates.com", "password": "123456", "cpf": "55555555555",
                 "colaborador_info": {
-                    "perfis": ["INSTRUTOR", "FISIOTERAPEUTA"],
+                    "perfis": ['INSTRUTOR', 'FISIOTERAPEUTA'],
                     "data_nascimento": "1992-03-25", "telefone": "+5511966665555",
+                    # *** CORREÇÃO APLICADA AQUI ***
+                    "registro_profissional": "CREF-98765", # Estava "CREF-987654" (12 chars)
                     "endereco": {"logradouro": "Avenida Paulista", "numero": "1500", "bairro": "Bela Vista", "cidade": "São Paulo", "estado": "SP", "cep": "01310-200"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_ids": [5, 4]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_nomes": ["Instrutor", "Fisio"]}]
                 }
             },
             {
                 "role": "colaborador", "definir_nome_completo": "Fernando Alves (Admin)",
                 "email": "fernando.alves@pilates.com", "password": "123456", "cpf": "66666666666",
                 "colaborador_info": {
-                    "perfis": ["ADMINISTRADOR"],
+                    "perfis": ['ADMINISTRADOR'],
                     "data_nascimento": "1985-01-15", "telefone": "+5511955554444",
+                    "registro_profissional": "ADM-002",
                     "endereco": {"logradouro": "Rua Augusta", "numero": "900", "bairro": "Consolação", "cidade": "São Paulo", "estado": "SP", "cep": "01304-001"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_ids": [2]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_nomes": ["Admin"]}]
                 }
             },
             {
                 "role": "colaborador", "definir_nome_completo": "Mariana Costa (Recepção)",
                 "email": "mariana.costa@pilates.com", "password": "123456", "cpf": "77777777777",
                 "colaborador_info": {
-                    "perfis": ["RECEPCIONISTA"],
+                    "perfis": ['RECEPCIONISTA'],
                     "data_nascimento": "1998-07-20", "telefone": "+5511944443333",
+                    "registro_profissional": "REC-001",
                     "endereco": {"logradouro": "Rua Itapura", "numero": "300", "bairro": "Tatuapé", "cidade": "São Paulo", "estado": "SP", "cep": "03310-000"},
-                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_ids": [3]}]
+                    "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Recep"]}]
                 }
             }
         ]
@@ -123,12 +134,23 @@ class Command(BaseCommand):
             with transaction.atomic():
                 self._seed_base_data()
                 self._seed_studios(studios_data)
-                self._seed_horarios_trabalho()
                 self._seed_bloqueios_agenda()
-                self._seed_users(users_data, created_users_credentials)
-                self._seed_alunos(alunos_data, created_users_credentials)
+
+                # *** CORREÇÃO DE ORDEM APLICADA AQUI ***
+                # 1. Criar usuários (incluindo instrutores)
+                self._seed_users(users_data, created_users_credentials, num_random_colaboradores=5)
+                # 2. Criar horários de trabalho (que dependem dos instrutores)
+                self._seed_horarios_trabalho()
+
+                self._seed_alunos(alunos_data, created_users_credentials, num_random_alunos=20)
                 self._seed_creditos_manuais()
+                self._seed_modalidades()
                 self._seed_aulas()
+                self._seed_planos()
+                self._seed_produtos()
+                self._seed_matriculas()
+                self._seed_vendas()
+                self._seed_pagamentos()
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Ocorreu um erro durante o seeding: {e}'))
@@ -144,6 +166,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Lista de espera deletada.'))
         CreditoAula.objects.all().delete()
         self.stdout.write(self.style.SUCCESS('Créditos de aula deletados.'))
+        Pagamento.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Pagamentos deletados.'))
+        Venda.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Vendas deletadas.'))
+        Matricula.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Matrículas deletadas.'))
         BloqueioAgenda.objects.all().delete()
         self.stdout.write(self.style.SUCCESS('Bloqueios de agenda deletados.'))
         HorarioTrabalho.objects.all().delete()
@@ -173,7 +201,7 @@ class Command(BaseCommand):
             return
 
         for cred in credentials:
-            role = cred.get('role', 'desconhecido').replace("_", " ").title()
+            role = cred.get('role', 'desconhecido').replace(" ", " ").title()
             self.stdout.write(f"\n- {role}")
             self.stdout.write(f"  Email: {cred['email']}")
             self.stdout.write(f"  Senha: {cred['password']}")
@@ -199,61 +227,81 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Studios populados.'))
 
     def _seed_horarios_trabalho(self):
-        self.stdout.write(self.style.HTTP_INFO('\nPopulando horários de trabalho para os studios...'))
-        studios = Studio.objects.all()
-        if not studios.exists():
-            self.stdout.write(self.style.ERROR('Nenhum studio encontrado para definir horários.'))
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando horários de trabalho para instrutores...'))
+        
+        studios = list(Studio.objects.all())
+        if not studios:
+            self.stdout.write(self.style.ERROR('Nenhum studio encontrado para definir horários de trabalho.'))
             return
 
-        horarios_funcionamento = {
-            HorarioTrabalho.DiaSemana.SEGUNDA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
-            HorarioTrabalho.DiaSemana.TERCA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
-            HorarioTrabalho.DiaSemana.QUARTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
-            HorarioTrabalho.DiaSemana.QUINTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
-            HorarioTrabalho.DiaSemana.SEXTA: [{"inicio": time(7, 0), "fim": time(12, 0)}, {"inicio": time(14, 0), "fim": time(21, 0)}],
-            HorarioTrabalho.DiaSemana.SABADO: [{"inicio": time(8, 0), "fim": time(12, 0)}],
-            HorarioTrabalho.DiaSemana.DOMINGO: []
-        }
+        instrutores = list(Colaborador.objects.filter(perfis__nome='INSTRUTOR'))
+        if not instrutores:
+            self.stdout.write(self.style.WARNING('Nenhum instrutor encontrado para definir horários de trabalho.'))
+            return
 
-        for studio in studios:
-            for dia, turnos in horarios_funcionamento.items():
-                if not turnos:
-                    continue
+        for instrutor in instrutores:
+            # Assign a random studio to the instructor for work schedule
+            studio = random.choice(studios)
+            
+            for i in range(5): # Create 5 work schedules for each instructor
+                work_date = date.today() + timedelta(days=random.randint(1, 30))
+                start_time = time(random.randint(8, 12), 0, 0)
+                end_time = time(random.randint(14, 18), 0, 0)
 
-                # Une os turnos para criar um único bloco contínuo
-                hora_inicio = turnos[0]['inicio']
-                hora_fim = turnos[-1]['fim']
+                try:
+                    HorarioTrabalho.objects.get_or_create(
+                        dia_semana=work_date.weekday(),
+                        hora_inicio=start_time,
+                        hora_fim=end_time,
+                        studio=studio
+                    )
+                    self.stdout.write(self.style.SUCCESS(f'Horário de trabalho para {instrutor.usuario.username} no studio {studio.nome} em {work_date} criado.'))
+                except IntegrityError as e:
+                    self.stdout.write(self.style.WARNING(f'Horário de trabalho para {instrutor.usuario.username} em {work_date} já existe: {e}'))
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar horário de trabalho para {instrutor.usuario.username}: {e}'))
 
-                HorarioTrabalho.objects.update_or_create(
-                    studio=studio,
-                    dia_semana=dia,
-                    defaults={
-                        'hora_inicio': hora_inicio,
-                        'hora_fim': hora_fim
-                    }
-                )
-        self.stdout.write(self.style.SUCCESS(f'Horários de trabalho definidos para {studios.count()} studios.'))
+        self.stdout.write(self.style.SUCCESS('Horários de trabalho populados.'))
 
     def _seed_bloqueios_agenda(self):
-        self.stdout.write(self.style.HTTP_INFO('\nPopulando bloqueios de agenda (feriados)...'))
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando bloqueios de agenda (feriados e eventos)...'))
         studios = Studio.objects.all()
         if not studios.exists():
             self.stdout.write(self.style.ERROR('Nenhum studio encontrado para definir bloqueios.'))
             return
 
         current_year = date.today().year
-        feriados = [
+        feriados_e_eventos = [
             (date(current_year, 1, 1), "Confraternização Universal"),
+            (date(current_year, 2, 13), "Carnaval"),
+            (date(current_year, 3, 29), "Sexta-feira Santa"),
+            (date(current_year, 5, 1), "Dia do Trabalho"),
+            (date(current_year, 9, 7), "Independência do Brasil"),
+            (date(current_year, 10, 12), "Nossa Senhora Aparecida"),
+            (date(current_year, 11, 2), "Finados"),
+            (date(current_year, 11, 15), "Proclamação da República"),
             (date(current_year, 12, 25), "Natal"),
             (date(current_year + 1, 1, 1), "Confraternização Universal"),
+            (date.today() + timedelta(days=random.randint(10, 60)), "Manutenção Geral do Studio"),
+            (date.today() + timedelta(days=random.randint(10, 60)), "Evento Especial de Pilates"),
         ]
 
         for studio in studios:
-            for data_feriado, desc in feriados:
-                BloqueioAgenda.objects.get_or_create(studio=studio, data=data_feriado, defaults={'descricao': desc})
+            for data_bloqueio, desc in feriados_e_eventos:
+                try:
+                    BloqueioAgenda.objects.get_or_create(
+                        studio=studio,
+                        data=data_bloqueio,
+                        defaults={'descricao': desc}
+                    )
+                    self.stdout.write(self.style.SUCCESS(f'Bloqueio de agenda para {studio.nome} em {data_bloqueio} ({desc}) criado.'))
+                except IntegrityError as e:
+                    self.stdout.write(self.style.WARNING(f'Bloqueio de agenda para {studio.nome} em {data_bloqueio} já existe: {e}'))
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar bloqueio de agenda para {studio.nome}: {e}'))
         self.stdout.write(self.style.SUCCESS(f'Bloqueios de agenda definidos para {studios.count()} studios.'))
 
-    def _seed_users(self, users_data, credentials_list):
+    def _seed_users(self, users_data, credentials_list, num_random_colaboradores=5):
         if not users_data: return
         self.stdout.write(self.style.HTTP_INFO('\nPopulando usuários definidos...'))
 
@@ -289,139 +337,245 @@ class Command(BaseCommand):
                 credentials_list.append(cred_info)
 
                 if data.get('role') == 'colaborador' and 'colaborador_info' in data:
-                    self._create_colaborador_profile(user, data['colaborador_info'])
+                    self._create_colaborador_profile_from_data(user, data['colaborador_info'])
 
             except IntegrityError as e:
                 self.stdout.write(self.style.ERROR(f'Erro de integridade ao criar "{email}": {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar usuário "{email}": {e}'))
 
-    def _create_colaborador_profile(self, user, info):
-        PERFIL_ID_TO_FUNCAO_NOME = {
-            1: 'Admin',       # ADMIN_MASTER (não usado para vinculo, mas mapeado)
-            2: 'Admin',       # ADMINISTRADOR
-            3: 'Recep',       # RECEPCIONISTA
-            4: 'Fisio',       # FISIOTERAPEUTA
-            5: 'Instrutor',   # INSTRUTOR
+        self.stdout.write(self.style.HTTP_INFO(f'\nGerando {num_random_colaboradores} colaboradores aleatórios...'))
+        for _ in range(num_random_colaboradores):
+            self._create_random_colaborador(credentials_list)
+
+    def _create_random_colaborador(self, credentials_list):
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        full_name = f"{first_name} {last_name}"
+        email = fake.email()
+        password = '123456'
+        cpf = self._generate_valid_cpf()
+        uuid_obj = fake.uuid4() # Define uuid_obj here
+        
+        # *** CORREÇÃO APLICADA AQUI ***
+        username = slugify(f'{first_name}-{last_name}-{uuid_obj[:6]}')
+
+        if Usuario.objects.filter(email=email).exists():
+            self.stdout.write(self.style.WARNING(f'Usuário aleatório com email "{email}" já existe, pulando.'))
+            return
+
+        try:
+            user = Usuario.objects.create_user(
+                username=username, email=email, password=password,
+                first_name=first_name, last_name=last_name, cpf=cpf
+            )
+            self.stdout.write(self.style.SUCCESS(f'Usuário aleatório "{username}" criado.'))
+            credentials_list.append({'email': email, 'password': password, 'role': 'colaborador'})
+
+            # Random Colaborador Info
+            random_perfis = random.sample(list(Perfil.NOME_CHOICES), k=random.randint(1, 2))
+            perfis_nomes = [p[0] for p in random_perfis if p[0] not in ['ADMIN_MASTER']]
+            
+            studios = list(Studio.objects.all())
+            if not studios:
+                self.stdout.write(self.style.ERROR('Nenhum studio encontrado para vincular colaborador aleatório.'))
+                return
+
+            random_studio = random.choice(studios)
+            random_funcoes = random.sample(list(FuncaoOperacional.objects.all()), k=random.randint(1, 2))
+            permissao_nomes = [f.nome for f in random_funcoes]
+
+            colaborador_info = {
+                "perfis": perfis_nomes,
+                "data_nascimento": fake.date_of_birth(minimum_age=22, maximum_age=60).strftime('%Y-%m-%d'),
+                "telefone": fake.phone_number(),
+                "registro_profissional": fake.bothify(text='##.###-##'),
+                "endereco": {
+                    "logradouro": fake.street_name(),
+                    "numero": fake.building_number(),
+                    "complemento": fake.word() or "",
+                    "bairro": fake.bairro(),
+                    "cidade": fake.city(),
+                    "estado": fake.state_abbr(),
+                    "cep": fake.postcode()
+                },
+                "vinculos_studio": [{"studio_nome": random_studio.nome, "permissao_nomes": permissao_nomes}]
+            }
+            self._create_colaborador_profile_from_data(user, colaborador_info)
+
+        except IntegrityError as e:
+            self.stdout.write(self.style.ERROR(f'Erro de integridade ao criar colaborador aleatório para "{email}": {e}'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar colaborador aleatório para "{email}": {e}'))
+
+    def _create_colaborador_profile_from_data(self, user, info):
+        PERFIL_NOME_TO_FUNCAO_NOME = {
+            'ADMIN_MASTER': 'Admin',
+            'ADMINISTRADOR': 'Admin',
+            'RECEPCIONISTA': 'Recep',
+            'FISIOTERAPEUTA': 'Fisio',
+            'INSTRUTOR': 'Instrutor',
         }
         endereco_data = info.get('endereco')
         if not endereco_data:
             self.stdout.write(self.style.WARNING(f'Colaborador "{user.email}" sem dados de endereço.'))
             return
 
-        endereco, _ = Endereco.objects.get_or_create(**endereco_data)
-        colaborador, _ = Colaborador.objects.get_or_create(
-            usuario=user,
-            defaults={
-                'endereco': endereco,
-                'data_nascimento': info.get('data_nascimento'),
-                'telefone': info.get('telefone')
-            }
-        )
-        
-        perfis_nomes = info.get('perfis', [])
-        for perfil_nome in perfis_nomes:
-            try:
-                perfil = Perfil.objects.get(nome=perfil_nome)
-                colaborador.perfis.add(perfil)
-            except Perfil.DoesNotExist:
-                self.stdout.write(self.style.ERROR(f'Perfil "{perfil_nome}" não encontrado.'))
+        try:
+            endereco, _ = Endereco.objects.get_or_create(**endereco_data)
+            colaborador, created = Colaborador.objects.get_or_create(
+                usuario=user,
+                defaults={
+                    'endereco': endereco,
+                    'data_nascimento': info.get('data_nascimento'),
+                    'telefone': info.get('telefone'),
+                    'registro_profissional': info.get('registro_profissional', fake.bothify(text='##.###-##'))
+                }
+            )
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'Colaborador "{user.username}" criado.'))
+            else:
+                self.stdout.write(self.style.WARNING(f'Colaborador "{user.username}" já existe.'))
 
-        for vinculo in info.get('vinculos_studio', []):
-            studio_nome = vinculo.get('studio_nome')
-            permissao_ids = vinculo.get('permissao_ids', [])
-            if not studio_nome or not permissao_ids:
-                continue
-            try:
-                studio = Studio.objects.get(nome=studio_nome)
-                for perfil_id in permissao_ids:
-                    funcao_nome = PERFIL_ID_TO_FUNCAO_NOME.get(perfil_id)
-                    if not funcao_nome:
-                        self.stdout.write(self.style.ERROR(f'ID de Perfil inválido "{perfil_id}" para mapeamento de permissão.'))
-                        continue
-                    
-                    permissao = FuncaoOperacional.objects.get(nome=funcao_nome)
-                    ColaboradorStudio.objects.get_or_create(colaborador=colaborador, studio=studio, permissao=permissao)
+            perfis_nomes = info.get('perfis', [])
+            for perfil_nome in perfis_nomes:
+                try:
+                    perfil = Perfil.objects.get(nome=perfil_nome)
+                    colaborador.perfis.add(perfil)
+                except Perfil.DoesNotExist:
+                    self.stdout.write(self.style.ERROR(f'Perfil "{perfil_nome}" não encontrado para {user.email}.'))
 
-            except (Studio.DoesNotExist, FuncaoOperacional.DoesNotExist) as e:
-                self.stdout.write(self.style.ERROR(f'Erro ao vincular colaborador a studio: {e}'))
-        self.stdout.write(self.style.SUCCESS(f'Perfil de colaborador para "{user.username}" configurado.'))
+            for vinculo in info.get('vinculos_studio', []):
+                studio_nome = vinculo.get('studio_nome')
+                permissao_nomes = vinculo.get('permissao_nomes', [])
+                if not studio_nome or not permissao_nomes:
+                    continue
+                try:
+                    studio = Studio.objects.get(nome=studio_nome)
+                    for permissao_nome in permissao_nomes:
+                        funcao_operacional = FuncaoOperacional.objects.get(nome=permissao_nome)
+                        ColaboradorStudio.objects.get_or_create(colaborador=colaborador, studio=studio, permissao=funcao_operacional)
+                        self.stdout.write(self.style.SUCCESS(f'Vínculo de {user.username} com {studio_nome} ({permissao_nome}) criado.'))
+                except (Studio.DoesNotExist, FuncaoOperacional.DoesNotExist) as e:
+                    self.stdout.write(self.style.ERROR(f'Erro ao vincular colaborador "{user.email}" a studio "{studio_nome}": {e}'))
+            self.stdout.write(self.style.SUCCESS(f'Perfil de colaborador para "{user.username}" configurado.'))
+        except IntegrityError as e:
+            self.stdout.write(self.style.ERROR(f'Erro de integridade ao criar colaborador para "{user.email}": {e}'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar colaborador para "{user.email}": {e}'))
 
-    def _seed_alunos(self, alunos_data, credentials_list):
-        if not alunos_data: return
-        quantidade = alunos_data.get('quantidade', 0)
-
-        self.stdout.write(self.style.HTTP_INFO(f'\nGerando {quantidade + 1} alunos (1 padrão + {quantidade} aleatórios)...'))
+    def _seed_alunos(self, alunos_data, credentials_list, num_random_alunos=20):
+        self.stdout.write(self.style.HTTP_INFO(f'\nGerando {num_random_alunos + 1} alunos (1 padrão + {num_random_alunos} aleatórios)...'))
         
         studios = list(Studio.objects.all())
         if not studios:
-            return self.stdout.write(self.style.ERROR('Nenhum studio encontrado para associar alunos.'))
+            self.stdout.write(self.style.ERROR('Nenhum studio encontrado para associar alunos.'))
+            return
 
         # --- Cria Aluno de Teste Padrão ---
         aluno_email = "aluno@pilates.com"
         aluno_pass = "123456"
-        if not Usuario.objects.filter(email=aluno_email).exists():
-            aluno_user = Usuario.objects.create_user(
-                username='aluno.teste', email=aluno_email, password=aluno_pass,
-                first_name='Aluno', last_name='Teste', cpf=self._generate_valid_cpf()
+        try:
+            aluno_user, user_created = Usuario.objects.get_or_create(
+                email=aluno_email,
+                defaults={
+                    'username': 'aluno.teste',
+                    'first_name': 'Aluno',
+                    'last_name': 'Teste',
+                    'cpf': self._generate_valid_cpf()
+                }
             )
-            aluno, _ = Aluno.objects.get_or_create(
+            if user_created:
+                aluno_user.set_password(aluno_pass)
+                aluno_user.save()
+                self.stdout.write(self.style.SUCCESS('Usuário de teste padrão para aluno criado.'))
+            
+            aluno, aluno_created = Aluno.objects.get_or_create(
                 usuario=aluno_user,
                 defaults={
                     'dataNascimento': date(1995, 1, 1),
                     'contato': '+5511912345678',
+                    'is_active': True
                 }
             )
-            aluno.unidades.add(random.choice(studios))
-            self.stdout.write(self.style.SUCCESS('Aluno de teste padrão criado.'))
-            credentials_list.append({'email': aluno_email, 'password': aluno_pass, 'role': 'Aluno'})
-        else:
-            self.stdout.write(self.style.WARNING(f'Aluno de teste padrão com email "{aluno_email}" já existe.'))
-            credentials_list.append({'email': aluno_email, 'password': 'senha existente', 'role': 'Aluno'})
+            if aluno_created:
+                aluno.unidades.add(random.choice(studios))
+                self.stdout.write(self.style.SUCCESS('Aluno de teste padrão criado.'))
+                credentials_list.append({'email': aluno_email, 'password': aluno_pass, 'role': 'Aluno'})
+            else:
+                self.stdout.write(self.style.WARNING(f'Aluno de teste padrão com email "{aluno_email}" já existe.'))
+                credentials_list.append({'email': aluno_email, 'password': 'senha existente', 'role': 'Aluno'})
+        except IntegrityError as e:
+            self.stdout.write(self.style.ERROR(f'Erro de integridade ao criar aluno padrão "{aluno_email}": {e}'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar aluno padrão "{aluno_email}": {e}'))
+
 
         # --- Cria Alunos Aleatórios Adicionais ---
         evaluators = list(Colaborador.objects.filter(perfis__nome__in=['INSTRUTOR', 'FISIOTERAPEUTA']).distinct())
         if not evaluators:
             self.stdout.write(self.style.WARNING('Nenhum instrutor ou fisioterapeuta encontrado para criar avaliações.'))
 
-        nomes = ['Miguel', 'Arthur', 'Gael', 'Heitor', 'Theo', 'Davi', 'Gabriel', 'Bernardo', 'Samuel', 'João']
-        sobrenomes = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes']
+        for i in range(num_random_alunos):
+            first_name = fake.first_name()
+            last_name = fake.last_name()
+            full_name = f"{first_name} {last_name}"
+            email = fake.email()
+            password = '123456'
+            cpf = self._generate_valid_cpf()
+            username = slugify(f'{first_name}-{last_name}-{str(fake.uuid4())[:6]}')
 
-        for i in range(quantidade):
-            first_name = random.choice(nomes)
-            last_name = random.choice(sobrenomes)
-            username = slugify(f'{first_name}-{last_name}-{i}')
-            email = f'{username}@example.com'
+            if Usuario.objects.filter(email=email).exists():
+                self.stdout.write(self.style.WARNING(f'Usuário aleatório com email "{email}" já existe, pulando.'))
+                continue
 
-            if Usuario.objects.filter(email=email).exists(): continue
-
-            user = Usuario.objects.create_user(
-                username=username, email=email, password='123456',
-                first_name=first_name, last_name=last_name, cpf=self._generate_valid_cpf()
-            )
-
-            start_date = date(1970, 1, 1)
-            end_date = date(2005, 12, 31)
-            random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
-
-            aluno, aluno_created = Aluno.objects.get_or_create(
-                usuario=user,
-                defaults={
-                    'dataNascimento': random_date,
-                    'contato': f'+55119{random.randint(10000000, 99999999)}',
-                }
-            )
-            aluno.unidades.add(random.choice(studios))
-
-            if aluno_created and evaluators:
-                Avaliacao.objects.create(
-                    aluno=aluno,
-                    instrutor=random.choice(evaluators),
-                    data_avaliacao=date.today(),
-                    objetivo_aluno="Melhorar a postura e fortalecer o core.",
-                    diagnostico_fisioterapeutico="Sem diagnóstico inicial.",
-                    historico_medico="Nenhuma condição pré-existente relatada."
+            try:
+                user = Usuario.objects.create_user(
+                    username=username, email=email, password=password,
+                    first_name=first_name, last_name=last_name, cpf=cpf
                 )
+                self.stdout.write(self.style.SUCCESS(f'Usuário aleatório "{username}" criado.'))
 
-        self.stdout.write(self.style.SUCCESS(f'{quantidade} alunos aleatórios e suas avaliações iniciais foram criados.'))
+                random_date_of_birth = fake.date_of_birth(minimum_age=18, maximum_age=60)
+                aluno, aluno_created = Aluno.objects.get_or_create(
+                    usuario=user,
+                    defaults={
+                        'dataNascimento': random_date_of_birth,
+                        'contato': fake.phone_number(),
+                        'profissao': fake.job(),
+                        'is_active': True
+                    }
+                )
+                if aluno_created:
+                    aluno.unidades.add(random.choice(studios))
+                    self.stdout.write(self.style.SUCCESS(f'Aluno aleatório "{user.username}" criado.'))
+
+                    if evaluators:
+                        instrutor_avaliacao = random.choice(evaluators)
+                        studio_avaliacao = random.choice(studios)
+                        Avaliacao.objects.create(
+                            aluno=aluno,
+                            instrutor=instrutor_avaliacao,
+                            data_avaliacao=fake.date_between(start_date='-1y', end_date='today'),
+                            objetivo_aluno=fake.sentence(),
+                            diagnostico_fisioterapeutico=fake.sentence(),
+                            historico_medico=fake.paragraph(),
+                            patologias=fake.sentence(),
+                            exames_complementares=fake.sentence(),
+                            medicamentos_em_uso=fake.sentence(),
+                            tratamentos_realizados=fake.sentence(),
+                            studio=studio_avaliacao
+                        )
+                        self.stdout.write(self.style.SUCCESS(f'Avaliação inicial para aluno "{user.username}" criada.'))
+                else:
+                    self.stdout.write(self.style.WARNING(f'Aluno aleatório "{user.username}" já existe.'))
+
+            except IntegrityError as e:
+                self.stdout.write(self.style.ERROR(f'Erro de integridade ao criar aluno aleatório para "{email}": {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar aluno aleatório para "{email}": {e}'))
+
+        self.stdout.write(self.style.SUCCESS(f'{num_random_alunos} alunos aleatórios e suas avaliações iniciais foram criados.'))
 
     def _seed_creditos_manuais(self, num_alunos=5, num_creditos=3):
         self.stdout.write(self.style.HTTP_INFO(f'\nConcedendo {num_creditos} créditos para {num_alunos} alunos aleatórios...'))
@@ -434,33 +588,56 @@ class Command(BaseCommand):
 
         alunos_selecionados = random.sample(alunos, min(len(alunos), num_alunos))
         for aluno in alunos_selecionados:
-            CreditoAula.objects.create(
-                aluno=aluno,
-                quantidade=num_creditos,
-                adicionado_por=admin_user,
-                data_validade=date.today() + timedelta(days=90)
-            )
+            try:
+                CreditoAula.objects.create(
+                    aluno=aluno,
+                    quantidade=num_creditos,
+                    adicionado_por=admin_user,
+                    data_validade=fake.date_between(start_date='+30d', end_date='+180d')
+                )
+                self.stdout.write(self.style.SUCCESS(f'Créditos manuais concedidos a {aluno.usuario.username}.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Créditos para {aluno.usuario.username} já existem: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao conceder créditos a {aluno.usuario.username}: {e}'))
         self.stdout.write(self.style.SUCCESS(f'Créditos manuais concedidos a {len(alunos_selecionados)} alunos.'))
 
-    def _seed_aulas(self, total_aulas=40, chance_aula_lotada=0.2, chance_cancelamento=0.15):
-        self.stdout.write(self.style.HTTP_INFO(f'\nPopulando modalidades e {total_aulas} aulas com cenários complexos...'))
-
-        # --- Seed Modalidades ---
-        modalidades_nomes = ["Pilates Clássico", "Pilates Avançado", "Pilates com Equipamentos", "Mat Pilates"]
-        modalidades = [Modalidade.objects.get_or_create(nome=nome)[0] for nome in modalidades_nomes]
+    def _seed_modalidades(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando modalidades...'))
+        modalidades_nomes = ["Pilates Clássico", "Pilates Avançado", "Pilates com Equipamentos", "Mat Pilates", "Pilates Suspenso"]
+        
+        for nome in modalidades_nomes:
+            try:
+                modalidade, created = Modalidade.objects.get_or_create(
+                    nome=nome
+                )
+                if created:
+                    self.stdout.write(self.style.SUCCESS(f'Modalidade "{nome}" populada.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Modalidade "{nome}" já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar modalidade "{nome}": {e}'))
         self.stdout.write(self.style.SUCCESS('Modalidades populadas.'))
 
-        # --- Coleta de dados para criar aulas ---
-        studios = list(Studio.objects.all())
-        instrutores = list(Colaborador.objects.filter(perfis__nome='INSTRUTOR'))
-        alunos = list(Aluno.objects.all())
-        alunos_disponiveis = list(alunos)
+    def _seed_aulas(self, total_aulas=40, chance_aula_lotada=0.2, chance_cancelamento=0.15):
+        self.stdout.write(self.style.HTTP_INFO(f'\nPopulando {total_aulas} aulas com cenários complexos...'))
 
-        if not all([studios, instrutores, alunos]):
-            self.stdout.write(self.style.ERROR('Faltam studios, instrutores ou alunos para criar aulas.'))
+        modalidades = list(Modalidade.objects.all()) # Fetch existing modalities
+        studios = list(Studio.objects.all()) # Fetch existing studios
+        instrutores = list(Colaborador.objects.filter(perfis__nome='INSTRUTOR')) # Fetch existing instructors
+        alunos = list(Aluno.objects.all()) # Fetch all students
+
+        if not modalidades:
+            self.stdout.write(self.style.ERROR('Nenhuma modalidade disponível para criar aulas.'))
+            return
+        if not instrutores:
+            self.stdout.write(self.style.ERROR('Nenhum instrutor disponível para criar aulas.'))
+            return
+        if not alunos:
+            self.stdout.write(self.style.ERROR('Nenhum aluno disponível para criar aulas.'))
             return
 
-        # --- Criação de Aulas e Agendamentos ---
+
         aulas_criadas = 0
         listas_espera_criadas = 0
         creditos_gerados = 0
@@ -468,54 +645,63 @@ class Command(BaseCommand):
         for _ in range(total_aulas):
             try:
                 studio = random.choice(studios)
-                instrutor = random.choice(instrutores)
+                instrutor_principal = random.choice(instrutores)
                 modalidade = random.choice(modalidades)
                 
-                dias_futuro = random.randint(1, 7)
-                hora_aula = random.randint(8, 18)
-                minuto_aula = random.choice([0, 30])
-                data_hora_inicio = timezone.now() + timedelta(days=dias_futuro)
-                data_hora_inicio = data_hora_inicio.replace(hour=hora_aula, minute=minuto_aula, second=0, microsecond=0)
+                data_hora_inicio = fake.date_time_between(start_date='now', end_date='+30d', tzinfo=timezone.get_current_timezone())
+                data_hora_inicio = data_hora_inicio.replace(second=0, microsecond=0) # Normalize seconds and microseconds
 
                 # Evita criar aulas em dias bloqueados
                 if BloqueioAgenda.objects.filter(studio=studio, data=data_hora_inicio.date()).exists():
                     continue
 
+                capacidade_maxima = random.randint(3, 8)
+                duracao_minutos = random.choice([60, 90])
+                tipo_aula = random.choice([Aula.TipoAula.REGULAR, Aula.TipoAula.EXPERIMENTAL])
+                instrutor_substituto = random.choice(instrutores) if random.random() < 0.2 else None # 20% chance of substitute
+
                 aula, created = Aula.objects.get_or_create(
                     studio=studio,
-                    instrutor_principal=instrutor,
+                    instrutor_principal=instrutor_principal,
                     modalidade=modalidade,
                     data_hora_inicio=data_hora_inicio,
                     defaults={
-                        'duracao_minutos': 60,
-                        'capacidade_maxima': 3,
-                        'tipo_aula': Aula.TipoAula.REGULAR
+                        'duracao_minutos': duracao_minutos,
+                        'capacidade_maxima': capacidade_maxima,
+                        'tipo_aula': tipo_aula,
+                        'instrutor_substituto': instrutor_substituto
                     }
                 )
 
                 if created:
                     aulas_criadas += 1
-                    alunos_para_inscrever = random.sample(alunos_disponiveis, min(len(alunos_disponiveis), aula.capacidade_maxima + 2))
+                    self.stdout.write(self.style.SUCCESS(f'Aula de {modalidade.nome} em {studio.nome} em {data_hora_inicio} criada.'))
+
+                    alunos_para_inscrever = random.sample(alunos, min(len(alunos), capacidade_maxima + random.randint(0, 3))) # Some extra for waiting list
 
                     # Cenário de Aula Lotada
                     if random.random() < chance_aula_lotada:
                         # Preenche a capacidade máxima
-                        for i in range(aula.capacidade_maxima):
+                        for i in range(capacidade_maxima):
+                            if not alunos_para_inscrever: break
                             aluno = alunos_para_inscrever.pop(0)
                             AulaAluno.objects.get_or_create(aula=aula, aluno=aluno)
+                            self.stdout.write(self.style.SUCCESS(f'Aluno {aluno.usuario.username} inscrito na aula (lotada).'))
                         
                         # Adiciona os restantes à lista de espera
                         for aluno_extra in alunos_para_inscrever:
                             if aula.alunos_inscritos.count() >= aula.capacidade_maxima:
-                                ListaEspera.objects.get_or_create(aula=aula, aluno=aluno_extra)
+                                ListaEspera.objects.get_or_create(aula=aula, aluno=aluno_extra, defaults={'data_entrada': timezone.now()})
                                 listas_espera_criadas += 1
+                                self.stdout.write(self.style.SUCCESS(f'Aluno {aluno_extra.usuario.username} adicionado à lista de espera.'))
                     
                     # Cenário Normal de Inscrição
                     else:
-                        num_alunos = random.randint(1, aula.capacidade_maxima)
-                        for i in range(num_alunos):
+                        num_alunos_inscritos = random.randint(1, capacidade_maxima)
+                        for i in range(num_alunos_inscritos):
+                            if not alunos_para_inscrever: break
                             aluno = alunos_para_inscrever.pop(0)
-                            # Chance de cancelamento com reposição
+                            
                             if random.random() < chance_cancelamento:
                                 agendamento, _ = AulaAluno.objects.get_or_create(
                                     aula=aula, 
@@ -526,15 +712,208 @@ class Command(BaseCommand):
                                     aluno=aluno,
                                     quantidade=1,
                                     agendamento_origem=agendamento,
-                                    data_validade=date.today() + timedelta(days=30)
+                                    data_validade=fake.date_between(start_date='+30d', end_date='+180d')
                                 )
                                 creditos_gerados += 1
+                                self.stdout.write(self.style.SUCCESS(f'Aluno {aluno.usuario.username} cancelou e recebeu crédito.'))
                             else:
                                 AulaAluno.objects.get_or_create(aula=aula, aluno=aluno)
+                                self.stdout.write(self.style.SUCCESS(f'Aluno {aluno.usuario.username} inscrito na aula.'))
 
-            except (IntegrityError, ValueError):
-                continue
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Aula já existe ou erro de integridade: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar aula: {e}'))
         
         self.stdout.write(self.style.SUCCESS(f'{aulas_criadas} aulas criadas.'))
         self.stdout.write(self.style.SUCCESS(f'{listas_espera_criadas} inscrições em lista de espera.'))
         self.stdout.write(self.style.SUCCESS(f'{creditos_gerados} créditos de reposição gerados por ausência.'))
+
+    def _seed_planos(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando planos...'))
+        planos_data = [
+            {"nome": "Plano Mensal Básico", "duracao_dias": 30, "creditos_semanais": 1, "preco": "150.00"},
+            {"nome": "Plano Mensal Premium", "duracao_dias": 30, "creditos_semanais": 2, "preco": "250.00"},
+            {"nome": "Plano Trimestral", "duracao_dias": 90, "creditos_semanais": 2, "preco": "600.00"},
+            {"nome": "Plano Anual", "duracao_dias": 365, "creditos_semanais": 3, "preco": "2500.00"},
+        ]
+
+        for data in planos_data:
+            try:
+                from financeiro.models import Plano
+                Plano.objects.get_or_create(
+                    nome=data['nome'],
+                    defaults={
+                        'duracao_dias': data['duracao_dias'],
+                        'creditos_semanais': data['creditos_semanais'],
+                        'preco': data['preco']
+                    }
+                )
+                self.stdout.write(self.style.SUCCESS(f'Plano "{data["nome"]}" populado.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Plano "{data["nome"]}" já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar plano "{data["nome"]}": {e}'))
+        self.stdout.write(self.style.SUCCESS('Planos populados.'))
+
+    def _seed_produtos(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando produtos...'))
+        produtos_data = [
+            {"nome": "Camiseta Pilates", "preco": "79.90"},
+            {"nome": "Meia Antiderrapante", "preco": "35.00"},
+            {"nome": "Bola Suíça", "preco": "120.00"},
+            {"nome": "Faixa Elástica", "preco": "25.00"},
+        ]
+
+        for data in produtos_data:
+            try:
+                from financeiro.models import Produto
+                Produto.objects.get_or_create(
+                    nome=data['nome'],
+                    defaults={'preco': data['preco']}
+                )
+                self.stdout.write(self.style.SUCCESS(f'Produto "{data["nome"]}" populado.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Produto "{data["nome"]}" já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar produto "{data["nome"]}": {e}'))
+        self.stdout.write(self.style.SUCCESS('Produtos populados.'))
+
+    def _seed_matriculas(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando matrículas...'))
+        from financeiro.models import Plano, Matricula
+        
+        alunos = list(Aluno.objects.all())
+        planos = list(Plano.objects.all())
+        studios = list(Studio.objects.all())
+
+        if not all([alunos, planos, studios]):
+            self.stdout.write(self.style.WARNING('Faltam alunos, planos ou studios para criar matrículas.'))
+            return
+
+        for _ in range(10): # Create 10 random enrollments
+            aluno = random.choice(alunos)
+            plano = random.choice(planos)
+            studio = random.choice(studios)
+            
+            data_inicio = fake.date_between(start_date='-60d', end_date='today')
+            data_fim = data_inicio + timedelta(days=plano.duracao_dias)
+
+            try:
+                Matricula.objects.get_or_create(
+                    aluno=aluno.usuario,
+                    plano=plano,
+                    studio=studio,
+                    data_inicio=data_inicio,
+                    defaults={'data_fim': data_fim}
+                )
+                self.stdout.write(self.style.SUCCESS(f'Matrícula para {aluno.usuario.username} com plano {plano.nome} no studio {studio.nome} criada.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Matrícula para {aluno.usuario.username} já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar matrícula para {aluno.usuario.username}: {e}'))
+        self.stdout.write(self.style.SUCCESS('Matrículas populadas.'))
+
+    def _seed_vendas(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando vendas...'))
+        from financeiro.models import Produto, Venda
+        
+        alunos = list(Aluno.objects.all())
+        produtos = list(Produto.objects.all())
+        studios = list(Studio.objects.all())
+
+        if not all([alunos, produtos, studios]):
+            self.stdout.write(self.style.WARNING('Faltam alunos, produtos ou studios para criar vendas.'))
+            return
+
+        for _ in range(15): # Create 15 random sales
+            aluno = random.choice(alunos) if random.random() > 0.3 else None # 70% chance of associated student
+            studio = random.choice(studios)
+            
+            num_produtos_vendidos = random.randint(1, min(3, len(produtos)))
+            produtos_vendidos = random.sample(produtos, num_produtos_vendidos)
+            
+            data_venda = fake.date_between(start_date='-60d', end_date='today')
+
+            try:
+                venda = Venda.objects.create(
+                    aluno=aluno.usuario if aluno else None,
+                    studio=studio,
+                    data_venda=data_venda
+                )
+                for produto in produtos_vendidos:
+                    VendaProduto.objects.create(
+                        venda=venda,
+                        produto=produto,
+                        quantidade=random.randint(1, 3), # Random quantity
+                        preco_unitario=produto.preco
+                    )
+                self.stdout.write(self.style.SUCCESS(f'Venda {venda.id} no studio {studio.nome} criada.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Erro de integridade ao criar venda: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar venda: {e}'))
+        self.stdout.write(self.style.SUCCESS('Vendas populadas.'))
+
+    def _seed_pagamentos(self):
+        self.stdout.write(self.style.HTTP_INFO('\nPopulando pagamentos...'))
+        
+        matriculas = list(Matricula.objects.all())
+        vendas = list(Venda.objects.all())
+
+        if not (matriculas or vendas):
+            self.stdout.write(self.style.WARNING('Faltam matrículas ou vendas para criar pagamentos.'))
+            return
+
+        # Payments for enrollments
+        for matricula in matriculas:
+            try:
+                valor_total = matricula.plano.preco
+                metodo_pagamento = random.choice(['CARTAO_CREDITO', 'PIX', 'DINHEIRO'])
+                status = random.choice(['PAGO', 'PENDENTE'])
+                data_vencimento = fake.date_between(start_date='today', end_date='+30d')
+                data_pagamento = fake.date_between(start_date='-7d', end_date='today') if status == 'PAGO' else None
+
+                Pagamento.objects.get_or_create(
+                    matricula=matricula,
+                    defaults={
+                        'valor_total': valor_total,
+                        'metodo_pagamento': metodo_pagamento,
+                        'status': status,
+                        'data_vencimento': data_vencimento,
+                        'data_pagamento': data_pagamento
+                    }
+                )
+                self.stdout.write(self.style.SUCCESS(f'Pagamento para matrícula {matricula.id} ({status}) criado.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Pagamento para matrícula {matricula.id} já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar pagamento para matrícula {matricula.id}: {e}'))
+
+        # Payments for sales
+        for venda in vendas:
+            try:
+                # Corrigindo para calcular o valor total da venda corretamente
+                valor_total = sum(vp.preco_unitario * vp.quantidade for vp in venda.vendaproduto_set.all())
+                
+                metodo_pagamento = random.choice(['CARTAO_CREDITO', 'PIX', 'DINHEIRO'])
+                status = random.choice(['PAGO', 'PENDENTE'])
+                data_vencimento = fake.date_between(start_date='today', end_date='+30d')
+                data_pagamento = fake.date_between(start_date='-7d', end_date='today') if status == 'PAGO' else None
+
+                Pagamento.objects.get_or_create(
+                    venda=venda,
+                    defaults={
+                        'valor_total': valor_total,
+                        'metodo_pagamento': metodo_pagamento,
+                        'status': status,
+                        'data_vencimento': data_vencimento,
+                        'data_pagamento': data_pagamento
+                    }
+                )
+                self.stdout.write(self.style.SUCCESS(f'Pagamento para venda {venda.id} ({status}) criado.'))
+            except IntegrityError as e:
+                self.stdout.write(self.style.WARNING(f'Pagamento para venda {venda.id} já existe: {e}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Erro inesperado ao criar pagamento para venda {venda.id}: {e}'))
+        self.stdout.write(self.style.SUCCESS('Pagamentos populados.'))

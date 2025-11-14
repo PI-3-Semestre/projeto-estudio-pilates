@@ -15,6 +15,7 @@ from .models import (
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from alunos.serializers import AlunoSerializer # Importar o AlunoSerializer
 
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -87,14 +88,14 @@ class AgendamentoAlunoReadSerializer(serializers.ModelSerializer):
     # Aninha o AulaSerializer
     aula = AulaReadSerializer(read_only=True)
     
-    # Podemos também aninhar os detalhes do aluno se quisermos (opcional)
-    # aluno = AlunoSerializer(read_only=True) 
+    # Aninha os detalhes do aluno
+    aluno = AlunoSerializer(read_only=True) 
 
     class Meta:
         model = AulaAluno
         fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
         # Usamos 'depth = 1' ou definimos os campos aninhados manualmente
-        # Optámos por definir 'aula' manualmente para melhor controlo.
+        # Optámos por definir 'aula' e 'aluno' manualmente para melhor controlo.
 class AgendamentoAlunoSerializer(serializers.ModelSerializer):
     """
     Serializer para o Aluno agendar sua própria aula.

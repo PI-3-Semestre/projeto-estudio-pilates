@@ -128,7 +128,7 @@ class Colaborador(models.Model):
     # Perfis de acesso associados a este colaborador.
     perfis = models.ManyToManyField(Perfil, related_name="colaboradores")
     
-    registro_profissional = models.CharField(max_length=20, blank=True, null=True, help_text="Ex: CREFITO para fisioterapeutas, CREF para instrutores")
+    registro_profissional = models.CharField(max_length=50, blank=True, null=True, help_text="Ex: CREFITO para fisioterapeutas, CREF para instrutores")
     data_nascimento = models.DateField(null=True, blank=True)
     telefone = PhoneNumberField(region="BR", null=True, blank=True)
     data_admissao = models.DateField(null=True, blank=True)
