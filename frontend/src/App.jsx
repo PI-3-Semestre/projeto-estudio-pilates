@@ -26,6 +26,8 @@ import CadastrarStudioView from "./views/CadastrarStudioView";
 import DetalhesStudioView from "./views/DetalhesStudioView";
 import EditarStudioView from "./views/EditarStudioView";
 
+import DashboardStudioView from "./views/DashboardStudioView";
+
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
   return (
@@ -173,6 +175,14 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <EditarStudioView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/studios/:studioId/dashboard"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <DashboardStudioView />
           </ProtectedRoute>
         }
       />
