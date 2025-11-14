@@ -148,4 +148,46 @@
 </div>
 </main>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pathSegments = window.location.pathname.split('/');
+        // Assuming URL is like /studios/{studio_id}/dashboard
+        // pathSegments will be ["", "studios", "123", "dashboard"]
+        const studioId = pathSegments[2]; 
+
+        if (studioId) {
+            const linksContainer = document.querySelector('.grid.grid-cols-2.gap-4');
+            if (linksContainer) {
+                const links = linksContainer.querySelectorAll('a');
+                links.forEach(link => {
+                    const h3 = link.querySelector('h3');
+                    if (h3) {
+                        const linkText = h3.textContent.trim();
+                        let newHref = '#'; // Default to current href or a safe fallback
+
+                        switch (linkText) {
+                            case 'Agenda Geral':
+                                newHref = `/studios/${studioId}/agenda`;
+                                break;
+                            case 'Financeiro':
+                                newHref = `/studios/${studioId}/financeiro`;
+                                break;
+                            case 'Gestão de Alunos':
+                                newHref = `/studios/${studioId}/alunos`;
+                                break;
+                            case 'Colaboradores':
+                                newHref = `/studios/${studioId}/colaboradores`;
+                                break;
+                            case 'Configurações':
+                                newHref = `/studios/${studioId}/configuracoes`;
+                                break;
+                            // 'Avaliações' is not in the requirements, so it will keep its original href or '#'
+                        }
+                        link.href = newHref;
+                    }
+                });
+            }
+        }
+    });
+</script>
 </body></html>
