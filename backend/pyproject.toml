@@ -32,7 +32,13 @@ drf-nested-routers = "^0.95.0"
 [tool.poetry.group.dev.dependencies]
 black = "^25.9.0"
 ruff = "^0.13.1"
+pytest = "^9.0.1"
+pytest-django = "^4.11.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = "."

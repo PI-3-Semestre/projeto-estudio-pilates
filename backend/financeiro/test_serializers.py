@@ -1,7 +1,8 @@
 # financeiro/test_serializers.py
 import pytest
 from rest_framework.exceptions import ValidationError
-from financeiro.serializers import VendaSerializer, VendaProdutoInputSerializer, PagamentoSerializer
+from financeiro.serializers import VendaSerializer, PagamentoSerializer # <-- Import Absoluto
+from financeiro.models import Venda # <-- Import Absoluto
 
 pytestmark = pytest.mark.django_db
 
@@ -14,19 +15,18 @@ def test_venda_serializer_validate_sem_itens(aluno):
     
     serializer = VendaSerializer(data=data)
     
-    # Verifica se 'is_valid()' levanta uma exceção
     with pytest.raises(ValidationError) as e:
         serializer.is_valid(raise_exception=True)
     
     assert "A venda deve conter pelo menos um produto" in str(e.value)
 
 def test_venda_serializer_validate_estoque_insuficiente(aluno, produto):
-    """Testa a validação de estoque do serializer (duplicado do teste de integração)."""
-    # Produto fixture tem 10
+    """Testa a validação de estoque do serializer."""
+    # Produto fixture tem 20
     data = {
         "aluno": aluno.pk,
         "itens_venda": [
-            {"produto": produto.pk, "quantidade": 11}
+            {"produto": produto.pk, "quantidade": 21}
         ]
     }
     serializer = VendaSerializer(data=data)
@@ -38,7 +38,7 @@ def test_venda_serializer_validate_estoque_insuficiente(aluno, produto):
 
 def test_pagamento_serializer_validate_ambos_links(aluno, plano):
     """Testa se o PagamentoSerializer falha se 'matricula' e 'venda' forem passados."""
-    # Simula a criação de uma matricula e venda
+    # Usa o plano e aluno das fixtures
     matricula = plano.matriculas.create(
         aluno=aluno, data_inicio='2025-01-01', data_fim='2025-02-01', valor_pago=100
     )

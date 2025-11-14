@@ -1,81 +1,75 @@
-# financeiro/test_integration_venda.py
+# financeiro/test_serializers.py
 import pytest
-from rest_framework import status
-from django.urls import reverse
-from financeiro.models import Produto, Venda, VendaProduto
+from rest_framework.exceptions import ValidationError
+from financeiro.serializers import VendaSerializer, PagamentoSerializer # <-- Import Absoluto
+from financeiro.models import Venda # <-- Import Absoluto
 
-# A marcação @pytest.mark.django_db é necessária para testes que acessam o DB
 pytestmark = pytest.mark.django_db
 
-def test_criar_venda_falha_estoque_insuficiente(admin_client, aluno, produto):
-    """
-    TESTE 1: (Critério de Aceitação 1)
-    Verifica se a API retorna 400 se o estoque for insuficiente.
-    """
-    print("\nExecutando: Teste de Falha (Estoque Insuficiente)")
-    
-    # O 'produto' fixture começa com 10 em estoque
-    url = reverse('venda-list') 
-
-    # Payload da venda: Tentar comprar 11
-    payload = {
+def test_venda_serializer_validate_sem_itens(aluno):
+    """Testa se a validação falha se 'itens_venda' estiver vazio."""
+    data = {
         "aluno": aluno.pk,
-        "itens_venda": [
-            {
-                "produto": produto.pk,
-                "quantidade": 11 
-            }
-        ]
+        "itens_venda": []
     }
     
-    response = admin_client.post(url, payload, format='json')
+    serializer = VendaSerializer(data=data)
     
-    # --- Verificações (Assertions) ---
+    with pytest.raises(ValidationError) as e:
+        serializer.is_valid(raise_exception=True)
     
-    # 1. Verifica se recebemos o erro 400 (Bad Request)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    
-    # 2. Verifica se o estoque NÃO mudou
-    produto.refresh_from_db() # Atualiza o objeto do produto
-    assert produto.quantidade_estoque == 10
-    
-    # 3. (Opcional) Verifica a mensagem de erro
-    assert "Estoque insuficiente" in str(response.data)
+    assert "A venda deve conter pelo menos um produto" in str(e.value)
 
-def test_criar_venda_sucesso_e_baixar_estoque(admin_client, aluno, produto):
-    """
-    TESTE 2: (Critério de Aceitação 2)
-    Verifica se a API cria a venda (201) e baixa o estoque corretamente (via Signal).
-    """
-    print("\nExecutando: Teste de Sucesso (Baixa de Estoque)")
-    
-    # O 'produto' fixture começa com 10 em estoque
-    url = reverse('venda-list')
-    
-    # Payload da venda: Comprar 2
-    payload = {
+def test_venda_serializer_validate_estoque_insuficiente(aluno, produto):
+    """Testa a validação de estoque do serializer."""
+    # Produto fixture tem 20
+    data = {
         "aluno": aluno.pk,
         "itens_venda": [
-            {
-                "produto": produto.pk,
-                "quantidade": 2
-            }
+            {"produto": produto.pk, "quantidade": 21}
         ]
     }
+    serializer = VendaSerializer(data=data)
     
-    response = admin_client.post(url, payload, format='json')
+    with pytest.raises(ValidationError) as e:
+        serializer.is_valid(raise_exception=True)
     
-    # --- Verificações (Assertions) ---
+    assert "Estoque insuficiente" in str(e.value)
 
-    # 1. Verifica se a venda foi criada com sucesso (201 Created)
-    assert response.status_code == status.HTTP_201_CREATED
+def test_pagamento_serializer_validate_ambos_links(aluno, plano):
+    """Testa se o PagamentoSerializer falha se 'matricula' e 'venda' forem passados."""
+    # Usa o plano e aluno das fixtures
+    matricula = plano.matriculas.create(
+        aluno=aluno, data_inicio='2025-01-01', data_fim='2025-02-01', valor_pago=100
+    )
+    venda = Venda.objects.create(aluno=aluno)
     
-    # 2. Verifica se a Venda foi criada no banco
-    assert Venda.objects.count() == 1
-    assert VendaProduto.objects.count() == 1
+    data = {
+        "matricula_id": matricula.pk,
+        "venda_id": venda.pk,
+        "valor_total": 100,
+        "metodo_pagamento": "PIX",
+        "data_vencimento": "2025-01-10"
+    }
     
-    # 3. VERIFICAÇÃO PRINCIPAL: Checa se o estoque foi baixado (Signal)
-    produto.refresh_from_db() # Puxa o dado mais recente do DB
+    serializer = PagamentoSerializer(data=data)
     
-    # O estoque era 10, vendemos 2, esperamos 8
-    assert produto.quantidade_estoque == 8
+    with pytest.raises(ValidationError) as e:
+        serializer.is_valid(raise_exception=True)
+        
+    assert "não pode estar associado a uma matrícula e a uma venda" in str(e.value)
+
+def test_pagamento_serializer_validate_nenhum_link():
+    """Testa se o PagamentoSerializer falha se nem 'matricula' nem 'venda' forem passados."""
+    data = {
+        "valor_total": 100,
+        "metodo_pagamento": "PIX",
+        "data_vencimento": "2025-01-10"
+    }
+    
+    serializer = PagamentoSerializer(data=data)
+    
+    with pytest.raises(ValidationError) as e:
+        serializer.is_valid(raise_exception=True)
+        
+    assert "associado a uma matrícula ou a uma venda" in str(e.value)

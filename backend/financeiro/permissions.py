@@ -35,6 +35,12 @@ class CanManagePagamentos(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
+        # --- INÍCIO DA CORREÇÃO ---
+        # Adicionámos esta verificação para o superusuário
+        if request.user.is_superuser:
+            return True
+        # --- FIM DA CORREÇÃO ---
+
         try:
             # Otimiza a busca pegando todos os nomes de uma vez.
             user_perfis = set(request.user.colaborador.perfis.values_list('nome', flat=True))
