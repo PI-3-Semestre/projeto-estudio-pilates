@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import studiosService from '../services/studiosService';
 
 const useDashboardStudioViewModel = (studioId) => {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState({ studio: null, dashboard: null });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -14,8 +14,17 @@ const useDashboardStudioViewModel = (studioId) => {
             }
             try {
                 setLoading(true);
-                const response = await studiosService.getDashboardStudio(studioId);
-                setData(response.data);
+                
+                const [studioResponse, dashboardResponse] = await Promise.all([
+                    studiosService.getStudioById(studioId),
+                    studiosService.getDashboardStudio(studioId)
+                ]);
+
+                setData({
+                    studio: studioResponse.data,
+                    dashboard: dashboardResponse.data
+                });
+
             } catch (err) {
                 setError(err);
             } finally {
