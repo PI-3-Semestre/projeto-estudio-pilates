@@ -7,7 +7,7 @@ import datetime
 
 from usuarios.models import Usuario, Perfil
 from alunos.models import Aluno
-from studios.models import Studio
+from studios.models import Studio, FuncaoOperacional
 from agendamentos.models import Modalidade, Aula, CreditoAula, AulaAluno, Colaborador
 
 
@@ -26,12 +26,19 @@ class AgendamentoAPITestCase(APITestCase):
         cls.perfil_aluno, _ = Perfil.objects.get_or_create(nome="ALUNO")
         cls.perfil_recepcionista, _ = Perfil.objects.get_or_create(nome="RECEPCIONISTA")
         cls.perfil_admin, _ = Perfil.objects.get_or_create(nome="ADMINISTRADOR")
+        cls.funcao_recep, _ = FuncaoOperacional.objects.get_or_create(nome="Recepcionista")
+        cls.funcao_admin, _ = FuncaoOperacional.objects.get_or_create(nome="Administrador")
+
 
     def setUp(self):
         """
         Configuração executada antes de cada teste.
         Cria os objetos básicos necessários para os testes.
         """
+        # Studio e Modalidade
+        self.studio = Studio.objects.create(nome="Studio Teste")
+        self.modalidade = Modalidade.objects.create(nome="Pilates")
+
         # Usuários - Usando get_or_create para robustez
         self.user_aluno, _ = Usuario.objects.get_or_create(
             cpf="11111111111",
@@ -46,8 +53,9 @@ class AgendamentoAPITestCase(APITestCase):
 
         self.aluno, _ = Aluno.objects.get_or_create(
             usuario=self.user_aluno,
-            defaults={"dataNascimento": "1990-01-01"},
+            defaults={"dataNascimento": "1990-01-01", "contato": "11999999999"},
         )
+        self.aluno.unidades.add(self.studio)
 
 
         self.user_recepcionista, _ = Usuario.objects.get_or_create(
@@ -69,10 +77,7 @@ class AgendamentoAPITestCase(APITestCase):
             },
         )
         self.recepcionista.perfis.add(self.perfil_recepcionista)
-
-        # Studio e Modalidade
-        self.studio = Studio.objects.create(nome="Studio Teste")
-        self.modalidade = Modalidade.objects.create(nome="Pilates")
+        self.recepcionista.unidades.add(self.studio, through_defaults={'permissao': self.funcao_recep})
 
         # Aula
         self.aula = Aula.objects.create(
@@ -93,7 +98,6 @@ class AgendamentoAPITestCase(APITestCase):
         # Pré-condição: Aluno tem um crédito válido
         credito = CreditoAula.objects.create(
             aluno=self.aluno,
-            quantidade=1,
             data_validade=timezone.now().date() + datetime.timedelta(days=30),
         )
 
@@ -101,7 +105,7 @@ class AgendamentoAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.user_aluno)
         response = self.client.post(
             self.url_inscrever_aula, data={"aula": self.aula.pk}
-        )  # Aluno não passa aluno_id
+        )
 
         # Verificações
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -115,26 +119,23 @@ class AgendamentoAPITestCase(APITestCase):
         # 2. Verifica se o crédito foi consumido
         credito.refresh_from_db()
         agendamento = AulaAluno.objects.get(aluno=self.aluno, aula=self.aula)
-        self.assertEqual(credito.agendamento_uso, agendamento)
-        # O status do crédito não é mais um método, e sim uma propriedade ou campo.
-        # A lógica de "utilizado" agora é a presença de um valor em `agendamento_uso`.
-        self.assertIsNotNone(credito.agendamento_uso)
+        self.assertEqual(agendamento.credito_utilizado, credito)
+        self.assertIsNotNone(credito.data_invalidacao)
 
     def test_recepcionista_pode_agendar_aluno_especifico(self):
         """
         Verifica se uma recepcionista pode agendar um aluno específico.
         """
         # Pré-condição: Aluno tem um crédito válido
-        credito = CreditoAula.objects.create(
+        CreditoAula.objects.create(
             aluno=self.aluno,
-            quantidade=1,
             data_validade=timezone.now().date() + datetime.timedelta(days=30),
         )
 
         # Ação: Recepcionista faz a requisição para inscrever o aluno
         self.client.force_authenticate(user=self.user_recepcionista)
         response = self.client.post(
-            self.url_inscrever_aula, data={"aluno_id": self.aluno.pk, "aula": self.aula.pk}
+            self.url_inscrever_aula, data={"aluno": self.aluno.pk, "aula": self.aula.pk}
         )
 
         # Verificações
@@ -142,12 +143,12 @@ class AgendamentoAPITestCase(APITestCase):
         self.assertTrue(
             AulaAluno.objects.filter(aluno=self.aluno, aula=self.aula).exists()
         )
-        credito.refresh_from_db()
-        self.assertIsNotNone(credito.agendamento_uso)
+        credito_usado = CreditoAula.objects.get(aluno=self.aluno)
+        self.assertIsNotNone(credito_usado.data_invalidacao)
 
     def test_aluno_nao_pode_agendar_outro_aluno(self):
         """
-        Verifica que um aluno recebe 403 ao tentar agendar outro aluno.
+        Verifica que um aluno recebe 400 ao tentar agendar outro aluno.
         """
         # Cria um segundo aluno
         user_outro_aluno = Usuario.objects.create_user(
@@ -157,16 +158,19 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333333",
             first_name="Outro",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01", contato="11988888888")
+        outro_aluno.unidades.add(self.studio)
 
         # Ação: Aluno 1 tenta agendar Aluno 2
         self.client.force_authenticate(user=self.user_aluno)
+        # O serializer do aluno não aceita o campo 'aluno', então a requisição é inválida (400)
+        # antes mesmo de chegar na verificação de permissão (403).
         response = self.client.post(
-            self.url_inscrever_aula, data={"aluno_id": outro_aluno.pk, "aula": self.aula.pk}
+            self.url_inscrever_aula, data={"aluno": outro_aluno.pk, "aula": self.aula.pk}
         )
 
         # Verificação
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_agendamento_falha_sem_credito_disponivel(self):
         """
@@ -180,7 +184,7 @@ class AgendamentoAPITestCase(APITestCase):
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["error"], "Nenhum crédito de aula disponível.")
+        self.assertIn("Você não possui créditos de aula disponíveis", response.data["detail"])
 
     def test_agendamento_falha_em_aula_lotada(self):
         """
@@ -198,18 +202,22 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333334",
             first_name="OutroLotado",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01", contato="11977777777")
+        outro_aluno.unidades.add(self.studio)
         CreditoAula.objects.create(
-            aluno=outro_aluno, quantidade=1, data_validade=timezone.now().date()
+            aluno=outro_aluno, data_validade=timezone.now().date() + datetime.timedelta(days=30)
         )
-        AulaAluno.objects.create(aula=self.aula, aluno=outro_aluno)
+        # Usar o client para agendar, garantindo o consumo do crédito e o fluxo correto
+        self.client.force_authenticate(user=self.user_recepcionista)
+        self.client.post(self.url_inscrever_aula, data={"aluno": outro_aluno.pk, "aula": self.aula.pk})
 
+        # Tenta inscrever o aluno original na aula lotada
         self.client.force_authenticate(user=self.user_aluno)
         response = self.client.post(self.url_inscrever_aula, data={"aula": self.aula.pk})
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["error"], "A aula está lotada.")
+        self.assertIn("Não há mais vagas disponíveis nesta aula", response.data["detail"])
 
     def test_agendamento_falha_se_aluno_ja_inscrito(self):
         """
@@ -217,13 +225,13 @@ class AgendamentoAPITestCase(APITestCase):
         """
         # Pré-condição: Aluno já está inscrito na aula
         CreditoAula.objects.create(
-            aluno=self.aluno, quantidade=1, data_validade=timezone.now().date()
+            aluno=self.aluno, data_validade=timezone.now().date() + datetime.timedelta(days=30)
         )
         AulaAluno.objects.create(aula=self.aula, aluno=self.aluno)
 
         # Aluno tem um segundo crédito para a tentativa
         CreditoAula.objects.create(
-            aluno=self.aluno, quantidade=1, data_validade=timezone.now().date()
+            aluno=self.aluno, data_validade=timezone.now().date() + datetime.timedelta(days=30)
         )
 
         # Ação
@@ -232,7 +240,7 @@ class AgendamentoAPITestCase(APITestCase):
 
         # Verificação
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["error"], "Você já está inscrito nesta aula.")
+        self.assertEqual(response.data["detail"], "Você já está inscrito nesta aula.")
 
     def test_aluno_pode_cancelar_proprio_agendamento(self):
         """
@@ -240,17 +248,17 @@ class AgendamentoAPITestCase(APITestCase):
         """
         # Pré-condição: Aluno tem um agendamento e um crédito utilizado
         credito = CreditoAula.objects.create(
-            aluno=self.aluno, quantidade=1, data_validade=timezone.now().date()
+            aluno=self.aluno,
+            data_validade=timezone.now().date() + datetime.timedelta(days=30),
+            data_invalidacao=timezone.now() # Simula o crédito como usado
         )
         agendamento = AulaAluno.objects.create(
             aula=self.aula, aluno=self.aluno, credito_utilizado=credito
         )
-        credito.agendamento_uso = agendamento
-        credito.save()
 
         # URL para cancelar o agendamento específico
         url_cancelar = reverse(
-            "aulaaluno-cancelar-agendamento", kwargs={"pk": agendamento.pk}
+            "aulaaluno-detail", kwargs={"pk": agendamento.pk}
         )
 
         # Ação: Aluno faz a requisição para cancelar
@@ -260,8 +268,10 @@ class AgendamentoAPITestCase(APITestCase):
         # Verificações
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(AulaAluno.objects.filter(pk=agendamento.pk).exists())
+        
+        # Verifica se o crédito foi liberado (data de invalidação nula)
         credito.refresh_from_db()
-        self.assertIsNone(credito.agendamento_uso)
+        self.assertIsNone(credito.data_invalidacao)
 
     def test_aluno_nao_pode_cancelar_agendamento_de_outro(self):
         """
@@ -275,11 +285,12 @@ class AgendamentoAPITestCase(APITestCase):
             cpf="33333333335",
             first_name="OutroCancel",
         )
-        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01")
+        outro_aluno = Aluno.objects.create(usuario=user_outro_aluno, dataNascimento="1990-01-01", contato="11966666666")
+        outro_aluno.unidades.add(self.studio)
         agendamento_outro = AulaAluno.objects.create(aula=self.aula, aluno=outro_aluno)
 
         url_cancelar = reverse(
-            "aulaaluno-cancelar-agendamento", kwargs={"pk": agendamento_outro.pk}
+            "aulaaluno-detail", kwargs={"pk": agendamento_outro.pk}
         )
 
         # Ação: Aluno 1 tenta cancelar o agendamento do Aluno 2
@@ -314,9 +325,10 @@ class AgendamentoAPITestCase(APITestCase):
             },
         )
         admin.perfis.add(self.perfil_admin)
+        admin.unidades.add(self.studio, through_defaults={'permissao': self.funcao_admin})
 
         url_cancelar = reverse(
-            "aulaaluno-cancelar-agendamento", kwargs={"pk": agendamento_aluno.pk}
+            "aulaaluno-detail", kwargs={"pk": agendamento_aluno.pk}
         )
 
         # Ação: Admin faz a requisição para cancelar

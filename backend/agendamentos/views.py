@@ -131,6 +131,17 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
             return [CanUpdateAula()] # Staff ou Dono podem Editar
         return [IsAuthenticated()]
 
+    @action(detail=True, methods=['get'], url_path='lista-espera', permission_classes=[IsAuthenticated, HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA'])])
+    def lista_espera(self, request, pk=None):
+        """
+        Retorna a lista de espera para uma aula específica.
+        Acessível apenas por Staff autorizado.
+        """
+        aula = self.get_object()
+        lista_espera = ListaEspera.objects.filter(aula=aula).order_by('data_inscricao')
+        serializer = ListaEsperaSerializer(lista_espera, many=True)
+        return Response(serializer.data)
+
     
 @extend_schema(tags=['Agendamentos - Inscrições (Aulas-Alunos)'])
 @extend_schema_view(
@@ -187,10 +198,26 @@ class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
         # Para alterar, ver detalhes ou deletar,
         # você deve ser o Dono do Agendamento OU um Staff.
         return [IsAuthenticated(), (IsOwnerDoAgendamento | IsStaffAutorizado)()]
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Verifica se o serializer marcou a operação como uma adição à lista de espera
+        if serializer.validated_data.get('_adicionado_lista_espera'):
+            return Response(
+                {"detail": "Aula cheia. Você foi adicionado à lista de espera."},
+                status=status.HTTP_201_CREATED
+            )
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def perform_create(self, serializer):
         """
         (Esta é a nossa lógica da Issue #63 para consumir créditos)
         """
+        serializer.validated_data.pop('entrar_lista_espera', None)
         if isinstance(serializer, AgendamentoAlunoSerializer):
             # --- FLUXO ALUNO ---
             if not hasattr(self.request.user, 'aluno'):

@@ -102,11 +102,12 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
     O 'aluno' é 'read_only' pois será pego do request.user.
     """
     aluno = serializers.PrimaryKeyRelatedField(read_only=True)
+    entrar_lista_espera = serializers.BooleanField(write_only=True, required=False)
 
     class Meta:
         model = AulaAluno
         # --- CORREÇÃO (Dúvida do ID auto-increment) ---
-        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
+        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado', 'entrar_lista_espera']
         read_only_fields = [
             'id',
             'aluno', # Pego do request.user
@@ -119,7 +120,7 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
         """
         Validação customizada para o Aluno:
         1. Impedir agendamentos duplos (conflito de horário).
-        2. Verificar disponibilidade de vagas.
+        2. Verificar disponibilidade de vagas ou adicionar à lista de espera.
         3. Verificar e preparar consumo de crédito (Issue #57).
         """
         aula = attrs.get('aula')
@@ -130,6 +131,10 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
             raise ValidationError("Não foi possível identificar o perfil do aluno logado.")
             
         aluno = request.user.aluno
+
+        # Verificar se o aluno já está inscrito nesta aula
+        if AulaAluno.objects.filter(aula=aula, aluno=aluno).exists():
+            raise ValidationError({"detail": "Você já está inscrito nesta aula."})
         
         # --- 2. Validação de Conflito de Horário (LÓGICA EM PYTHON) ---
         horario_inicio_desejado = aula.data_hora_inicio
@@ -167,7 +172,19 @@ class AgendamentoAlunoSerializer(serializers.ModelSerializer):
         
         if not is_update_sem_mudanca_aula: 
             if vagas_ocupadas >= aula.capacidade_maxima:
-                raise ValidationError("Não há mais vagas disponíveis nesta aula.")
+                # Se a aula está cheia, verifica se o aluno quer entrar na lista de espera
+                if attrs.get('entrar_lista_espera'):
+                    # Verifica se o aluno já está na lista de espera
+                    if ListaEspera.objects.filter(aula=aula, aluno=aluno).exists():
+                        raise ValidationError({"detail": "Você já está na lista de espera para esta aula."})
+                    
+                    # Adiciona o aluno à lista de espera
+                    ListaEspera.objects.create(aula=aula, aluno=aluno)
+                    attrs['_adicionado_lista_espera'] = True
+                    return attrs
+                else:
+                    raise ValidationError("Não há mais vagas disponíveis nesta aula. Para entrar na lista de espera, envie 'entrar_lista_espera: true'.")
+
         
         # --- 4. Validação e Preparação para Consumo de Crédito ---
         if aula.tipo_aula == Aula.TipoAula.REGULAR:
@@ -192,11 +209,12 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
     O 'aluno' é explícito e obrigatório.
     """
     aluno = serializers.PrimaryKeyRelatedField(queryset=Aluno.objects.all()) 
+    entrar_lista_espera = serializers.BooleanField(write_only=True, required=False)
 
     class Meta:
         model = AulaAluno
         # --- CORREÇÃO (Dúvida do ID auto-increment) ---
-        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado']
+        fields = ['id', 'aula', 'aluno', 'status_presenca', 'credito_utilizado', 'entrar_lista_espera']
         read_only_fields = [
             'id',
             'status_presenca',
@@ -209,7 +227,7 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         """
         Validação para:
         1. Impedir agendamentos duplos (conflito de horário).
-        2. Verificar disponibilidade de vagas.
+        2. Verificar disponibilidade de vagas ou adicionar à lista de espera.
         3. Verificar e preparar consumo de crédito (Issue #57).
         """
         aula = attrs.get('aula')
@@ -217,6 +235,10 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         
         if not aula or not aluno:
             return attrs 
+
+        # Verificar se o aluno já está inscrito nesta aula
+        if AulaAluno.objects.filter(aula=aula, aluno=aluno).exists():
+            raise ValidationError({"detail": f"O aluno {aluno} já está inscrito nesta aula."})
             
         # --- 1. Validação de Conflito de Horário (LÓGICA EM PYTHON) ---
         horario_inicio_desejado = aula.data_hora_inicio
@@ -255,7 +277,16 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         # Só valida vagas se é uma criação OU é uma atualização para uma nova aula
         if not is_update_sem_mudanca_aula: 
             if vagas_ocupadas >= aula.capacidade_maxima:
-                raise ValidationError("Não há mais vagas disponíveis nesta aula.")
+                if attrs.get('entrar_lista_espera'):
+                    if ListaEspera.objects.filter(aula=aula, aluno=aluno).exists():
+                        raise ValidationError({"detail": f"O aluno {aluno} já está na lista de espera para esta aula."})
+                    
+                    ListaEspera.objects.create(aula=aula, aluno=aluno)
+                    attrs['_adicionado_lista_espera'] = True
+                    return attrs
+                else:
+                    raise ValidationError("Não há mais vagas disponíveis nesta aula. Para adicionar o aluno à lista de espera, envie 'entrar_lista_espera: true'.")
+
         
         # Validação e Preparação para Consumo de Crédito
         # Só consome crédito se for uma aula REGULAR e se for uma criação 
@@ -278,6 +309,7 @@ class AgendamentoStaffSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
+        validated_data.pop('entrar_lista_espera', None)
         credito_a_utilizar = validated_data.pop('credito_a_utilizar', None)
         agendamento = super().create(validated_data) # Cria o AulaAluno
 
