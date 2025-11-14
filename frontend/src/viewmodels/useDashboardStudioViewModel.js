@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import studiosService from '../../services/studiosService';
+import studiosService from '../services/studiosService';
 
 const useDashboardStudioViewModel = (studioId) => {
     const [data, setData] = useState(null);
