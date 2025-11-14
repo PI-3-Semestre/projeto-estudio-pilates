@@ -339,9 +339,22 @@ class ReposicaoSerializer(serializers.ModelSerializer):
 
 
 class ListaEsperaSerializer(serializers.ModelSerializer):
+    aluno_nome = serializers.StringRelatedField(source='aluno', read_only=True)
+    aula_modalidade = serializers.StringRelatedField(source='aula.modalidade', read_only=True)
+    aula_data_hora_inicio = serializers.DateTimeField(source='aula.data_hora_inicio', read_only=True)
+
     class Meta:
         model = ListaEspera
-        fields = '__all__'
+        fields = [
+            'id',
+            'aula',
+            'aula_modalidade',
+            'aula_data_hora_inicio',
+            'aluno',
+            'aluno_nome',
+            'data_inscricao',
+            'status'
+        ]
 
 class CreditoAulaSerializer(serializers.ModelSerializer):
     """
