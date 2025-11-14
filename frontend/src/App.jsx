@@ -21,6 +21,7 @@ import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
+import DetalhesAulaView from "./views/DetalhesAulaView";
 import GerenciamentoStudiosView from "./views/GerenciamentoStudiosView";
 import CadastrarStudioView from "./views/CadastrarStudioView";
 import DetalhesStudioView from "./views/DetalhesStudioView";
@@ -179,8 +180,18 @@ const PrivateRoutes = () => {
       <Route
         path="/marcar-aula"
         element={
-          <ProtectedRoute adminOnly={true}> {/* Assuming adminOnly for staff for now */}
+          <ProtectedRoute adminOnly={true}>
+            {" "}
+            {/* Assuming adminOnly for staff for now */}
             <MarcarAulaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aulas/:id"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <DetalhesAulaView />
           </ProtectedRoute>
         }
       />

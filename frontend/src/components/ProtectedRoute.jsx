@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false, staffOnly = false }) => {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -32,7 +32,15 @@ const ProtectedRoute = ({ children, adminOnly = false, adminMasterOnly = false }
     }
   }
 
-  // 4. Se tudo estiver ok, renderiza o componente filho
+  // 4. Verifica se a rota é para staff (Admin, Admin_Master, Recepcionista)
+  if (staffOnly) {
+    const isStaff = user?.perfis?.some(p => ['Administrador', 'Admin Master', 'Recepcionista'].includes(p));
+    if (!isStaff) {
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  // 5. Se tudo estiver ok, renderiza o componente filho
   return children;
 };
 
