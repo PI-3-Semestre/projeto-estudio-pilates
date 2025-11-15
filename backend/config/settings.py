@@ -181,4 +181,4 @@ CORS_ALLOWED_ORIGINS = [
 #
 # Configuração de Mídia para salvar as fotos dos alunos
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

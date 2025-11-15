@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import Studio
 
-# Register your models here.
+# Registra o modelo Studio na página de admin
+admin.site.register(Studio)
