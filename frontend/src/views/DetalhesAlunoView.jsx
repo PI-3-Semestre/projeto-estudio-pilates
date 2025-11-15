@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import useDetalhesAlunoViewModel from '../viewmodels/useDetalhesAlunoViewModel';
 import { format } from 'date-fns';
 
@@ -9,6 +9,7 @@ const DetalhesAlunoView = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const navigate = useNavigate();
 
   const confirmDelete = () => {
     handleDelete();
@@ -31,12 +32,15 @@ const DetalhesAlunoView = () => {
     <div className="bg-background-light dark:bg-background-dark font-display min-h-screen">
       <div className="relative flex flex-col w-full p-4 pt-0">
         <div className="flex items-center bg-background-light dark:bg-background-dark py-4 sticky top-0 z-10">
-          <Link to="/gerenciar-alunos" className="flex size-10 shrink-0 items-center justify-center text-gray-800 dark:text-white">
-            <span className="material-symbols-outlined text-2xl">arrow_back</span>
-          </Link>
-          <h1 className="flex-1 text-lg font-bold text-center text-gray-900 dark:text-gray-100 mr-10">
-            Detalhes do Aluno
-          </h1>
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex size-10 shrink-0 items-center justify-center text-gray-800 dark:text-white"
+        >
+          <span className="material-symbols-outlined text-2xl">arrow_back</span>
+        </button>
+            <h1 className="flex-1 text-lg font-bold text-center text-gray-900 dark:text-gray-100 mr-10">
+              Detalhes do Aluno 
+            </h1>
         </div>
         <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center mt-4">
           <div className="flex w-full flex-col gap-4 items-center -mt-20">
