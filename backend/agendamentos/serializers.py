@@ -30,9 +30,10 @@ class BloqueioAgendaWriteSerializer(serializers.ModelSerializer):
 
 class BloqueioAgendaReadSerializer(serializers.ModelSerializer):
     studio = serializers.StringRelatedField(read_only=True)
+    studio_id = serializers.IntegerField(source='studio.id', read_only=True)
     class Meta:
         model = BloqueioAgenda
-        fields = ['id', 'data', 'descricao', 'studio']
+        fields = ['id', 'data', 'descricao', 'studio', 'studio_id']
 
 
 class ModalidadeSerializer(serializers.ModelSerializer):
