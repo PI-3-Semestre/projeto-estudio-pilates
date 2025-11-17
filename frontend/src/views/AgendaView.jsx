@@ -2,29 +2,34 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import useAgendaViewModel from "../viewmodels/useAgendaViewModel";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, parseISO, isSameDay } from "date-fns";
 import Icon from "../components/Icon";
 
 const AgendaView = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date());
+
   const {
     aulas,
     studios,
     selectedStudioId,
     setSelectedStudioId,
-    selectedDate,
+    selectedDate, // This is now a Date object
     setSelectedDate,
     loading,
     error,
     getWeekDays,
     formattedDate,
     formattedDayOfWeek,
+    setPreviousWeek,
+    setNextWeek,
+    daysWithClasses,
     currentStudioName,
   } = useAgendaViewModel();
+
+  // State for the date picker input, which needs a 'yyyy-MM-dd' string
+  const [tempDate, setTempDate] = useState(format(selectedDate, "yyyy-MM-dd"));
 
   const handleStudioChange = (event) => {
     setSelectedStudioId(parseInt(event.target.value));
@@ -35,18 +40,15 @@ const AgendaView = () => {
   };
 
   const renderClassCard = (aula) => {
-    const startTime = format(parseISO(aula.data_hora_inicio), "HH:mm", {
-      locale: ptBR,
-    });
+    const startTime = format(parseISO(aula.data_hora_inicio), "HH:mm");
     const endTime = format(
       new Date(
         parseISO(aula.data_hora_inicio).getTime() + aula.duracao_minutos * 60000
       ),
-      "HH:mm",
-      { locale: ptBR }
+      "HH:mm"
     );
-    const isFull = aula.capacidade_maxima === aula.alunosInscritos; // Assuming alunos_agendados comes from API
-    const isCancelled = aula.tipo_aula === "CANCELADA"; // Assuming a CANCELADA type
+    const isFull = aula.capacidade_maxima === aula.alunosInscritos;
+    const isCancelled = aula.tipo_aula === "CANCELADA";
     const canEdit = user?.perfis?.some((p) =>
       ["Admin Master", "Administrador", "Recepcionista"].includes(p)
     );
@@ -124,7 +126,7 @@ const AgendaView = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => {
-                setTempDate(selectedDate);
+                setTempDate(format(selectedDate, "yyyy-MM-dd"));
                 setIsCalendarModalOpen(true);
               }}
               className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
@@ -156,28 +158,49 @@ const AgendaView = () => {
               </select>
             </div>
           </div>
-          <div className="overflow-x-auto border-b border-gray-200 bg-background-light px-4 dark:border-gray-700 dark:bg-background-dark">
-            <div className="no-scrollbar flex items-center space-x-2 py-3">
-              {getWeekDays().map((date) => (
-                <button
-                  key={date.toISOString()}
-                  onClick={() => handleDateChange(date)}
-                  className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-center ${
-                    selectedDate &&
-                    format(selectedDate, "yyyy-MM-dd") ===
-                      format(date, "yyyy-MM-dd")
-                      ? "bg-primary/10 text-primary dark:bg-primary/20"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  <span className="text-sm font-medium">
-                    {formattedDayOfWeek(date)}
-                  </span>
-                  <span className="text-sm font-semibold">
-                    {formattedDate(date)}
-                  </span>
-                </button>
-              ))}
+          <div className="border-b border-gray-200 bg-background-light px-4 dark:border-gray-700 dark:bg-background-dark">
+            <div className="flex items-center space-x-2 py-3">
+              <button
+                onClick={setPreviousWeek}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  chevron_left
+                </span>
+              </button>
+              <div className="overflow-x-auto flex-1">
+                <div className="no-scrollbar flex items-center space-x-2">
+                  {getWeekDays().map((date) => (
+                    <button
+                      key={date.toISOString()}
+                      onClick={() => handleDateChange(date)}
+                      className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-center ${
+                        isSameDay(date, selectedDate)
+                          ? "bg-primary/10 text-primary dark:bg-primary/20"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {formattedDayOfWeek(date)}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {formattedDate(date)}
+                      </span>
+                      {daysWithClasses.has(format(date, "yyyy-MM-dd")) && (
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={setNextWeek}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  chevron_right
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -192,6 +215,7 @@ const AgendaView = () => {
               </p>
             </div>
           )}
+
           {!loading && !error && aulas.length > 0 && (
             <div className="space-y-3">{aulas.map(renderClassCard)}</div>
           )}
@@ -218,8 +242,8 @@ const AgendaView = () => {
 
               <input
                 type="date"
-                value={tempDate ? format(tempDate, "yyyy-MM-dd") : ""}
-                onChange={(e) => setTempDate(parseISO(e.target.value))}
+                value={tempDate}
+                onChange={(e) => setTempDate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-lg font-semibold text-gray-900 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
               />
 
@@ -232,7 +256,7 @@ const AgendaView = () => {
                 </button>
                 <button
                   onClick={() => {
-                    handleDateChange(tempDate);
+                    handleDateChange(new Date(tempDate));
                     setIsCalendarModalOpen(false);
                   }}
                   className="flex flex-1 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"

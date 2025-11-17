@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getColaboradorPorCpf, getUsuario, deleteColaborador } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const useDetalhesColaboradorViewModel = () => {
     const { cpf } = useParams();
@@ -8,6 +9,7 @@ const useDetalhesColaboradorViewModel = () => {
     const [colaborador, setColaborador] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { showToast } = useToast();
 
     useEffect(() => {
         const fetchDetalhesColaborador = async () => {
@@ -19,7 +21,6 @@ const useDetalhesColaboradorViewModel = () => {
                     const usuarioResponse = await getUsuario(colaboradorData.usuario);
                     const usuarioData = usuarioResponse.data;
                     
-                    // Combina os dados do colaborador com os dados do usuário
                     setColaborador({
                         ...colaboradorData,
                         usuario: usuarioData
@@ -40,15 +41,13 @@ const useDetalhesColaboradorViewModel = () => {
     }, [cpf]);
 
     const handleDelete = async () => {
-        if (window.confirm('Tem certeza que deseja deletar este colaborador?')) {
-            try {
-                await deleteColaborador(cpf);
-                alert('Colaborador deletado com sucesso!');
-                navigate('/gerenciar-colaboradores');
-            } catch (err) {
-                alert('Erro ao deletar colaborador.');
-                console.error(err);
-            }
+        try {
+            await deleteColaborador(cpf);
+            showToast('Colaborador deletado com sucesso!', 'success');
+            navigate('/colaboradores');
+        } catch (err) {
+            showToast('Erro ao deletar colaborador.', 'error');
+            console.error(err);
         }
     };
 

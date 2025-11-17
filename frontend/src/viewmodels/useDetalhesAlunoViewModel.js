@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const useDetalhesAlunoViewModel = () => {
   const { cpf } = useParams();
@@ -9,6 +10,7 @@ const useDetalhesAlunoViewModel = () => {
   const [studioNames, setStudioNames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchAluno = async () => {
@@ -37,10 +39,11 @@ const useDetalhesAlunoViewModel = () => {
   const handleDelete = async () => {
     try {
       await api.delete(`/alunos/${cpf}/`);
-      navigate('/gerenciar-alunos');
+      showToast('Aluno deletado com sucesso!', 'success');
+      navigate('/alunos');
     } catch (err) {
+      showToast('Erro ao deletar aluno.', 'error');
       setError(err);
-      // Optionally, handle the error more gracefully (e.g., show a notification)
       console.error("Failed to delete student:", err);
     }
   };

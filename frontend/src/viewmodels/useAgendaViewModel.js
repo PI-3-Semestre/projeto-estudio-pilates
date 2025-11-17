@@ -88,6 +88,27 @@ const useAgendaViewModel = () => {
     const formattedDate = (date) => format(date, 'dd/MM', { locale: ptBR });
     const formattedDayOfWeek = (date) => format(date, 'EEE', { locale: ptBR });
 
+    const setPreviousWeek = useCallback(() => {
+        const newDate = addDays(selectedDate, -7);
+        setSelectedDate(newDate);
+    }, [selectedDate]);
+
+    const setNextWeek = useCallback(() => {
+        const newDate = addDays(selectedDate, 7);
+        setSelectedDate(newDate);
+    }, [selectedDate]);
+
+    const daysWithClasses = useMemo(() => {
+        const dateSet = new Set();
+        uniqueAulas.forEach(aula => {
+            if (aula.studio === currentStudioName) {
+                const date = format(parseISO(aula.data_hora_inicio), 'yyyy-MM-dd');
+                dateSet.add(date);
+            }
+        });
+        return dateSet;
+    }, [uniqueAulas, currentStudioName]);
+
     return {
         aulas: filteredAulas, // Use the new filteredAulas
         studios,
@@ -100,6 +121,9 @@ const useAgendaViewModel = () => {
         getWeekDays,
         formattedDate,
         formattedDayOfWeek,
+        setPreviousWeek,
+        setNextWeek,
+        daysWithClasses,
         currentStudioName: currentStudioName || 'Carregando...',
     };
 };
