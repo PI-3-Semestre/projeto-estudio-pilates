@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Gestão de Horários</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'brand-background': '#f8fcfb',
+                'brand-primary-text': '#0d1b1a',
+                'brand-secondary-text': '#4c9a92',
+                'brand-icon-gray': '#757575',
+                'brand-icon-red': '#ef4444',
+                'brand-fab': '#0fbdac'
+              },
+              fontFamily: {
+                'display': ['Manrope', 'sans-serif']
+              },
+              borderRadius: {
+                "xl": "1.25rem",
+              },
+            },
+          },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="font-display bg-brand-background text-brand-primary-text">
+<div class="relative flex min-h-screen w-full flex-col">
+    <header class="sticky top-0 z-10 flex h-16 items-center border-b border-gray-200/80 bg-brand-background/80 px-4 backdrop-blur-sm">
+        <button class="flex h-10 w-10 items-center justify-center">
+            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+        </button>
+        <h1 class="flex-1 text-center text-lg font-bold">Horários de Funcionamento</h1>
+        <div class="w-10"></div>
+    </header>
+    <main class="flex-1 px-4 py-6">
+        <div class="space-y-8">
+            <section>
+                <h2 class="mb-3 text-xl font-bold text-brand-primary-text">Studio Paulista</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between rounded-xl bg-white p-5 shadow-md">
+                        <div>
+                            <p class="text-base font-bold text-brand-primary-text">Segunda a Sexta</p>
+                            <p class="text-sm text-brand-secondary-text">08:00 - 17:00</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-gray">edit</span>
+                            </button>
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-red">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between rounded-xl bg-white p-5 shadow-md">
+                        <div>
+                            <p class="text-base font-bold text-brand-primary-text">Sábados</p>
+                            <p class="text-sm text-brand-secondary-text">09:00 - 12:00</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-gray">edit</span>
+                            </button>
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-red">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <h2 class="mb-3 text-xl font-bold text-brand-primary-text">Studio Jardins</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between rounded-xl bg-white p-5 shadow-md">
+                        <div>
+                            <p class="text-base font-bold text-brand-primary-text">Terça a Domingo</p>
+                            <p class="text-sm text-brand-secondary-text">10:00 - 19:00</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-gray">edit</span>
+                            </button>
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-red">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between rounded-xl bg-white p-5 shadow-md">
+                        <div>
+                            <p class="text-base font-bold text-brand-primary-text">Feriados</p>
+                            <p class="text-sm text-brand-secondary-text">Fechado</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-gray">edit</span>
+                            </button>
+                            <button class="flex h-9 w-9 items-center justify-center">
+                                <span class="material-symbols-outlined text-brand-icon-red">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <button class="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-fab text-white shadow-lg">
+        <span class="material-symbols-outlined text-3xl">add</span>
+    </button>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div class="mx-4 w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-lg">
+        <h2 class="text-xl font-bold text-brand-primary-text">Excluir Horário?</h2>
+        <p class="mt-2 text-sm text-gray-600">
+            Tem certeza que deseja excluir o horário de <span class="font-semibold">'Segunda a Sexta: 08:00 - 17:00'</span>? Esta ação é irreversível.
+        </p>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button class="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100">
+                Cancelar
+            </button>
+            <button class="rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-600">
+                Sim, Excluir
+            </button>
+        </div>
+    </div>
+</div>
+</body></html>
