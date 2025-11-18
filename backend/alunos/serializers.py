@@ -17,6 +17,7 @@ class AlunoSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(source='usuario.get_full_name', read_only=True)
     email = serializers.EmailField(source='usuario.email', read_only=True)
     cpf = serializers.CharField(read_only=True) # O CPF é definido internamente, não pelo cliente.
+    usuario_id = serializers.IntegerField(source='usuario.id', read_only=True)
 
     # Campo para representar a relação ManyToMany com Studio.
     # Retorna uma lista de IDs de Studio.
@@ -30,6 +31,7 @@ class AlunoSerializer(serializers.ModelSerializer):
         model = Aluno
         fields = [
             'usuario', # ID do usuário (apenas escrita)
+            'usuario_id',
             'nome', # Nome do usuário (apenas leitura)
             'email', # Email do usuário (apenas leitura)
             'cpf', # CPF do aluno (apenas leitura)
