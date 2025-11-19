@@ -32,6 +32,8 @@ import EditarHorarioView from "./views/EditarHorarioView";
 import BloqueiosView from "./views/BloqueiosView";
 import CadastrarBloqueioView from "./views/CadastrarBloqueioView";
 import EditarBloqueioView from "./views/EditarBloqueioView";
+import PlanosView from "./views/PlanosView";
+import PlanoFormView from "./views/PlanoFormView";
 import DashboardStudioView from "./views/DashboardStudioView";
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
@@ -77,6 +79,11 @@ const PrivateRoutes = () => {
       <Route path="/bloqueios" element={<ProtectedRoute><BloqueiosView /></ProtectedRoute>} />
       <Route path="/bloqueios/novo" element={<ProtectedRoute><CadastrarBloqueioView /></ProtectedRoute>} />
       <Route path="/bloqueios/editar/:id" element={<ProtectedRoute><EditarBloqueioView /></ProtectedRoute>} />
+
+      {/* Rotas de Planos */}
+      <Route path="/planos" element={<ProtectedRoute adminOnly={true}><PlanosView /></ProtectedRoute>} />
+      <Route path="/planos/novo" element={<ProtectedRoute adminOnly={true}><PlanoFormView /></ProtectedRoute>} />
+      <Route path="/planos/editar/:id" element={<ProtectedRoute adminOnly={true}><PlanoFormView /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
