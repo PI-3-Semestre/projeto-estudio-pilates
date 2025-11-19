@@ -11,7 +11,7 @@ const EditarBloqueioView = () => {
         descricao,
         setDescricao,
         selectedStudio,
-        setSelectedStudio,
+        // setSelectedStudio is no longer needed here as it's disabled
         studios,
         loading,
         saving,
@@ -33,8 +33,8 @@ const EditarBloqueioView = () => {
                         <select
                             id="studio"
                             value={selectedStudio}
-                            onChange={(e) => setSelectedStudio(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-background-dark dark:border-gray-600 dark:text-white sm:text-sm"
+                            disabled={true}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:text-gray-400 sm:text-sm disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-gray-800"
                             required
                         >
                             <option value="">Selecione um estúdio</option>

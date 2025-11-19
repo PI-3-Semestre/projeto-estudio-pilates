@@ -25,10 +25,10 @@ export const useEditarBloqueioViewModel = () => {
                 studiosService.getAllStudios()
             ]);
 
-            const { data, descricao, studio } = bloqueioRes.data;
+            const { data, descricao, studio_id } = bloqueioRes.data;
             setData(data);
             setDescricao(descricao);
-            setSelectedStudio(studio);
+            setSelectedStudio(studio_id);
             setStudios(studiosRes.data);
 
         } catch (err) {
