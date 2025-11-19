@@ -53,9 +53,9 @@ const useDetalhesAulaViewModel = (id) => {
                 }));
                 setAlunos(alunosDaAula);
             } else {
-                // Se não houver alunos, busca os detalhes da aula separadamente
+                // Se não houver alunos, busca os detalhes da aula através do endpoint correto
                 try {
-                    const aulaRes = await api.get(`aulas/${id}/`);
+                    const aulaRes = await api.get(`agendamentos/aulas/${id}/`);
                     const aulaInfo = aulaRes.data;
                     const dataHora = new Date(aulaInfo.data_hora_inicio);
                     setAula({

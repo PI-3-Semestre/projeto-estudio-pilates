@@ -17,11 +17,13 @@ import GerenciarColaboradoresView from "./views/GerenciarColaboradoresView";
 import GestaoUsuariosView from "./views/GestaoUsuariosView";
 import DetalhesColaboradorView from "./views/DetalhesColaboradorView";
 import DetalhesAlunoView from "./views/DetalhesAlunoView";
+import EditarAlunoView from "./views/EditarAlunoView";
 import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
 import DetalhesAulaView from "./views/DetalhesAulaView";
+import EditarAulaView from "./views/EditarAulaView";
 import GerenciamentoStudiosView from "./views/GerenciamentoStudiosView";
 import CadastrarStudioView from "./views/CadastrarStudioView";
 import DetalhesStudioView from "./views/DetalhesStudioView";
@@ -94,6 +96,14 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <DetalhesAlunoView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/alunos/:cpf/editar"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <EditarAlunoView />
           </ProtectedRoute>
         }
       />
@@ -192,6 +202,14 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <DetalhesAulaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aulas/:id/editar"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <EditarAulaView />
           </ProtectedRoute>
         }
       />

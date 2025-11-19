@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import useDetalhesAulaViewModel from "../viewmodels/useDetalhesAulaViewModel";
 
 const DetalhesAulaView = () => {
@@ -24,6 +24,11 @@ const DetalhesAulaView = () => {
     handleSearchStudent,
     handleConfirmAdd,
   } = useDetalhesAulaViewModel(id);
+
+  // Função para recarregar dados após edição
+  const handleRefreshData = () => {
+    window.location.reload(); // Simplificação - pode ser melhorado depois
+  };
 
   useEffect(() => {
     if (foundStudent) {
@@ -78,9 +83,12 @@ const DetalhesAulaView = () => {
             {aula.nome} - {aula.horario}
           </h1>
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2 text-sm font-bold text-primary dark:text-primary">
+            <Link
+              to={`/aulas/${id}/editar`}
+              className="px-4 py-2 text-sm font-bold text-primary dark:text-primary hover:text-primary/80"
+            >
               Editar
-            </button>
+            </Link>
             <button className="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-800 dark:text-gray-200">
               <span className="material-symbols-outlined text-2xl">
                 more_vert
@@ -94,7 +102,7 @@ const DetalhesAulaView = () => {
         <section className="p-4 pt-2">
           <div className="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-gray-800/50 shadow-sm @xl:flex-row @xl:items-start">
             <div
-              className="w-full shrink-0 @xl:w-40 bg-center bg-no-repeat aspect-video @xl:aspect-square bg-cover rounded-t-xl @xl:rounded-l-xl @xl:rounded-tr-none"
+              className="w-full shrink-0 @xl:w-32 @xl:h-20 bg-center bg-no-repeat aspect-video @xl:aspect-square bg-cover rounded-t-xl @xl:rounded-l-xl @xl:rounded-tr-none"
               style={{
                 backgroundImage: `url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYAuo4zFvx_-UAHGzkmxe7DriE4_nj4gwDbwm76bAS-cRXyQfNggWChTXATU8ztvQwmQNbHbxDPYcQuiLsj1QTHEvZ126S-ljc0ENo-BXgtmmpjVHpAcfNJEwmQPcf_ct5U1ZM7_dCQtN0lSZj3ZWm13n3q4TXcH_Lb-i6LCES_LwgofzDCJGyXzMS9v3RbHmU9ErnVfA1sqk9ur4kT376aPROP76ui-lCJuRo2NOGuwGzmKeFEGp4rgNrVC1TfY7AcqctRPqVYdvG")`,
               }}
@@ -262,6 +270,110 @@ const DetalhesAulaView = () => {
 
           {activeTab === "adicionar" && (
             <div>
+              {/* Card de Informações da Aula */}
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 border border-primary/20 rounded-xl p-6 mb-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full">
+                    <span className="material-symbols-outlined text-primary text-xl">
+                      school
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {aula.modalidade?.nome || aula.nome}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {aula.data} • {aula.horario}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Tipo da Aula */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-lg">
+                        event_note
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Tipo da Aula
+                      </p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {aula.tipo_aula === "REGULAR"
+                          ? "Aula Regular"
+                          : aula.tipo_aula === "REPOSICAO"
+                          ? "Reposição"
+                          : aula.tipo_aula}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Instrutor */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                      <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">
+                        person
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Instrutor
+                        {aula.instrutor_substituto &&
+                        aula.instrutor_substituto !== aula.instrutor_principal
+                          ? "es"
+                          : ""}
+                      </p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {aula.instrutor_principal}
+                      </p>
+                      {aula.instrutor_substituto &&
+                        aula.instrutor_substituto !==
+                          aula.instrutor_principal && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Substituto: {aula.instrutor_substituto}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Local */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <span className="material-symbols-outlined text-purple-600 dark:text-purple-400 text-lg">
+                        location_on
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Local
+                      </p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {aula.studio}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Capacidade */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-lg">
+                        group
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Capacidade
+                      </p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {aula.capacidade_maxima} vagas
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 py-4">
                 Adicionar Aluno
               </h3>

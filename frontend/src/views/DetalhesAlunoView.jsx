@@ -150,9 +150,12 @@ const DetalhesAlunoView = () => {
           </div>
         </div>
         <div className="w-full max-w-lg mx-auto mt-6 space-y-3">
-          <button className="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+          <Link
+            to={`/alunos/${aluno.cpf}/editar`}
+            className="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity"
+          >
             <span className="truncate">Editar Perfil</span>
-          </button>
+          </Link>
           <button
             onClick={openModal}
             className="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-red-600 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors"
