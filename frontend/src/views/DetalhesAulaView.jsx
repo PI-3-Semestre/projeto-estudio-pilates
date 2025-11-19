@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useDetalhesAulaViewModel from "../viewmodels/useDetalhesAulaViewModel";
 
@@ -8,16 +8,28 @@ const DetalhesAulaView = () => {
   const [activeTab, setActiveTab] = useState("inscritos");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [cpf, setCpf] = useState("");
+  const [addingStudent, setAddingStudent] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const {
     aula,
     alunos,
     listaDeEspera,
     loading,
     error,
+    foundStudent,
     handleStatusChange,
     handleDeleteAgendamento,
     handleRemoveFromWaitlist,
+    handleSearchStudent,
+    handleConfirmAdd,
   } = useDetalhesAulaViewModel(id);
+
+  useEffect(() => {
+    if (foundStudent) {
+      setIsConfirmModalOpen(true);
+    }
+  }, [foundStudent]);
 
   if (loading) {
     return (
@@ -259,22 +271,79 @@ const DetalhesAulaView = () => {
                     search
                   </span>
                   <input
+                    value={cpf}
+                    onChange={(e) => setCpf(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary"
-                    placeholder="Buscar por nome ou CPF"
+                    placeholder="Digite o CPF do aluno"
                     type="text"
                   />
                 </div>
                 <button
+                  onClick={async () => {
+                    if (!cpf.trim()) return;
+                    setAddingStudent(true);
+                    try {
+                      await handleSearchStudent(cpf.trim());
+                      setCpf("");
+                    } finally {
+                      setAddingStudent(false);
+                    }
+                  }}
                   className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg disabled:bg-primary/50"
-                  disabled
+                  disabled={addingStudent || !cpf.trim()}
                 >
-                  Adicionar à Aula
+                  {addingStudent ? "Buscando..." : "Buscar e Adicionar à Aula"}
                 </button>
               </div>
             </div>
           )}
         </div>
       </main>
+
+      {isConfirmModalOpen && foundStudent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => {
+            setIsConfirmModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Confirmar adição do aluno
+            </h2>
+            <div className="mb-6">
+              <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                Nome: {foundStudent.nome}
+              </p>
+              <p className="text-base font-medium text-gray-700 dark:text-gray-300">
+                Email: {foundStudent.email}
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                }}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 rounded-lg font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleConfirmAdd(foundStudent.usuario_id);
+                  setIsConfirmModalOpen(false);
+                }}
+                className="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isDeleteModalOpen && (
         <div

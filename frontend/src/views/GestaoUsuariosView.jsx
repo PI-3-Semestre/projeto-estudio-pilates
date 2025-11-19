@@ -20,19 +20,18 @@ const FiltroStatusButton = ({ texto, onClick, isActive }) => (
 const GestaoUsuariosView = () => {
   const { users, loading, error } = useGestaoUsuariosViewModel();
 
-  const [filtroStatus, setFiltroStatus] = useState("todos"); 
-  const [termoBusca, setTermoBusca] = useState(""); 
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [termoBusca, setTermoBusca] = useState("");
   const usuariosFiltrados = useMemo(() => {
-    
     const buscaNormalizada = termoBusca
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") 
-      .replace(/[.\-\s]/g, ""); 
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[.\-\s]/g, "");
 
     const filtradosPorBusca = users.filter((user) => {
       if (buscaNormalizada === "") {
-        return true; 
+        return true;
       }
 
       const nomeNormalizado = (user.nome_completo || "")
@@ -40,7 +39,7 @@ const GestaoUsuariosView = () => {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[.\-\s]/g, "");
-      
+
       const cpfNormalizado = (user.cpf || "").replace(/[.-]/g, "");
 
       return (
@@ -50,26 +49,32 @@ const GestaoUsuariosView = () => {
     });
 
     if (filtroStatus === "ativos") {
+      console.log(
+        filtradosPorBusca.map((u) => ({
+          nome: u.nome_completo,
+          ativo: u.is_active,
+        }))
+      );
+
       return filtradosPorBusca.filter((user) => user.is_active);
     }
     if (filtroStatus === "inativos") {
       return filtradosPorBusca.filter((user) => !user.is_active);
     }
-    
-    return filtradosPorBusca;
 
-  }, [users, filtroStatus, termoBusca]); 
+    return filtradosPorBusca;
+  }, [users, filtroStatus, termoBusca]);
 
   const getDetalhesLink = (user) => {
     if (user.tipo_usuario === "Aluno") {
-      return `/alunos/${user.cpf}`
+      return `/alunos/${user.cpf}`;
     }
     if (user.tipo_usuario === "Colaborador") {
-      return `/colaboradores/${user.cpf}`
+      return `/colaboradores/${user.cpf}`;
     }
 
     return null;
-  }
+  };
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-page dark:bg-background-dark group/design-root overflow-x-hidden">
@@ -269,7 +274,7 @@ const GestaoUsuariosView = () => {
                   </div>
                 </div>
               );
-              })}
+            })}
           </div>
         </div>
       </main>

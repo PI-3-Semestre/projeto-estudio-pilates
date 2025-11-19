@@ -12,6 +12,17 @@ const useDetalhesAlunoViewModel = () => {
   const [error, setError] = useState(null);
   const { showToast } = useToast();
 
+  // Helper function to format photo URL for display
+  const formatPhotoUrl = (foto) => {
+    if (!foto) return '';
+    // If it's already a full URL or data URL, return as is
+    if (foto.startsWith('http') || foto.startsWith('data:')) {
+      return foto;
+    }
+    // If it's base64, format as data URL
+    return `data:image/jpeg;base64,${foto}`;
+  };
+
   useEffect(() => {
     const fetchAluno = async () => {
       try {
@@ -48,7 +59,7 @@ const useDetalhesAlunoViewModel = () => {
     }
   };
 
-  return { aluno, studioNames, loading, error, handleDelete };
+  return { aluno, studioNames, loading, error, handleDelete, formatPhotoUrl };
 };
 
 export default useDetalhesAlunoViewModel;

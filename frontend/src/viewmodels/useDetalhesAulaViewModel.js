@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
+import api, { getAlunoPorCpf } from '../services/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '../context/ToastContext';
@@ -10,6 +10,7 @@ const useDetalhesAulaViewModel = (id) => {
     const [listaDeEspera, setListaDeEspera] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [foundStudent, setFoundStudent] = useState(null);
     const { showToast } = useToast();
 
     const fetchData = useCallback(async () => {
@@ -125,6 +126,36 @@ const useDetalhesAulaViewModel = (id) => {
         }
     };
 
+    const handleSearchStudent = async (cpf) => {
+        try {
+            const alunoRes = await getAlunoPorCpf(cpf);
+            setFoundStudent(alunoRes.data);
+        } catch (err) {
+            console.error("Failed to find student", err);
+            if (err.response && err.response.status === 404) {
+                showToast('Aluno não encontrado com esse CPF.', 'error');
+            } else {
+                showToast('Erro ao buscar aluno.', 'error');
+            }
+        }
+    };
+
+    const handleConfirmAdd = async (usuarioId) => {
+        try {
+            await api.post('agendamentos/aulas-alunos/', {
+                aula: parseInt(id),
+                aluno: usuarioId
+            });
+
+            showToast('Aluno adicionado à aula com sucesso!', 'success');
+            setFoundStudent(null);
+            fetchData(); // Refresh data
+        } catch (err) {
+            console.error("Failed to add student", err);
+            showToast('Erro ao adicionar aluno à aula.', 'error');
+        }
+    };
+
     const handleRemoveFromWaitlist = async (waitlistItemId) => {
         try {
             await api.delete(`agendamentos/listas-espera/${waitlistItemId}/`);
@@ -142,9 +173,12 @@ const useDetalhesAulaViewModel = (id) => {
         listaDeEspera,
         loading,
         error,
+        foundStudent,
         handleStatusChange,
         handleDeleteAgendamento,
         handleRemoveFromWaitlist,
+        handleSearchStudent,
+        handleConfirmAdd,
     };
 };
 
