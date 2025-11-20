@@ -167,6 +167,17 @@ const useDetalhesAulaViewModel = (id) => {
         }
     };
 
+    const handleDeleteAula = async () => {
+        try {
+            await api.delete(`agendamentos/aulas/${id}/`);
+            showToast('Aula deletada com sucesso!', 'success');
+            // Navigate back after deletion
+        } catch (err) {
+            console.error("Failed to delete aula", err);
+            showToast('Erro ao deletar aula.', 'error');
+        }
+    };
+
     return {
         aula,
         alunos,
@@ -179,6 +190,7 @@ const useDetalhesAulaViewModel = (id) => {
         handleRemoveFromWaitlist,
         handleSearchStudent,
         handleConfirmAdd,
+        handleDeleteAula,
     };
 };
 

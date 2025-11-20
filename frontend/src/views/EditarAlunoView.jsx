@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useEditarAlunoViewModel from "../viewmodels/useEditarAlunoViewModel";
 import PhoneInput from "../components/PhoneInput";
+import PageHeader from "../components/PageHeader";
 
 const EditarAlunoView = () => {
   const navigate = useNavigate();
@@ -16,6 +17,55 @@ const EditarAlunoView = () => {
     handleFileChange,
     handleSubmit,
   } = useEditarAlunoViewModel();
+
+  // Detectar mudanças no form para prevenir perda ao navegar
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+
+  // Salva dados originais quando carregados
+  useEffect(() => {
+    if (formData && !originalData) {
+      setOriginalData(formData);
+    }
+  }, [formData, originalData]);
+
+  // Verifica se houve mudanças
+  useEffect(() => {
+    if (originalData) {
+      const hasAnyChanges =
+        JSON.stringify(formData) !== JSON.stringify(originalData);
+      setHasChanges(hasAnyChanges);
+    }
+  }, [formData, originalData]);
+
+  // Previne navegação se houver mudanças não salvas
+  useEffect(() => {
+    if (hasChanges) {
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue = "Tem alterações não salvas. Deseja sair mesmo assim?";
+        return "Tem alterações não salvas. Deseja sair mesmo assim?";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [hasChanges]);
+
+  const handleBack = () => {
+    if (hasChanges) {
+      const proceed = window.confirm(
+        "Você tem alterações não salvas no formulário. Deseja abandonar as alterações?"
+      );
+      if (proceed) {
+        navigate(`/alunos/${cpf}`);
+      }
+    } else {
+      navigate(`/alunos/${cpf}`);
+    }
+  };
 
   // Helper function to format photo URL for display
   const formatImageUrl = (url) => {
@@ -32,47 +82,32 @@ const EditarAlunoView = () => {
 
   if (loading) {
     return (
-      <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background-light dark:bg-background-dark font-display">
-        <header className="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 md:hidden">
-          <h1 className="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
-            Carregando...
-          </h1>
-        </header>
-        <main className="flex flex-col items-center p-4">
-          <div className="bg-card-light dark:bg-card-dark shadow-md rounded-lg w-full max-w-2xl">
-            <div className="p-6 md:p-8">
-              <p className="text-center">Carregando dados do aluno...</p>
-            </div>
+      <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Carregando dados do aluno...
+            </p>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background-light dark:bg-background-dark font-display">
-      <header className="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 md:hidden">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-text-light dark:text-text-dark flex size-12 shrink-0 items-center justify-center"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
-          Editar Perfil
-        </h1>
-      </header>
-      <main className="flex flex-col items-center p-4">
+      <PageHeader
+        title="Editar Perfil do Aluno"
+        subtitle="Modificar informações do aluno"
+        backTo={`/alunos/${cpf}`}
+        backLabel="Voltar para Detalhes do Aluno"
+        showBreadcrumb={false}
+        onBack={handleBack}
+      />
+      <main className="flex flex-col items-center p-4 pb-8">
         <div className="bg-card-light dark:bg-card-dark shadow-md rounded-lg w-full max-w-2xl">
           <div className="p-6 md:p-8">
-            <div className="hidden md:block text-center mb-8">
-              <h1 className="text-2xl font-bold text-text-light dark:text-text-dark">
-                Editar Perfil do Aluno
-              </h1>
-              <p className="text-base text-text-subtle-light dark:text-text-subtle-dark">
-                Modificar informações do aluno
-              </p>
-            </div>
             <div className="flex w-full flex-col gap-4 items-center mb-6">
               <div className="relative">
                 <div

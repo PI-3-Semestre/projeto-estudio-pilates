@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -55,10 +55,10 @@ const useEditarAlunoViewModel = () => {
         fetchDadosIniciais();
     }, [cpf]);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    };
+    }, []);
 
     // Handler for file input
     const handleFileChange = (e) => {
