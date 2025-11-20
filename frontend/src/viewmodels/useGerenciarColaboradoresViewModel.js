@@ -4,18 +4,22 @@ import api from '../services/api';
 const useGerenciarColaboradoresViewModel = () => {
     const [colaboradores, setColaboradores] = useState([]);
     const [users, setUsers] = useState([]);
+    const [studios, setStudios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [colaboradoresResponse, usersResponse] = await Promise.all([
+                setLoading(true);
+                const [colaboradoresResponse, usersResponse, studiosResponse] = await Promise.all([
                     api.get('/colaboradores/'),
-                    api.get('/usuarios/')
+                    api.get('/usuarios/'),
+                    api.get('/studios/')
                 ]);
                 setColaboradores(colaboradoresResponse.data);
                 setUsers(usersResponse.data);
+                setStudios(studiosResponse.data);
             } catch (err) {
                 setError(err);
             } finally {
@@ -29,6 +33,7 @@ const useGerenciarColaboradoresViewModel = () => {
     return {
         colaboradores,
         users,
+        studios,
         loading,
         error,
     };
