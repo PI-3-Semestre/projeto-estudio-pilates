@@ -19,7 +19,7 @@ from .serializers import (
 )
 from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos
 
-@extend_schema(tags=['Financeiro - Planos e Matrículas'])
+@extend_schema(tags=['Planos']) # Tag alterada para 'Planos'
 class PlanoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Planos de serviço.
@@ -29,7 +29,7 @@ class PlanoViewSet(viewsets.ModelViewSet):
     serializer_class = PlanoSerializer
     permission_classes = [IsAdminFinanceiro]
 
-@extend_schema(tags=['Financeiro - Planos e Matrículas'])
+@extend_schema(tags=['Matrículas']) # Tag alterada para 'Matrículas'
 class MatriculaViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Matrículas de alunos em planos.
@@ -123,7 +123,7 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(pagamento)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-@extend_schema(tags=['Financeiro - Vendas e Produtos'])
+@extend_schema(tags=['Produtos']) # Tag alterada para 'Produtos'
 class ProdutoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Produtos para venda.
@@ -132,7 +132,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     permission_classes = [IsAdminFinanceiro]
 
-@extend_schema(tags=['Financeiro - Vendas e Produtos'])
+@extend_schema(tags=['Vendas']) # Tag alterada para 'Vendas'
 class VendaViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Vendas de produtos.
