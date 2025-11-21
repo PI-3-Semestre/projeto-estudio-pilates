@@ -36,16 +36,13 @@ urlpatterns = [
     # --- Nossas Rotas de API ---
     path('api/agendamentos/', include('agendamentos.urls')),
     path("api/", include("usuarios.urls")),
-    # path /colaraboradores & /cargos
     path("api/", include("alunos.urls")),
-    # path para o app studios
     path("api/studios/", include("studios.urls")),
-    # path para app avaliacoes
     path("api/avaliacoes/", include("avaliacoes.urls")),
-    # path para app autenticacao
     path("api/auth/", include("autenticacao.urls")),
-    # path para app financeiro
     path('api/financeiro/', include('financeiro.urls')),
+    path('api/notifications/', include('notifications.urls')),
+    path('api/', include('core.urls')), # Rota para o Dashboard
 ]
 
 # path para salvar as fotos dos alunos
