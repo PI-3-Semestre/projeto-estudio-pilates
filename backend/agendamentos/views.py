@@ -28,11 +28,65 @@ from .serializers import (
 from .permissions import HasRole, CanUpdateAula, IsOwnerDoAgendamento, Colaborador
 from alunos.permissions import IsStaffAutorizado
 from alunos.models import Aluno
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from core.permissions import StudioPermissionMixin
+from notifications.models import Notification
+
+def processar_lista_espera(aula):
+    """
+    Cenário 4: Tenta inscrever o próximo aluno da lista de espera em uma aula.
+    """
+    if not aula.lista_espera.exists():
+        return
+
+    # Itera sobre a lista de espera em ordem de inscrição
+    for inscricao_espera in aula.lista_espera.order_by('data_inscricao'):
+        aluno_em_espera = inscricao_espera.aluno
+        
+        # 1. Verifica se o aluno tem crédito válido
+        credito_disponivel = CreditoAula.objects.filter(
+            aluno=aluno_em_espera,
+            data_invalidacao__isnull=True,
+            data_validade__gte=aula.data_hora_inicio.date()
+        ).first()
+
+        if credito_disponivel:
+            # 2. Tenta criar o agendamento
+            try:
+                novo_agendamento = AulaAluno.objects.create(
+                    aula=aula,
+                    aluno=aluno_em_espera,
+                    credito_utilizado=credito_disponivel
+                )
+                # Debita o crédito
+                credito_disponivel.data_invalidacao = timezone.now()
+                credito_disponivel.save()
+
+                # 3.A Notificação de Sucesso
+                Notification.objects.create(
+                    recipient=aluno_em_espera.usuario,
+                    message=f"Conseguimos! Você foi inscrito(a) automaticamente na aula de {aula.modalidade.nome} do dia {aula.data_hora_inicio.strftime('%d/%m')}.",
+                    level=Notification.NotificationLevel.SUCCESS,
+                    content_object=novo_agendamento
+                )
+                # Remove da lista de espera e para o processo
+                inscricao_espera.delete()
+                return
+            except Exception:
+                # Se houver outro erro (ex: conflito de horário), notifica e continua
+                pass
+        
+        # 3.B Notificação de Falha (Falta de Crédito)
+        Notification.objects.create(
+            recipient=aluno_em_espera.usuario,
+            message=f"Uma vaga surgiu na aula de {aula.modalidade.nome}, mas não conseguimos te inscrever por falta de créditos válidos. Adquira um novo plano para não perder a próxima chance!",
+            level=Notification.NotificationLevel.WARNING,
+            content_object=aula
+        )
+        # Remove o aluno da lista para tentar o próximo
+        inscricao_espera.delete()
 
 
-# ... (ViewSets de HorarioTrabalho, BloqueioAgenda, Modalidade - Inalterados) ...
 @extend_schema(tags=['Agendamentos - Horários de Trabalho'])
 @extend_schema_view(
     list=extend_schema(summary="Lista todos os horários de trabalho"),
@@ -43,8 +97,6 @@ from core.permissions import StudioPermissionMixin
     destroy=extend_schema(summary="Deleta um horário de trabalho"),
 )
 class HorarioTrabalhoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
-    """ViewSet para gerenciar Horários de Trabalho."""
-
     queryset = HorarioTrabalho.objects.all()
     serializer_class = HorarioTrabalhoSerializer
     permission_classes = [IsAuthenticated]
@@ -61,8 +113,6 @@ class HorarioTrabalhoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     destroy=extend_schema(summary="Deleta um bloqueio"),
 )
 class BloqueioAgendaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
-    """ViewSet para gerenciar Bloqueios de Agenda."""
-
     queryset = BloqueioAgenda.objects.all()
     permission_classes = [IsAuthenticated]
     studio_filter_field = 'studio'
@@ -83,8 +133,6 @@ class BloqueioAgendaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     destroy=extend_schema(summary="Deleta uma modalidade"),
 )
 class ModalidadeViewSet(viewsets.ModelViewSet):
-    """ViewSet para gerenciar as Modalidades de aula."""
-
     queryset = Modalidade.objects.all()
     serializer_class = ModalidadeSerializer
     def get_permissions(self):
@@ -101,42 +149,25 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
     destroy=extend_schema(summary="Deleta uma aula (Apenas Admins)"),
 )
 class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
-    """
-    ViewSet para gerenciar Aulas (CRUD de Aulas).
-    Esta view NÃO lida com inscrições de alunos.
-    """
-    
     queryset = Aula.objects.all().order_by('data_hora_inicio')
     studio_filter_field = 'studio'
 
     def get_serializer_class(self):
-        """
-        Diferencia o serializer para Leitura (GET) e Escrita (POST/PUT/PATCH).
-        """
         if self.action in ['list', 'retrieve']:
             return AulaReadSerializer
         return AulaWriteSerializer
 
     def get_permissions(self):
-        """
-        Define permissões granulares por ação para a gestão de Aulas.
-        """
         if self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]
-        # (Usando IsStaffAutorizado que o seu amigo já usa,
-        # ou a permissão HasRole dele)
         elif self.action in ['create', 'destroy']:
-            return [IsStaffAutorizado()] # Apenas Staff pode Criar/Deletar
+            return [IsStaffAutorizado()]
         elif self.action in ['update', 'partial_update']:
-            return [CanUpdateAula()] # Staff ou Dono podem Editar
+            return [CanUpdateAula()]
         return [IsAuthenticated()]
 
     @action(detail=True, methods=['get'], url_path='lista-espera', permission_classes=[IsAuthenticated, HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA'])])
     def lista_espera(self, request, pk=None):
-        """
-        Retorna a lista de espera para uma aula específica.
-        Acessível apenas por Staff autorizado.
-        """
         aula = self.get_object()
         lista_espera = ListaEspera.objects.filter(aula=aula).order_by('data_inscricao')
         serializer = ListaEsperaSerializer(lista_espera, many=True)
@@ -153,170 +184,111 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     destroy=extend_schema(summary="Cancela um agendamento (aluno ou staff)"),
 )
 class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
-    """
-    ViewSet para gerenciar as inscrições (Agendamentos) dos alunos nas aulas.
-    Endpoint: /api/agendamentos/aulas-alunos/
-    """
     queryset = AulaAluno.objects.all()
     studio_filter_field = 'aula__studio'
-    # As permissões de base são verificadas, e depois as permissões de objeto
     permission_classes = [IsAuthenticated] 
 
     def get_serializer_class(self):
-        """
-        Diferencia o serializer para Leitura (GET) e Escrita (POST/PUT/PATCH).
-        (Esta é a lógica da Issue #62)
-        """
-        # GET (Listar ou Detalhar uma inscrição)
         if self.action in ['list', 'retrieve']:
             return AgendamentoAlunoReadSerializer
-
-        # POST (Criar uma inscrição)
         if self.action == 'create':
-            # (Esta é a lógica da Issue #65 - Fluxo Duplo)
             staff_permission = IsStaffAutorizado()
             if staff_permission.has_permission(self.request, self):
-                return AgendamentoStaffSerializer # Staff pode inscrever outros
-            return AgendamentoAlunoSerializer     # Aluno só se inscreve
-        
-        # PUT/PATCH (Atualizar uma inscrição - ex: Status de Presença)
+                return AgendamentoStaffSerializer
+            return AgendamentoAlunoSerializer
         if self.action in ['update', 'partial_update']:
-            # Apenas Staff pode atualizar (ex: marcar presença)
             return AgendamentoStaffSerializer
-        
-        return AgendamentoAlunoReadSerializer # Padrão
+        return AgendamentoAlunoReadSerializer
 
     def get_permissions(self):
-        """
-        Define permissões de objeto (para update, delete, retrieve).
-        (Esta é a lógica da Issue #65 - Cancelamento)
-        """
-        # Para criar (POST) ou listar (GET), basta estar autenticado
         if self.action in ['create', 'list']:
             return [IsAuthenticated()]
-        
-        # Para alterar, ver detalhes ou deletar,
-        # você deve ser o Dono do Agendamento OU um Staff.
         return [IsAuthenticated(), (IsOwnerDoAgendamento | IsStaffAutorizado)()]
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # Verifica se o serializer marcou a operação como uma adição à lista de espera
         if serializer.validated_data.get('_adicionado_lista_espera'):
             return Response(
                 {"detail": "Aula cheia. Você foi adicionado à lista de espera."},
                 status=status.HTTP_201_CREATED
             )
-
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
-        """
-        (Esta é a nossa lógica da Issue #63 para consumir créditos)
-        """
         serializer.validated_data.pop('entrar_lista_espera', None)
         if isinstance(serializer, AgendamentoAlunoSerializer):
-            # --- FLUXO ALUNO ---
             if not hasattr(self.request.user, 'aluno'):
                 raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
-            
-            # (A validação de conflito/vagas/crédito já ocorreu no serializer)
             credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
             agendamento = serializer.save(aluno=self.request.user.aluno)
-
-            # Consome o crédito (se aplicável)
             if credito_a_utilizar:        
                 agendamento.credito_utilizado = credito_a_utilizar
                 credito_a_utilizar.data_invalidacao = timezone.now()
-                # O Aluno usou o seu próprio crédito
                 credito_a_utilizar.invalidado_por = self.request.user 
                 credito_a_utilizar.save()
                 agendamento.save()
         else:
-            # --- FLUXO STAFF ---
-            # O AgendamentoStaffSerializer já cuida de consumir o crédito
-            # dentro do seu próprio método .create()
             serializer.save()
+
+    def perform_destroy(self, instance):
+        """
+        Sobrescreve o método de deleção para acionar a lógica da lista de espera.
+        """
+        aula = instance.aula
+        instance.delete()
+        processar_lista_espera(aula)
+
             
 @extend_schema(tags=['Alunos - Créditos (Gestão Staff)'])
 class CreditoAulaViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para a GESTÃO de Créditos de um Aluno (CRUD de Créditos).
-    Acessada via: /api/alunos/<aluno_cpf>/creditos/
-    [Esta ViewSet é importada por 'alunos/urls.py']
-    """
     queryset = CreditoAula.objects.all()
     serializer_class = CreditoAulaSerializer
-    # Apenas Staff Autorizado pode gerir créditos
     permission_classes = [IsAuthenticated, IsStaffAutorizado] 
 
     def get_queryset(self):
-        """
-        Filtra os créditos para pertencerem apenas ao aluno
-        especificado na URL (aluno_cpf).
-        """
         aluno_cpf = self.kwargs.get("aluno_cpf")
         if aluno_cpf:
-            # Filtra os créditos pelo CPF do aluno na URL
             return CreditoAula.objects.filter(aluno__usuario__cpf=aluno_cpf)
-        
-        # Se não houver CPF na URL, não retorna nada.
         return CreditoAula.objects.none() 
 
     def perform_create(self, serializer):
-        """
-        [TAREFA] Adicionar créditos (POST)
-        (Esta é a lógica do seu amigo para ADICIONAR crédito)
-        """
         aluno_cpf = self.kwargs.get("aluno_cpf")
         aluno = get_object_or_404(Aluno, usuario__cpf=aluno_cpf)
-
-        # Salva o crédito associando ao aluno da URL e ao staff logado
         serializer.save(
             aluno=aluno,
-            adicionado_por=self.request.user # (Assume que staff logado é o user)
+            adicionado_por=self.request.user
         )
 
     @action(detail=True, methods=["patch"], name="Invalidar Crédito")
     def invalidar(self, request, pk=None, aluno_cpf=None):
-        """
-        [TAREFA] Invalidar créditos (PATCH)
-        URL: PATCH /api/alunos/<aluno_cpf>/creditos/<pk>/invalidar/
-        """
-        credito = self.get_object() # get_object usa o queryset (que já está filtrado)
-
+        credito = self.get_object()
         if credito.data_invalidacao is not None:
             return Response(
                 {"detail": "Este crédito já foi invalidado."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         credito.invalidado_por = request.user.colaborador if hasattr(request.user, 'colaborador') else request.user
         credito.data_invalidacao = timezone.now()
         credito.save()
-
         serializer = self.get_serializer(credito)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
-        """Desabilitado. Não se "edita" um crédito, se invalida e cria outro."""
         return Response(
             {"detail": 'Método "PUT" não permitido.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
     def partial_update(self, request, *args, **kwargs):
-        """Desabilitado. Use /invalidar/ para alterar o status."""
         return Response(
             {"detail": 'Método "PATCH" não permitido. Use a ação /invalidar/.'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
     def destroy(self, request, *args, **kwargs):
-        """Desabilitado em favor de 'invalidar' (PATCH)"""
         return Response(
             {
                 "detail": "Deleção destrutiva não permitida. Use a ação /invalidar/."

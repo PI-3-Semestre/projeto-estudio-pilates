@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "financeiro",
     "avaliacoes",
     "autenticacao",
+    "notifications",
 ]
 
 AUTH_USER_MODEL = "usuarios.Usuario"
