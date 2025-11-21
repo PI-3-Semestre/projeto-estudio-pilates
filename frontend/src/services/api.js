@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Pega a URL da API do environment, com um fallback para desenvolvimento local
-const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const VITE_API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/';
 
 const api = axios.create({
   baseURL: VITE_API_URL,
@@ -39,7 +39,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           // Tenta obter um novo access token usando o refresh token
-          const response = await axios.post(`${VITE_API_URL}/auth/token/refresh/`, {
+          const response = await axios.post(`${VITE_API_URL}auth/token/refresh/`, {
             refresh: refreshToken,
           });
 

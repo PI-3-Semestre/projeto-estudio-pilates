@@ -72,6 +72,9 @@ const DashboardAdminMasterView = () => {
 
     const ActionsContent = () => (
         <div className="grid grid-cols-3 gap-3">
+            <QuickActionButton to="/agenda" icon="calendar_month" label="Agenda" />
+            <QuickActionButton to="/alunos" icon="school" label="Alunos" /> {/* Added Alunos button */}
+            <QuickActionButton to="/colaboradores" icon="groups" label="Colaboradores" />
             <QuickActionButton to="/studios" icon="store" label="Unidades" />
             <QuickActionButton to="/planos" icon="add_business" label="Planos" />
             <QuickActionButton to="/usuarios" icon="group" label="Usuários" />

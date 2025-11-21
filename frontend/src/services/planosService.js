@@ -2,23 +2,23 @@ import api from './api';
 
 const planosService = {
     getAllPlanos: () => {
-        return api.get('/financeiro/planos/');
+        return api.get('planos/');
     },
 
     getPlanoById: (id) => {
-        return api.get(`/financeiro/planos/${id}/`);
+        return api.get(`planos/${id}/`);
     },
 
     createPlano: (planoData) => {
-        return api.post('/financeiro/planos/', planoData);
+        return api.post('planos/', planoData);
     },
 
     updatePlano: (id, planoData) => {
-        return api.put(`/financeiro/planos/${id}/`, planoData);
+        return api.put(`planos/${id}/`, planoData);
     },
 
     deletePlano: (id) => {
-        return api.delete(`/financeiro/planos/${id}/`);
+        return api.delete(`planos/${id}/`);
     },
 };
 
