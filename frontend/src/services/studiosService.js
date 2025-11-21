@@ -20,6 +20,10 @@ const studiosService = {
   deleteStudio: (id) => {
     return api.delete(`/studios/${id}/`);
   },
+
+  getDashboardStudio: (studioId) => {
+    return api.get(`/studios/${studioId}/dashboard/`);
+  },
 };
 
 export default studiosService;

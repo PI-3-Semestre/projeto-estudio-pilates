@@ -115,7 +115,7 @@ const ModalidadesView = () => {
                             />
                             <div className="flex justify-end gap-3">
                                 <button onClick={closeModal} className="rounded-lg px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">Cancelar</button>
-                                <button onClick={handleConfirm} className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/90">Salvar</button>
+                                <button onClick={handleConfirm} className="rounded-lg bg-action-primary px-4 py-2 text-white hover:bg-action-primary-dark">Salvar</button>
                             </div>
                         </div>
                     </Modal>
@@ -138,28 +138,29 @@ const ModalidadesView = () => {
     };
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display">
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between bg-background-light/80 px-4 backdrop-blur-sm dark:bg-background-dark/80">
-                <div className="flex items-center gap-2">
-                    <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center text-slate-800 dark:text-slate-200">
-                        <span className="material-symbols-outlined text-2xl">arrow_back</span>
-                    </button>
-                </div>
+        <div className="flex h-screen flex-col bg-background-light dark:bg-background-dark">
+            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-border-light bg-background-light/80 px-4 backdrop-blur-sm dark:border-border-dark dark:bg-background-dark/80">
+                <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full text-slate-800 hover:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-700">
+                    <span className="material-symbols-outlined text-2xl">arrow_back</span>
+                </button>
                 <h1 className="text-lg font-bold text-slate-900 dark:text-slate-50">Modalidades de Aula</h1>
-                <div className="h-10 w-10"></div>
+                <div className="h-10 w-10"></div> {/* Spacer */}
             </header>
 
-            <main className="flex-1 px-4 pb-28 pt-4">
-                <div className="mx-auto max-w-2xl space-y-3">
-                    {renderContent()}
+            <main className="flex-1 overflow-y-auto p-6">
+                <div className="mx-auto max-w-2xl">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-text-light dark:text-text-dark">Modalidades</h2>
+                        <button onClick={() => openModal('add')} className="flex items-center gap-2 rounded-lg bg-action-primary px-4 py-2 text-white transition-colors hover:bg-action-primary-dark">
+                            <span className="material-symbols-outlined">add</span>
+                            Nova Modalidade
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {renderContent()}
+                    </div>
                 </div>
             </main>
-
-            <div className="pointer-events-none fixed bottom-0 right-0 z-20 p-6">
-                <button onClick={() => openModal('add')} className="pointer-events-auto flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105 active:scale-95">
-                    <span className="material-symbols-outlined text-3xl">add</span>
-                </button>
-            </div>
 
             {renderModalContent()}
         </div>

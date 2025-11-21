@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Novo Horário</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#4A90E2",
+                "background-light": "#FFFFFF",
+                "background-dark": "#102220",
+                "text-light": "#1A1A1A",
+                "text-dark": "#E0E0E0",
+                "icon-light": "#4A90E2",
+                "icon-dark": "#4A90E2",
+                "border-light": "#E0E0E0",
+                "border-dark": "#334155"
+              },
+              fontFamily: {
+                "display": ["Manrope", "sans-serif"]
+              },
+              borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "1rem",
+                "xl": "1.5rem",
+                "full": "9999px"
+              },
+            },
+          },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%230d1b1a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .custom-time-input::-webkit-calendar-picker-indicator {
+          display: none;
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="font-display bg-[#f8fcfb] dark:bg-background-dark text-text-light dark:text-text-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+    <header class="sticky top-0 z-10 flex h-16 items-center border-b border-border-light dark:border-border-dark bg-[#f8fcfb] dark:bg-background-dark px-4">
+        <button aria-label="Back" class="flex size-10 shrink-0 items-center justify-center">
+            <span class="material-symbols-outlined text-2xl">arrow_back</span>
+        </button>
+        <h1 class="flex-1 text-center text-lg font-bold pr-10 text-[#0d1b1a]">Novo Horário</h1>
+    </header>
+    <main class="flex-1 overflow-y-auto px-6 pt-6 pb-24">
+        <form class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-[#0d1b1a] mb-2" for="dia_semana">Dia da Semana</label>
+                <div class="relative">
+                    <select class="custom-select w-full rounded-lg border-0 bg-[#e7f8f6] p-4 text-[#0d1b1a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0fbdac] focus:ring-offset-2 focus:ring-offset-[#f8fcfb]" id="dia_semana" name="dia_semana">
+                        <option>Segunda-feira</option>
+                        <option>Terça-feira</option>
+                        <option>Quarta-feira</option>
+                        <option>Quinta-feira</option>
+                        <option>Sexta-feira</option>
+                        <option>Sábado</option>
+                        <option>Domingo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-[#0d1b1a] mb-2" for="hora_inicio">Hora Início</label>
+                    <div class="relative">
+                        <input class="custom-time-input w-full rounded-lg border-0 bg-[#e7f8f6] p-4 text-[#0d1b1a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0fbdac] focus:ring-offset-2 focus:ring-offset-[#f8fcfb]" id="hora_inicio" name="hora_inicio" type="time" value="08:00"/>
+                        <span class="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-2xl text-[#4c9a92]">schedule</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-[#0d1b1a] mb-2" for="hora_fim">Hora Fim</label>
+                    <div class="relative">
+                        <input class="custom-time-input w-full rounded-lg border-0 bg-[#e7f8f6] p-4 text-[#0d1b1a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0fbdac] focus:ring-offset-2 focus:ring-offset-[#f8fcfb]" id="hora_fim" name="hora_fim" type="time" value="18:00"/>
+                        <span class="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-2xl text-[#4c9a92]">schedule</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-[#0d1b1a] mb-2" for="studio">Studio/Unidade</label>
+                <div class="relative">
+                    <select class="custom-select w-full rounded-lg border-0 bg-[#e7f8f6] p-4 text-[#0d1b1a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0fbdac] focus:ring-offset-2 focus:ring-offset-[#f8fcfb]" id="studio" name="studio">
+                        <option>DP São Miguel</option>
+                        <option>DP Itaquera</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </main>
+    <footer class="fixed bottom-0 left-0 w-full bg-[#f8fcfb] p-4">
+        <button class="w-full rounded-full bg-[#0fbdac] py-4 text-center text-base font-bold text-white transition-colors hover:bg-[#0da99a] active:bg-[#0b9588]">Salvar</button>
+    </footer>
+</div>
+
+</body></html>

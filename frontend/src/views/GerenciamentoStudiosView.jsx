@@ -69,7 +69,10 @@ const GerenciamentoStudiosView = () => {
                                                     <td className="p-4 align-middle text-[#0d1b1a] dark:text-background-light">{studio.nome}</td>
                                                     <td className="p-4 align-middle text-[#4c9a92] dark:text-primary/90">{studio.endereco}</td>
                                                     <td className="p-4 align-middle text-right">
-                                                        <Link to={`/studios/${studio.id}`} className="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 inline-block">
+                                                        <Link to={`/studios/${studio.id}/dashboard`} className="text-primary p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 inline-block">
+                                                            <Icon name="dashboard" />
+                                                        </Link>
+                                                        <Link to={`/studios/${studio.id}`} className="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 inline-block ml-2">
                                                             <Icon name="visibility" />
                                                         </Link>
                                                         <button onClick={() => setStudioToDelete(studio)} className="text-red-500 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 ml-2">
@@ -98,7 +101,10 @@ const GerenciamentoStudiosView = () => {
                                                 </div>
                                             </div>
                                             <div className="flex shrink-0">
-                                                <Link to={`/studios/${studio.id}`} className="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+                                                <Link to={`/studios/${studio.id}/dashboard`} className="text-primary p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10">
+                                                    <Icon name="dashboard" />
+                                                </Link>
+                                                <Link to={`/studios/${studio.id}`} className="text-[#0d1b1a] dark:text-background-light p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 ml-1">
                                                     <Icon name="visibility" />
                                                 </Link>
                                                 <button onClick={() => setStudioToDelete(studio)} className="text-red-500 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 ml-1">

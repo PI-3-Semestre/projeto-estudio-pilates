@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
+import api from '../services/api'; // Import the api instance
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   const logout = useCallback(() => {
     localStorage.removeItem('user');
@@ -17,20 +19,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Tenta carregar dados da sessão ao iniciar o app
-    const storedToken = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const checkAuthStatus = async () => {
+      const storedToken = localStorage.getItem('access_token');
+      const storedUser = localStorage.getItem('user');
 
-    if (storedToken && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Failed to parse user data from localStorage", error);
-        // Se falhar, limpa o estado inconsistente
-        logout();
+      if (storedToken && storedUser) {
+        try {
+          // Attempt to fetch user data or any protected resource
+          // The API interceptor will handle token refresh if needed,
+          // or clear storage and redirect to login if refresh fails.
+          const response = await api.get('/usuarios/me/'); // Assuming this endpoint exists
+          setUser(response.data); // Update user with fresh data from API
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error("Token validation failed or refresh failed:", error);
+          // If the API call fails, it means the token is invalid or expired
+          // and the interceptor should have handled clearing localStorage and redirecting.
+          // Ensure local state is also cleared.
+          logout();
+        }
       }
-    }
+      setLoading(false); // Set loading to false after check
+    };
+
+    checkAuthStatus();
   }, [logout]);
 
   const login = useCallback((userData, accessToken, refreshToken) => {
@@ -46,7 +58,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
-  }), [user, isAuthenticated, login, logout]);
+    loading, // Provide loading state
+  }), [user, isAuthenticated, login, logout, loading]);
 
   return (
     <AuthContext.Provider value={authContextValue}>
