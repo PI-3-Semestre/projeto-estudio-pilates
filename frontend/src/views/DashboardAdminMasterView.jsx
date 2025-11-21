@@ -1,104 +1,110 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import useDashboardAdminMasterViewModel from '../viewmodels/useDashboardAdminMasterViewModel';
+import { useAuth } from '../context/AuthContext';
+import Accordion from '../components/Accordion';
 
 const DashboardAdminMasterView = () => {
+    const { dashboardData, loading } = useDashboardAdminMasterViewModel();
+    const { user } = useAuth();
+
+    const formatPrice = (price) => {
+        if (!price) return "R$ 0,00";
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+        }).format(price);
+    };
+
+    const QuickActionButton = ({ to, icon, label }) => (
+        <Link to={to} className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-background-dark/50 dark:hover:bg-white/10">
+            <span className="material-symbols-outlined text-2xl text-primary">{icon}</span>
+            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</h3>
+        </Link>
+    );
+
+    const StatCard = ({ title, value, subValue, isLoading }) => (
+        <div className="flex flex-col">
+            {isLoading ? (
+                <>
+                    <div className="h-7 w-16 animate-pulse rounded-md bg-gray-300 dark:bg-gray-600"></div>
+                    <div className="mt-1 h-5 w-24 animate-pulse rounded-md bg-gray-300 dark:bg-gray-600"></div>
+                </>
+            ) : (
+                <>
+                    <span className="text-xl font-bold">{value}</span>
+                    <span className="text-sm">{title}</span>
+                    {subValue && <span className="text-xs text-gray-500">{subValue}</span>}
+                </>
+            )}
+        </div>
+    );
+
+    const MetricsContent = () => (
+        <div className="space-y-4">
+            <div className="flex flex-col rounded-xl bg-primary/20 p-4 dark:bg-primary/30">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Visão Geral</h2>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-gray-800 dark:text-gray-100 sm:grid-cols-3">
+                    <StatCard title="Estúdios Ativos" value={dashboardData?.total_studios_ativos ?? 0} isLoading={loading} />
+                    <StatCard title="Alunos Ativos" value={dashboardData?.usuarios?.alunos_ativos ?? 0} isLoading={loading} />
+                    <StatCard title="Colaboradores" value={dashboardData?.usuarios?.colaboradores_ativos ?? 0} isLoading={loading} />
+                </div>
+            </div>
+            <div className="flex flex-col rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Financeiro (Mês Atual)</h2>
+                <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <StatCard title="Receita" value={formatPrice(dashboardData?.financeiro?.receita_confirmada_mes)} isLoading={loading} />
+                    <StatCard title="Pendente" value={formatPrice(dashboardData?.financeiro?.receita_pendente_mes)} isLoading={loading} />
+                    <StatCard title="Atrasados" value={dashboardData?.financeiro?.pagamentos_atrasados_total ?? 0} subValue="Total" isLoading={loading} />
+                </div>
+            </div>
+            <div className="flex flex-col rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Agendamentos (Hoje)</h2>
+                <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <StatCard title="Aulas" value={dashboardData?.agendamentos?.aulas_hoje ?? 0} isLoading={loading} />
+                    <StatCard title="Ocupação" value={`${dashboardData?.agendamentos?.taxa_ocupacao_hoje ?? 0}%`} isLoading={loading} />
+                    <StatCard title="Em Espera" value={dashboardData?.agendamentos?.alunos_em_lista_espera ?? 0} isLoading={loading} />
+                </div>
+            </div>
+        </div>
+    );
+
+    const ActionsContent = () => (
+        <div className="grid grid-cols-3 gap-3">
+            <QuickActionButton to="/studios" icon="store" label="Unidades" />
+            <QuickActionButton to="/planos" icon="add_business" label="Planos" />
+            <QuickActionButton to="/usuarios" icon="group" label="Usuários" />
+            <QuickActionButton to="/financeiro" icon="payments" label="Financeiro" />
+            <QuickActionButton to="/configuracoes" icon="settings" label="Ajustes" />
+            <QuickActionButton to="/perfil" icon="person" label="Perfil" />
+        </div>
+    );
+
     return (
-        <div className="relative flex min-h-screen w-full flex-col font-display group/design-root overflow-x-hidden bg-background-page dark:bg-background-dark">
-            <Header />
-            <main className="p-4 sm:p-6 lg:p-8">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {/* Quick Actions Card */}
-                    <div className="md:col-span-2 lg:col-span-1 bg-card-light dark:bg-card-dark rounded-lg shadow-md p-6 flex flex-col">
-                        <h2 className="text-text-light dark:text-text-dark text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">Atalhos de Gerenciamento</h2>
-                        <div className="flex flex-1 flex-col items-stretch gap-3">
-                            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
-                                <span className="truncate">Gerenciar Agenda</span>
-                            </button>
-                            <Link to="/alunos" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
-                                <span className="truncate">Gerenciar Alunos</span>
-                            </Link>
-                            <Link to="/colaboradores" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-primary text-text-light text-base font-bold leading-normal tracking-[0.015em] w-full">
-                                <span className="truncate">Gerenciar Colaboradores</span>
-                            </Link>
-                            <Link to="/studios" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-secondary text-text-light dark:text-text-dark text-base font-bold leading-normal tracking-[0.015em] w-full">
-                                <span className="truncate">Gerenciar Studios</span>
-                            </Link>
-                            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-action-secondary text-text-light dark:text-text-dark text-base font-bold leading-normal tracking-[0.015em] w-full">
-                                <span className="truncate">Gerenciar Modalidades</span>
-                            </button>
-                        </div>
+        <div className="flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
+            <Header title={`Olá, ${user?.first_name || 'Admin'}`} />
+            
+            <main className="flex-grow p-4 space-y-4">
+                {/* Mobile View: Accordion */}
+                <div className="md:hidden space-y-4">
+                    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
+                        <ActionsContent />
                     </div>
-                    {/* Recent Activity Card */}
-                    <div className="bg-card-light dark:bg-card-dark rounded-lg shadow-md p-6 flex flex-col">
-                        <h2 className="text-text-light dark:text-text-dark text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">Atividade Recente do Sistema</h2>
-                        <div className="flex flex-col gap-2 -mx-2">
-                            <div className="flex items-center gap-4 bg-card-light dark:bg-card-dark px-2 min-h-[72px] py-2 justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-text-light dark:text-text-dark flex items-center justify-center rounded-lg bg-action-secondary shrink-0 size-12">
-                                        <span className="material-symbols-outlined">person_add</span>
-                                    </div>
-                                    <div className="flex flex-col justify-center">
-                                        <p className="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Novo aluno registrado</p>
-                                        <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal line-clamp-2">João Silva foi adicionado.</p>
-                                    </div>
-                                </div>
-                                <div className="shrink-0">
-                                    <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal">2 min</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-card-light dark:bg-card-dark px-2 min-h-[72px] py-2 justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-text-light dark:text-text-dark flex items-center justify-center rounded-lg bg-action-secondary shrink-0 size-12">
-                                        <span className="material-symbols-outlined">edit_note</span>
-                                    </div>
-                                    <div className="flex flex-col justify-center">
-                                        <p className="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Perfil atualizado</p>
-                                        <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal line-clamp-2">Ana Souza atualizou seu perfil.</p>
-                                    </div>
-                                </div>
-                                <div className="shrink-0">
-                                    <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal">15 min</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-card-light dark:bg-card-dark px-2 min-h-[72px] py-2 justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-text-light dark:text-text-dark flex items-center justify-center rounded-lg bg-action-secondary shrink-0 size-12">
-                                        <span className="material-symbols-outlined">event_busy</span>
-                                    </div>
-                                    <div className="flex flex-col justify-center">
-                                        <p className="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Aula cancelada</p>
-                                        <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal line-clamp-2">Aula de Yoga às 18h foi cancelada.</p>
-                                    </div>
-                                </div>
-                                <div className="shrink-0">
-                                    <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal">1 hora</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-card-light dark:bg-card-dark px-2 min-h-[72px] py-2 justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-text-light dark:text-text-dark flex items-center justify-center rounded-lg bg-action-secondary shrink-0 size-12">
-                                        <span className="material-symbols-outlined">payments</span>
-                                    </div>
-                                    <div className="flex flex-col justify-center">
-                                        <p className="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">
-                                            Pagamento recebido</p>
-                                        <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal line-clamp-2">
-                                            Mensalidade de Maria Costa.</p>
-                                    </div>
-                                </div>
-                                <div className="shrink-0">
-                                    <p className="text-text-light/70 dark:text-text-dark/70 text-sm font-normal leading-normal">3 horas</p>
-                                </div>
-                            </div>
-                        </div>
+                    <Accordion title="Ver Métricas Detalhadas">
+                        <MetricsContent />
+                    </Accordion>
+                </div>
+
+                {/* Desktop View: Grid */}
+                <div className="hidden md:grid md:grid-cols-3 md:gap-4">
+                    <div className="md:col-span-2 space-y-4">
+                        <MetricsContent />
                     </div>
-                    {/* Global Metrics Card (Placeholder) */}
-                    <div className="bg-card-light dark:bg-card-dark rounded-lg shadow-md p-6 flex flex-col">
-                        <h2 className="text-text-light dark:text-text-dark text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">Métricas Globais</h2>
-                        <div className="flex flex-col items-center justify-center flex-grow text-center bg-action-secondary/50 rounded-lg p-4">
-                            <span className="material-symbols-outlined text-text-light/60 dark:text-text-dark/60 text-5xl mb-4">query_stats</span>
-                            <p className="text-text-light/80 dark:text-text-dark/80 text-base font-medium">Indicadores de desempenho chave serão exibidos aqui em breve.</p>
+                    <div className="space-y-4">
+                        <div className="flex flex-col rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
+                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Ações Rápidas</h2>
+                            <ActionsContent />
                         </div>
                     </div>
                 </div>
