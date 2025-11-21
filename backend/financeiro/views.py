@@ -1,10 +1,12 @@
 from rest_framework import viewsets, status
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
 
 from .models import Plano, Matricula, Pagamento, Produto, Venda, EstoqueStudio
 from studios.models import Studio
@@ -15,11 +17,13 @@ from .serializers import (
     MatriculaSerializer,
     PagamentoSerializer,
     ProdutoSerializer,
-    VendaSerializer
+    VendaSerializer,
+    EstoqueAjusteSerializer,
+    EstoqueStudioSerializer
 )
 from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos
 
-@extend_schema(tags=['Planos']) # Tag alterada para 'Planos'
+@extend_schema(tags=['Planos'])
 class PlanoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Planos de serviço.
@@ -29,7 +33,7 @@ class PlanoViewSet(viewsets.ModelViewSet):
     serializer_class = PlanoSerializer
     permission_classes = [IsAdminFinanceiro]
 
-@extend_schema(tags=['Matrículas']) # Tag alterada para 'Matrículas'
+@extend_schema(tags=['Matrículas'])
 class MatriculaViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Matrículas de alunos em planos.
@@ -123,7 +127,7 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(pagamento)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-@extend_schema(tags=['Produtos']) # Tag alterada para 'Produtos'
+@extend_schema(tags=['Produtos'])
 class ProdutoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Produtos para venda.
@@ -132,7 +136,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     permission_classes = [IsAdminFinanceiro]
 
-@extend_schema(tags=['Vendas']) # Tag alterada para 'Vendas'
+@extend_schema(tags=['Vendas'])
 class VendaViewSet(viewsets.ModelViewSet):
     """
     API endpoint para gerenciar Vendas de produtos.
@@ -161,3 +165,75 @@ class VendaViewSet(viewsets.ModelViewSet):
                 raise serializers.ValidationError(
                     f"Estoque não encontrado para o produto {produto.nome} no estúdio {studio.nome}."
                 )
+
+@extend_schema(
+    tags=['Estoque'],
+    description='Endpoint para ajustar a quantidade de um produto em um estúdio.'
+)
+class EstoqueAjusteView(APIView):
+    """
+    View para realizar ajustes no estoque de um produto em um estúdio.
+    Permite três operações: 'definir', 'adicionar' ou 'remover'.
+    """
+    permission_classes = [IsAdminFinanceiro]
+
+    @extend_schema(
+        request=EstoqueAjusteSerializer,
+        responses={200: EstoqueStudioSerializer}
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = EstoqueAjusteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        produto_id = serializer.validated_data['produto_id']
+        studio_id = serializer.validated_data['studio_id']
+        quantidade = serializer.validated_data['quantidade']
+        operacao = serializer.validated_data['operacao']
+
+        estoque, created = EstoqueStudio.objects.get_or_create(
+            produto_id=produto_id,
+            studio_id=studio_id,
+            defaults={'quantidade': 0}
+        )
+
+        if operacao == 'definir':
+            estoque.quantidade = quantidade
+        elif operacao == 'adicionar':
+            estoque.quantidade += quantidade
+        elif operacao == 'remover':
+            if estoque.quantidade < quantidade:
+                raise serializers.ValidationError(
+                    f"Não é possível remover {quantidade} unidades. Estoque atual: {estoque.quantidade}."
+                )
+            estoque.quantidade -= quantidade
+        
+        estoque.save()
+
+        response_serializer = EstoqueStudioSerializer(estoque)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+@extend_schema(tags=['Estoque'])
+class EstoquePorStudioView(APIView):
+    """
+    View para listar o estoque de todos os produtos de um estúdio específico.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, studio_id, format=None):
+        get_object_or_404(Studio, pk=studio_id)
+        estoque = EstoqueStudio.objects.filter(studio_id=studio_id)
+        serializer = EstoqueStudioSerializer(estoque, many=True)
+        return Response(serializer.data)
+
+@extend_schema(tags=['Estoque'])
+class EstoquePorProdutoView(APIView):
+    """
+    View para listar o estoque de um produto específico em todos os estúdios.
+    """
+    permission_classes = [IsAdminFinanceiro]
+
+    def get(self, request, produto_id, format=None):
+        get_object_or_404(Produto, pk=produto_id)
+        estoque = EstoqueStudio.objects.filter(produto_id=produto_id)
+        serializer = EstoqueStudioSerializer(estoque, many=True)
+        return Response(serializer.data)

@@ -13,7 +13,7 @@ from avaliacoes.models import Avaliacao
 from agendamentos.models import (
     Modalidade, Aula, AulaAluno, HorarioTrabalho, BloqueioAgenda, CreditoAula, ListaEspera
 )
-from financeiro.models import Plano, Produto, Matricula, Venda, VendaProduto, Pagamento
+from financeiro.models import Plano, Produto, Matricula, Venda, VendaProduto, Pagamento, EstoqueStudio
 
 fake = Faker('pt_BR')
 
@@ -76,6 +76,7 @@ class Command(BaseCommand):
                 self._seed_modalidades()
                 self._seed_planos()
                 self._seed_produtos()
+                self._seed_estoque() # <-- NOVO PASSO
 
                 # Fase 2: Usuários e Alunos
                 self.stdout.write(self.style.HTTP_INFO('\n--- Fase 2: Populando Usuários e Alunos com Cenários ---'))
@@ -107,36 +108,27 @@ class Command(BaseCommand):
     def _get_predefined_users_scenarios(self):
         """Retorna uma lista de dicionários com cenários de usuários pré-definidos."""
         return [
-            # Cenário: Superusuário
             {"role": "superuser", "definir_nome_completo": "Admin Master", "email": "admin@pilates.com", "password": "123456", "cpf": "00000000000"},
-            # Cenário: Admin Master com perfil de colaborador
             {"role": "colaborador", "definir_nome_completo": "Master Admin Profile", "email": "master.admin@pilates.com", "password": "123456", "cpf": "99999999999", "colaborador_info": {"perfis": ['ADMIN_MASTER'], "data_nascimento": "1980-01-01", "telefone": "+5511999999999", "registro_profissional": "ADM-001", "endereco": {"logradouro": "Rua Principal", "numero": "1", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01000-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Admin"]}]}},
-            # Cenário: Instrutora Padrão
             {"role": "colaborador", "definir_nome_completo": "Ana Silva (Instrutora)", "email": "ana.silva@pilates.com", "password": "123456", "cpf": "11111111111", "colaborador_info": {"perfis": ['INSTRUTOR'], "data_nascimento": "1990-05-15", "telefone": "+5511987654321", "registro_profissional": "CREF-123456", "endereco": {"logradouro": "Rua das Flores", "numero": "10", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01001-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Instrutor"]}]}},
-            # Cenário: Fisioterapeuta
             {"role": "colaborador", "definir_nome_completo": "Roberto Lima (Fisio)", "email": "roberto.lima@pilates.com", "password": "123456", "cpf": "44444444444", "colaborador_info": {"perfis": ['FISIOTERAPEUTA'], "data_nascimento": "1988-11-30", "telefone": "+5511977776666", "registro_profissional": "CREFITO-7890", "endereco": {"logradouro": "Rua dos Sonhos", "numero": "45", "bairro": "Tatuapé", "cidade": "São Paulo", "estado": "SP", "cep": "03300-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Fisio"]}]}},
-            # Cenário: Colaborador com múltiplos perfis
             {"role": "colaborador", "definir_nome_completo": "Carla Souza (Multi-Perfil)", "email": "carla.souza@pilates.com", "password": "123456", "cpf": "55555555555", "colaborador_info": {"perfis": ['INSTRUTOR', 'FISIOTERAPEUTA'], "data_nascimento": "1992-03-25", "telefone": "+5511966665555", "registro_profissional": "CREF-98765", "endereco": {"logradouro": "Avenida Paulista", "numero": "1500", "bairro": "Bela Vista", "cidade": "São Paulo", "estado": "SP", "cep": "01310-200"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_nomes": ["Instrutor", "Fisio"]}]}},
-            # Cenário: Colaborador com múltiplos vínculos de estúdio
             {"role": "colaborador", "definir_nome_completo": "Lucas Martins (Multi-Studio)", "email": "lucas.martins@pilates.com", "password": "123456", "cpf": "88888888888", "colaborador_info": {"perfis": ['INSTRUTOR'], "data_nascimento": "1993-08-10", "telefone": "+5511933332222", "registro_profissional": "CREF-55555", "endereco": {"logradouro": "Rua da Mooca", "numero": "2000", "bairro": "Mooca", "cidade": "São Paulo", "estado": "SP", "cep": "03104-002"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Instrutor"]}, {"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Instrutor"]}]}},
-            # Cenário: Recepcionista com permissões limitadas
             {"role": "colaborador", "definir_nome_completo": "Mariana Costa (Recepção)", "email": "mariana.costa@pilates.com", "password": "123456", "cpf": "77777777777", "colaborador_info": {"perfis": ['RECEPCIONISTA'], "data_nascimento": "1998-07-20", "telefone": "+5511944443333", "registro_profissional": "REC-001", "endereco": {"logradouro": "Rua Itapura", "numero": "300", "bairro": "Tatuapé", "cidade": "São Paulo", "estado": "SP", "cep": "03310-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Recep"]}]}},
-            # Cenário: Colaborador Inativo
             {"role": "colaborador", "definir_nome_completo": "Usuario Inativo", "email": "inativo@pilates.com", "password": "123456", "cpf": "10101010101", "is_active": False, "colaborador_info": {"perfis": ['INSTRUTOR'], "data_nascimento": "1990-01-01", "telefone": "+5511900000000", "registro_profissional": "INATIVO-01", "endereco": {"logradouro": "Rua dos Inativos", "numero": "1", "bairro": "Longe", "cidade": "São Paulo", "estado": "SP", "cep": "01010-010"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Instrutor"]}]}},
         ]
 
     def _clean_database(self):
         self.stdout.write(self.style.WARNING('\n🧹 LIMPANDO o banco de dados...'))
-        # A ordem é importante para evitar erros de chave estrangeira
         models_to_delete = [
             ListaEspera, CreditoAula, Pagamento, VendaProduto, Venda, Matricula,
             BloqueioAgenda, HorarioTrabalho, AulaAluno, Aula, Modalidade, Avaliacao,
             ColaboradorStudio, Aluno, Colaborador, Endereco, Perfil, FuncaoOperacional,
+            EstoqueStudio, # <-- ADICIONADO
             Produto, Plano, Studio
         ]
         for model in models_to_delete:
             model.objects.all().delete()
-        # Usuários são tratados separadamente para manter o superuser se necessário
         Usuario.objects.filter(is_superuser=False).delete()
         self.stdout.write(self.style.WARNING('Limpeza concluída.'))
 
@@ -177,21 +169,16 @@ class Command(BaseCommand):
             return
 
         for studio in studios:
-            # Cria um horário padrão para cada dia da semana (seg-sex)
-            for dia in range(5): # 0=Segunda, 4=Sexta
+            for dia in range(5):
                 try:
                     HorarioTrabalho.objects.get_or_create(
                         studio=studio,
                         dia_semana=dia,
-                        defaults={
-                            'hora_inicio': time(8, 0),
-                            'hora_fim': time(20, 0)
-                        }
+                        defaults={'hora_inicio': time(8, 0), 'hora_fim': time(20, 0)}
                     )
                 except IntegrityError:
-                    continue # Horário já existe
+                    continue
         self.stdout.write(self.style.SUCCESS('Horários de trabalho dos estúdios populados.'))
-
 
     def _seed_bloqueios_agenda(self):
         self.stdout.write('Populando bloqueios de agenda (feriados e eventos)...')
@@ -305,35 +292,26 @@ class Command(BaseCommand):
         studios = list(Studio.objects.all())
         if not studios: return
 
-        # Cenário: Aluno padrão para testes manuais
         self._create_aluno_from_data({
             "email": "aluno@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Padrão Teste",
             "data_nascimento": date(1995, 1, 1), "contato": "+5511912345678", "is_active": True,
             "unidades": [random.choice(studios)], "role": "Aluno Padrão"
         }, credentials_list)
-
-        # Cenário: Aluno devedor
         self._create_aluno_from_data({
             "email": "devedor@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Devedor",
             "data_nascimento": date(1992, 2, 2), "is_active": True, "unidades": [random.choice(studios)],
             "role": "Aluno Devedor"
         }, credentials_list)
-
-        # Cenário: Aluno com histórico de matrículas
         self._create_aluno_from_data({
             "email": "historico@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Histórico",
             "data_nascimento": date(1985, 3, 3), "is_active": True, "unidades": [random.choice(studios)],
             "role": "Aluno com Histórico"
         }, credentials_list)
-
-        # Cenário: Aluno inativo
         self._create_aluno_from_data({
             "email": "aluno.inativo@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Inativo",
             "data_nascimento": date(1998, 4, 4), "is_active": False, "unidades": [random.choice(studios)],
             "role": "Aluno Inativo"
         }, credentials_list)
-        
-        # Cenário: Aluno novo sem vínculos
         self._create_aluno_from_data({
             "email": "novo@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Novo",
             "data_nascimento": date(2000, 5, 5), "is_active": True, "unidades": [random.choice(studios)],
@@ -389,14 +367,11 @@ class Command(BaseCommand):
         admin_user = Usuario.objects.filter(is_superuser=True).first()
         if not alunos or not admin_user: return
 
-        # Cenário: Conceder créditos manuais para alguns alunos
         for aluno in random.sample(alunos, min(len(alunos), 5)):
             CreditoAula.objects.create(
                 aluno=aluno, quantidade=random.randint(2, 5), adicionado_por=admin_user,
                 data_validade=date.today() + timedelta(days=random.randint(30, 90))
             )
-
-        # Cenário: Aluno com crédito expirado
         aluno_cred_expirado = random.choice(alunos)
         CreditoAula.objects.create(
             aluno=aluno_cred_expirado, quantidade=2, adicionado_por=admin_user,
@@ -421,7 +396,6 @@ class Command(BaseCommand):
         num_aulas_futuro = total_aulas - num_aulas_passado
         aulas_criadas = 0
 
-        # Aulas no passado com status de presença
         for i in range(num_aulas_passado):
             aula_dt = fake.date_time_between(start_date='-90d', end_date='-1d', tzinfo=timezone.get_current_timezone())
             aula = self._create_aula_obj(studios, instrutores, modalidades, aula_dt)
@@ -433,30 +407,23 @@ class Command(BaseCommand):
                         AulaAluno.StatusPresenca.AUSENTE_COM_REPO,
                         AulaAluno.StatusPresenca.AUSENTE_SEM_REPO,
                     ]
-                    status = random.choices(
-                        status_population,
-                        weights=[70, 15, 15], k=1
-                    )[0]
+                    status = random.choices(status_population, weights=[70, 15, 15], k=1)[0]
                     AulaAluno.objects.create(aula=aula, aluno=aluno, status_presenca=status)
                 aulas_criadas += 1
         
-        # Aulas no futuro com cenários
         for i in range(num_aulas_futuro):
             aula_dt = fake.date_time_between(start_date='+1d', end_date='+30d', tzinfo=timezone.get_current_timezone())
             aula = self._create_aula_obj(studios, instrutores, modalidades, aula_dt)
             if not aula: continue
 
-            # Cenário: Aula vazia (10% de chance)
             if i % 10 == 0:
-                pass # Não inscreve ninguém
-            # Cenário: Aula lotada com lista de espera (20% de chance)
+                pass
             elif i % 5 == 0:
                 alunos_para_inscrever = random.sample(alunos, min(len(alunos), aula.capacidade_maxima + 3))
                 for _ in range(aula.capacidade_maxima):
                     if alunos_para_inscrever: AulaAluno.objects.create(aula=aula, aluno=alunos_para_inscrever.pop(0))
                 for aluno_extra in alunos_para_inscrever:
                     ListaEspera.objects.create(aula=aula, aluno=aluno_extra)
-            # Cenário: Aula normal
             else:
                 num_inscritos = random.randint(1, aula.capacidade_maxima)
                 alunos_para_inscrever = random.sample(alunos, min(len(alunos), num_inscritos))
@@ -487,7 +454,7 @@ class Command(BaseCommand):
                 }
             )
             return aula
-        except IntegrityError: # Conflito de horário para o mesmo instrutor
+        except IntegrityError:
             return None
 
     def _seed_planos(self):
@@ -512,24 +479,38 @@ class Command(BaseCommand):
             Produto.objects.get_or_create(nome=data['nome'], defaults=data)
         self.stdout.write(self.style.SUCCESS('Produtos populados.'))
 
+    def _seed_estoque(self):
+        self.stdout.write('Populando estoque inicial dos produtos...')
+        produtos = list(Produto.objects.all())
+        studios = list(Studio.objects.all())
+        if not produtos or not studios:
+            self.stdout.write(self.style.WARNING('Nenhum produto ou studio encontrado para criar estoque.'))
+            return
+
+        for produto in produtos:
+            for studio in studios:
+                EstoqueStudio.objects.get_or_create(
+                    produto=produto,
+                    studio=studio,
+                    defaults={'quantidade': random.randint(10, 50)}
+                )
+        self.stdout.write(self.style.SUCCESS('Estoque inicial populado.'))
+
     def _seed_matriculas_e_cenarios(self):
         self.stdout.write('Populando matrículas com cenários...')
         alunos = list(Aluno.objects.filter(usuario__is_active=True))
         planos, studios = list(Plano.objects.all()), list(Studio.objects.all())
         if not all([alunos, planos, studios]): return
 
-        # Cenário: Aluno com histórico de matrículas (uma ativa, uma expirada)
         try:
             aluno_hist = Aluno.objects.get(usuario__email="historico@pilates.com")
             plano_antigo, plano_novo = random.sample(planos, 2)
             studio = random.choice(studios)
-            # Matrícula expirada
             data_inicio_antiga = date.today() - timedelta(days=plano_antigo.duracao_dias + 30)
             Matricula.objects.create(
                 aluno=aluno_hist.usuario, plano=plano_antigo, studio=studio, data_inicio=data_inicio_antiga,
                 data_fim=data_inicio_antiga + timedelta(days=plano_antigo.duracao_dias)
             )
-            # Matrícula ativa
             data_inicio_nova = date.today() - timedelta(days=15)
             Matricula.objects.create(
                 aluno=aluno_hist.usuario, plano=plano_novo, studio=studio, data_inicio=data_inicio_nova,
@@ -538,7 +519,6 @@ class Command(BaseCommand):
             alunos.remove(aluno_hist)
         except Aluno.DoesNotExist: pass
 
-        # Matrículas aleatórias para outros alunos
         for aluno in random.sample(alunos, min(len(alunos), 10)):
             plano, studio = random.choice(planos), random.choice(studios)
             data_inicio = fake.date_between(start_date='-60d', end_date='today')
@@ -554,7 +534,6 @@ class Command(BaseCommand):
         produtos, studios = list(Produto.objects.all()), list(Studio.objects.all())
         if not all([produtos, studios]): return
 
-        # Cenário: Venda para não-aluno (balcão)
         venda_balcao = Venda.objects.create(
             aluno=None, studio=random.choice(studios),
             data_venda=fake.date_between(start_date='-30d', end_date='today')
@@ -562,7 +541,6 @@ class Command(BaseCommand):
         for produto in random.sample(produtos, random.randint(1, 2)):
             VendaProduto.objects.create(venda=venda_balcao, produto=produto, quantidade=random.randint(1, 2), preco_unitario=produto.preco)
 
-        # Vendas aleatórias para alunos
         for _ in range(15):
             venda = Venda.objects.create(
                 aluno=random.choice(alunos).usuario, studio=random.choice(studios),
@@ -580,7 +558,6 @@ class Command(BaseCommand):
 
         METODOS_PAGAMENTO = ['CARTAO_CREDITO', 'PIX', 'DINHEIRO', 'BOLETO']
 
-        # Cenário: Pagamento pendente e vencido para o aluno devedor
         try:
             aluno_devedor = Aluno.objects.get(usuario__email="devedor@pilates.com")
             plano_devedor = Plano.objects.order_by('?').first()
@@ -597,7 +574,6 @@ class Command(BaseCommand):
             )
         except (Aluno.DoesNotExist, Plano.DoesNotExist, Studio.DoesNotExist): pass
 
-        # Pagamentos para outras matrículas
         for matricula in matriculas:
             if Pagamento.objects.filter(matricula=matricula).exists():
                 continue
@@ -612,7 +588,6 @@ class Command(BaseCommand):
                     'data_pagamento': fake.date_between(start_date='-30d', end_date='today') if status == 'PAGO' else None
                 }
             )
-        # Pagamentos para vendas
         for venda in vendas:
             valor_venda = sum(vp.preco_unitario * vp.quantidade for vp in venda.vendaproduto_set.all())
             Pagamento.objects.get_or_create(
@@ -633,19 +608,16 @@ class Command(BaseCommand):
         avaliadores = list(Colaborador.objects.filter(perfis__nome__in=['INSTRUTOR', 'FISIOTERAPEUTA'], usuario__is_active=True).distinct())
         if not all([alunos, avaliadores]): return
 
-        # Cenário: Aluno com múltiplas avaliações para mostrar progresso
         aluno_progresso = random.choice(alunos)
         avaliador = random.choice(avaliadores)
         studio = aluno_progresso.unidades.first()
         if studio:
-            # Avaliação antiga
             Avaliacao.objects.create(
                 aluno=aluno_progresso, instrutor=avaliador, studio=studio,
                 data_avaliacao=fake.date_between(start_date='-180d', end_date='-150d'),
                 objetivo_aluno="Começar a praticar uma atividade física.",
                 diagnostico_fisioterapeutico="Dores nas costas."
             )
-            # Avaliação recente
             Avaliacao.objects.create(
                 aluno=aluno_progresso, instrutor=avaliador, studio=studio,
                 data_avaliacao=fake.date_between(start_date='-30d', end_date='-5d'),
@@ -654,7 +626,6 @@ class Command(BaseCommand):
             )
             alunos.remove(aluno_progresso)
 
-        # Avaliações únicas para outros alunos
         for aluno in random.sample(alunos, min(len(alunos), 10)):
             studio = aluno.unidades.first()
             if studio:

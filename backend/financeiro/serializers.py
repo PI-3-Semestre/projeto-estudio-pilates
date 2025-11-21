@@ -1,10 +1,30 @@
 # financeiro/serializers.py
 from rest_framework import serializers
-from .models import Plano, Matricula, Pagamento, Produto, Venda, Parcela, EstoqueStudio
+from .models import Plano, Matricula, Pagamento, Produto, Venda, VendaProduto, Parcela, EstoqueStudio
 from studios.models import Studio
 from alunos.serializers import AlunoSerializer
 from alunos.models import Aluno
 from usuarios.models import Usuario 
+
+# Serializer aninhado para Studio
+class StudioNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio
+        fields = ['id', 'nome']
+
+# Serializer aninhado para Aluno (usuário)
+class AlunoNestedSerializer(serializers.ModelSerializer):
+    nome_completo = serializers.CharField(source='get_full_name', read_only=True)
+    class Meta:
+        model = Usuario
+        fields = ['id', 'nome_completo', 'cpf']
+
+# Serializer aninhado para VendaProduto
+class VendaProdutoNestedSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(source='produto.nome', read_only=True)
+    class Meta:
+        model = VendaProduto
+        fields = ['produto_id', 'nome', 'quantidade', 'preco_unitario']
 
 class PlanoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,12 +64,23 @@ class MatriculaSerializer(serializers.ModelSerializer):
         ]
         
 class VendaSerializer(serializers.ModelSerializer):
-    studio = serializers.PrimaryKeyRelatedField(queryset=Studio.objects.all(), write_only=True)
-    studio_display = serializers.CharField(source='studio.nome', read_only=True)
+    studio = StudioNestedSerializer(read_only=True)
+    studio_id = serializers.PrimaryKeyRelatedField(
+        queryset=Studio.objects.all(), source='studio', write_only=True
+    )
+    aluno = AlunoNestedSerializer(read_only=True)
+    aluno_id = serializers.PrimaryKeyRelatedField(
+        queryset=Usuario.objects.filter(aluno__isnull=False), source='aluno', write_only=True, allow_null=True
+    )
+    produtos = VendaProdutoNestedSerializer(source='vendaproduto_set', many=True, read_only=True)
+    valor_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Venda
-        fields = ['id', 'aluno', 'data_venda', 'produtos', 'studio', 'studio_display']
+        fields = ['id', 'aluno', 'aluno_id', 'data_venda', 'produtos', 'studio', 'studio_id', 'valor_total']
+
+    def get_valor_total(self, obj):
+        return sum(item.preco_unitario * item.quantidade for item in obj.vendaproduto_set.all())
 
 class PagamentoSerializer(serializers.ModelSerializer):
     matricula = MatriculaSerializer(read_only=True) 
@@ -95,6 +126,22 @@ class EstoqueStudioSerializer(serializers.ModelSerializer):
         model = EstoqueStudio
         fields = ['id', 'produto', 'produto_nome', 'studio', 'studio_nome', 'quantidade']
         read_only_fields = ['produto_nome', 'studio_nome']
+
+class EstoqueAjusteSerializer(serializers.Serializer):
+    produto_id = serializers.IntegerField()
+    studio_id = serializers.IntegerField()
+    quantidade = serializers.IntegerField(min_value=0)
+    operacao = serializers.ChoiceField(choices=['definir', 'adicionar', 'remover'])
+
+    def validate_produto_id(self, value):
+        if not Produto.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("Produto não encontrado.")
+        return value
+
+    def validate_studio_id(self, value):
+        if not Studio.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("Studio não encontrado.")
+        return value
 
 class ProdutoSerializer(serializers.ModelSerializer):
     estoque_studios = EstoqueStudioSerializer(many=True, read_only=True, source='estoquestudio_set')
