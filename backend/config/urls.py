@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
 # Importar as ViewSets de financeiro.views
-from financeiro.views import PlanoViewSet, MatriculaViewSet, ProdutoViewSet, VendaViewSet # Adicionado ProdutoViewSet e VendaViewSet
+from financeiro.views import PlanoViewSet, MatriculaViewSet, ProdutoViewSet, VendaViewSet, ProdutosPorStudioView
 
 # Criar roteadores específicos para Planos e Matrículas
 planos_router = DefaultRouter()
@@ -61,6 +61,9 @@ urlpatterns = [
     # Rotas separadas para Planos e Matrículas
     path('api/planos/', include(planos_router.urls)),
     path('api/matriculas/', include(matriculas_router.urls)),
+
+    # Rota para listar produtos com estoque por estúdio
+    path('api/produtos/studio/<int:studio_id>/', ProdutosPorStudioView.as_view(), name='produtos-por-studio'),
 
     # Rotas separadas para Produtos e Vendas
     path('api/produtos/', include(produtos_router.urls)), # Nova rota para Produtos

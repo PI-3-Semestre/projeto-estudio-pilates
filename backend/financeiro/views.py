@@ -19,7 +19,8 @@ from .serializers import (
     ProdutoSerializer,
     VendaSerializer,
     EstoqueAjusteSerializer,
-    EstoqueStudioSerializer
+    EstoqueStudioSerializer,
+    ProdutoEstoqueSerializer
 )
 from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos
 
@@ -136,6 +137,30 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     permission_classes = [IsAdminFinanceiro]
 
+@extend_schema(
+    tags=['Produtos'],
+    description='Endpoint para listar todos os produtos do catálogo, incluindo a quantidade em estoque para um estúdio específico.'
+)
+class ProdutosPorStudioView(APIView):
+    """
+    View para listar todos os produtos, com a quantidade de estoque
+    anotada para um estúdio específico.
+    """
+    permission_classes = [IsAuthenticated] # Qualquer usuário logado pode ver os produtos e estoque
+
+    def get(self, request, studio_id, format=None):
+        # Garante que o estúdio existe
+        get_object_or_404(Studio, pk=studio_id)
+
+        # Pega todos os produtos do catálogo
+        produtos = Produto.objects.all()
+
+        # Passa o 'studio_id' para o contexto do serializer
+        # para que ele possa buscar a quantidade correta
+        serializer = ProdutoEstoqueSerializer(produtos, many=True, context={'studio_id': studio_id})
+        
+        return Response(serializer.data)
+
 @extend_schema(tags=['Vendas'])
 class VendaViewSet(viewsets.ModelViewSet):
     """
@@ -146,25 +171,9 @@ class VendaViewSet(viewsets.ModelViewSet):
     permission_classes = [CanManagePagamentos]
 
     def perform_create(self, serializer):
-        venda = serializer.save()
-        for item_venda in venda.vendaproduto_set.all():
-            produto = item_venda.produto
-            quantidade_vendida = item_venda.quantidade
-            studio = venda.studio
-
-            try:
-                estoque_studio = EstoqueStudio.objects.get(produto=produto, studio=studio)
-                if estoque_studio.quantidade >= quantidade_vendida:
-                    estoque_studio.quantidade -= quantidade_vendida
-                    estoque_studio.save()
-                else:
-                    raise serializers.ValidationError(
-                        f"Estoque insuficiente para o produto {produto.nome} no estúdio {studio.nome}."
-                    )
-            except EstoqueStudio.DoesNotExist:
-                raise serializers.ValidationError(
-                    f"Estoque não encontrado para o produto {produto.nome} no estúdio {studio.nome}."
-                )
+        serializer.save()
+        # A lógica de criação de VendaProduto e atualização de estoque
+        # foi movida para o método create do VendaSerializer.
 
 @extend_schema(
     tags=['Estoque'],

@@ -38,6 +38,7 @@ class Venda(models.Model):
     data_venda = models.DateField(auto_now_add=True)
     produtos = models.ManyToManyField(Produto, through="VendaProduto")
     studio = models.ForeignKey('studios.Studio', on_delete=models.PROTECT, related_name='vendas', null=True)
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0) # Adicionado o campo valor_total
 
     def __str__(self):
         return f"Venda {self.id} - {self.aluno}"
