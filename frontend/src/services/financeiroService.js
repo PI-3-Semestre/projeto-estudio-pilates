@@ -23,12 +23,66 @@ const financeiroService = {
     },
     
     /**
-     * Cria um novo registro de pagamento, associado a uma venda.
+     * Cria um novo registro de pagamento, associado a uma venda ou matrícula.
      * @param {object} pagamentoData - Os dados do pagamento.
      * Ex: { venda_id: 3, valor_total: "114.90", status: "PAGO", ... }
      */
     createPagamento: (pagamentoData) => {
         return api.post('/financeiro/pagamentos/', pagamentoData);
+    },
+
+    /**
+     * Retorna uma lista de todos os pagamentos.
+     */
+    getPagamentos: () => {
+        return api.get('/financeiro/pagamentos/');
+    },
+
+    /**
+     * Retorna os detalhes de um pagamento específico.
+     * @param {number} id - O ID do pagamento.
+     */
+    getPagamentoById: (id) => {
+        return api.get(`/financeiro/pagamentos/${id}/`);
+    },
+
+    /**
+     * Atualiza completamente um pagamento existente.
+     * @param {number} id - O ID do pagamento.
+     * @param {object} data - Todos os dados do pagamento.
+     */
+    updatePagamento: (id, data) => {
+        return api.put(`/financeiro/pagamentos/${id}/`, data);
+    },
+
+    /**
+     * Atualiza parcialmente um pagamento existente.
+     * @param {number} id - O ID do pagamento.
+     * @param {object} data - Os dados a serem modificados.
+     */
+    patchPagamento: (id, data) => {
+        return api.patch(`/financeiro/pagamentos/${id}/`, data);
+    },
+
+    /**
+     * Exclui um pagamento específico.
+     * @param {number} id - O ID do pagamento.
+     */
+    deletePagamento: (id) => {
+        return api.delete(`/financeiro/pagamentos/${id}/`);
+    },
+
+    /**
+     * Permite que o aluno (dono do pagamento) faça o upload de um comprovante.
+     * @param {number} id - O ID do pagamento.
+     * @param {FormData} formData - O FormData contendo o arquivo do comprovante.
+     */
+    anexarComprovante: (id, formData) => {
+        return api.post(`/financeiro/pagamentos/${id}/anexar_comprovante/`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     },
 
     /**

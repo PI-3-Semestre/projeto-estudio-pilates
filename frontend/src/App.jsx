@@ -44,6 +44,10 @@ import GerenciamentoProdutosView from "./views/GerenciamentoProdutosView";
 import GestaoVendasView from "./views/GestaoVendasView";
 import CadastrarVendaView from "./views/CadastrarVendaView";
 import DetalhesVendaView from "./views/DetalhesVendaView";
+import GerenciamentoPagamentosView from "./views/GerenciamentoPagamentosView";
+import DetalhesPagamentoView from "./views/DetalhesPagamentoView"; // Importa DetalhesPagamentoView
+import CadastrarPagamentoView from "./views/CadastrarPagamentoView"; // Importa CadastrarPagamentoView
+import EditarPagamentoView from "./views/EditarPagamentoView";     // Importa EditarPagamentoView
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -367,6 +371,21 @@ const PrivateRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Rotas de Pagamentos */}
+      <Route
+        path="/financeiro/pagamentos"
+        element={
+          <ProtectedRoute adminOnly={true}> {/* Usando adminOnly por enquanto */}
+            <GerenciamentoPagamentosView />
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas para detalhes, novo e editar serão adicionadas posteriormente */}
+      <Route path="/financeiro/pagamentos/:id" element={<ProtectedRoute adminOnly={true}><DetalhesPagamentoView /></ProtectedRoute>} />
+      <Route path="/financeiro/pagamentos/novo" element={<ProtectedRoute adminOnly={true}><CadastrarPagamentoView /></ProtectedRoute>} />
+      <Route path="/financeiro/pagamentos/:id/editar" element={<ProtectedRoute adminOnly={true}><EditarPagamentoView /></ProtectedRoute>} />
+
 
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
