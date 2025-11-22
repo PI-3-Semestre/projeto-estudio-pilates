@@ -531,23 +531,77 @@ class Command(BaseCommand):
     def _seed_vendas_e_cenarios(self):
         self.stdout.write('Populando vendas com cenários...')
         alunos = list(Aluno.objects.all())
-        produtos, studios = list(Produto.objects.all()), list(Studio.objects.all())
-        if not all([produtos, studios]): return
+        produtos = list(Produto.objects.all())
+        studios = list(Studio.objects.all())
+        if not all([produtos, studios]):
+            self.stdout.write(self.style.WARNING('Nenhum produto ou studio encontrado para criar vendas.'))
+            return
 
+        # Cenário de venda de balcão
+        studio_balcao = random.choice(studios)
         venda_balcao = Venda.objects.create(
-            aluno=None, studio=random.choice(studios),
-            data_venda=fake.date_between(start_date='-30d', end_date='today')
+            aluno=None,
+            studio=studio_balcao,
+            data_venda=fake.date_between(start_date='-30d', end_date='today'),
+            valor_total=0 # Inicializa com 0, será atualizado
         )
-        for produto in random.sample(produtos, random.randint(1, 2)):
-            VendaProduto.objects.create(venda=venda_balcao, produto=produto, quantidade=random.randint(1, 2), preco_unitario=produto.preco)
-
-        for _ in range(15):
-            venda = Venda.objects.create(
-                aluno=random.choice(alunos).usuario, studio=random.choice(studios),
-                data_venda=fake.date_between(start_date='-60d', end_date='today')
+        total_venda_balcao = 0
+        produtos_vendidos_balcao = random.sample(produtos, random.randint(1, 2))
+        for produto in produtos_vendidos_balcao:
+            quantidade = random.randint(1, 2)
+            VendaProduto.objects.create(
+                venda=venda_balcao,
+                produto=produto,
+                quantidade=quantidade,
+                preco_unitario=produto.preco
             )
-            for produto in random.sample(produtos, random.randint(1, min(3, len(produtos)))):
-                VendaProduto.objects.create(venda=venda, produto=produto, quantidade=random.randint(1, 3), preco_unitario=produto.preco)
+            total_venda_balcao += produto.preco * quantidade
+            # Atualiza o estoque
+            estoque_studio, created = EstoqueStudio.objects.get_or_create(
+                produto=produto, studio=studio_balcao, defaults={'quantidade': 0}
+            )
+            if estoque_studio.quantidade >= quantidade:
+                estoque_studio.quantidade -= quantidade
+                estoque_studio.save()
+            else:
+                self.stdout.write(self.style.WARNING(f"Estoque insuficiente para {produto.nome} no {studio_balcao.nome} durante o seeding. Estoque: {estoque_studio.quantidade}, Tentativa de venda: {quantidade}"))
+        venda_balcao.valor_total = total_venda_balcao
+        venda_balcao.save()
+
+
+        # Cenários de vendas para alunos
+        for _ in range(15):
+            aluno_venda = random.choice(alunos).usuario
+            studio_venda = random.choice(studios)
+            venda = Venda.objects.create(
+                aluno=aluno_venda,
+                studio=studio_venda,
+                data_venda=fake.date_between(start_date='-60d', end_date='today'),
+                valor_total=0 # Inicializa com 0, será atualizado
+            )
+            total_venda = 0
+            produtos_vendidos = random.sample(produtos, random.randint(1, min(3, len(produtos))))
+            for produto in produtos_vendidos:
+                quantidade = random.randint(1, 3)
+                VendaProduto.objects.create(
+                    venda=venda,
+                    produto=produto,
+                    quantidade=quantidade,
+                    preco_unitario=produto.preco
+                )
+                total_venda += produto.preco * quantidade
+                # Atualiza o estoque
+                estoque_studio, created = EstoqueStudio.objects.get_or_create(
+                    produto=produto, studio=studio_venda, defaults={'quantidade': 0}
+                )
+                if estoque_studio.quantidade >= quantidade:
+                    estoque_studio.quantidade -= quantidade
+                    estoque_studio.save()
+                else:
+                    self.stdout.write(self.style.WARNING(f"Estoque insuficiente para {produto.nome} no {studio_venda.nome} durante o seeding. Estoque: {estoque_studio.quantidade}, Tentativa de venda: {quantidade}"))
+            venda.valor_total = total_venda
+            venda.save()
+            
         self.stdout.write(self.style.SUCCESS('Vendas populadas.'))
 
     def _seed_pagamentos_e_cenarios(self):
@@ -589,7 +643,8 @@ class Command(BaseCommand):
                 }
             )
         for venda in vendas:
-            valor_venda = sum(vp.preco_unitario * vp.quantidade for vp in venda.vendaproduto_set.all())
+            # O valor_total já deve estar preenchido na venda, mas garantimos aqui
+            valor_venda = venda.valor_total if venda.valor_total is not None else sum(vp.preco_unitario * vp.quantidade for vp in venda.vendaproduto_set.all())
             Pagamento.objects.get_or_create(
                 venda=venda,
                 defaults={
