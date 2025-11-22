@@ -128,6 +128,23 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(pagamento)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        summary="Buscar Pagamento por ID da Venda",
+        description="Retorna os detalhes de um pagamento associado a um ID de venda específico.",
+        responses={
+            200: PagamentoSerializer,
+            404: {"description": "Pagamento não encontrado para o ID de venda fornecido."}
+        }
+    )
+    @action(detail=False, methods=['get'], url_path='venda/(?P<venda_id>[0-9]+)')
+    def retrieve_by_venda(self, request, venda_id=None):
+        """
+        Busca um pagamento pelo ID da venda associada.
+        """
+        pagamento = get_object_or_404(Pagamento, venda__id=venda_id)
+        serializer = self.get_serializer(pagamento)
+        return Response(serializer.data)
+
 @extend_schema(tags=['Produtos'])
 class ProdutoViewSet(viewsets.ModelViewSet):
     """
