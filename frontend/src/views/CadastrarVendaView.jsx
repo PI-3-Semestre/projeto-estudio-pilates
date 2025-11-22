@@ -1,7 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react'; // Removido useRef, useEffect
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import useCadastrarVendaViewModel from '../viewmodels/useCadastrarVendaViewModel';
+import SaleConfirmationModal from '../components/SaleConfirmationModal';
 
 const CadastrarVendaView = () => {
     const navigate = useNavigate();
@@ -18,65 +19,35 @@ const CadastrarVendaView = () => {
         selectedAluno,
         metodoPagamento,
         statusPagamento,
-        animationState,
+        // animationState, // Removido
+        isConfirmationModalOpen,
         setMetodoPagamento,
         setStatusPagamento,
         setSelectedAluno,
         setSearchQuery,
         addToCarrinho,
         removeFromCarrinho,
-        incrementQuantity, // Importa a nova função
-        decrementQuantity, // Importa a nova função
+        incrementQuantity,
+        decrementQuantity,
         handleSubmit,
+        confirmSale,
+        cancelSaleConfirmation,
     } = useCadastrarVendaViewModel();
 
     const formatPrice = (price) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('pt-BR');
+    };
 
-    const cartRef = useRef(null);
-    const [flyingImageStyle, setFlyingImageStyle] = useState({});
-    const [isFlying, setIsFlying] = useState(false);
+    // Removido cartRef, flyingImageStyle, isFlying
     const [buttonClickedStates, setButtonClickedStates] = useState({});
 
-    // Efeito para controlar a animação da imagem
-    useEffect(() => {
-        if (animationState.productImage && animationState.startPosition && cartRef.current) {
-            const cartRect = cartRef.current.getBoundingClientRect();
-            const startRect = animationState.startPosition;
+    // Removido o useEffect para controlar a animação da imagem
 
-            setFlyingImageStyle({
-                top: startRect.top + window.scrollY,
-                left: startRect.left + window.scrollX,
-                width: startRect.width,
-                height: startRect.height,
-                transition: 'none',
-            });
-            setIsFlying(true);
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setFlyingImageStyle(prev => ({
-                        ...prev,
-                        top: cartRect.top + window.scrollY + (cartRect.height / 2) - 15,
-                        left: cartRect.left + window.scrollX + (cartRect.width / 2) - 15,
-                        width: '30px',
-                        height: '30px',
-                        transition: 'all 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19)',
-                    }));
-                });
-            });
-
-            const timer = setTimeout(() => {
-                setIsFlying(false);
-                setFlyingImageStyle({});
-            }, 800);
-
-            return () => clearTimeout(timer);
-        }
-    }, [animationState]);
-
-    const handleAddToCartClick = (e, produto) => {
-        const buttonRect = e.currentTarget.getBoundingClientRect();
-        const addedSuccessfully = addToCarrinho(produto, buttonRect);
+    // Removido o parâmetro 'e' de handleAddToCartClick
+    const handleAddToCartClick = (produto) => {
+        const addedSuccessfully = addToCarrinho(produto);
 
         if (addedSuccessfully) {
             setButtonClickedStates(prev => ({ ...prev, [produto.id]: true }));
@@ -159,7 +130,7 @@ const CadastrarVendaView = () => {
                                                         Estoque: {produto.quantidade_em_estoque}
                                                     </p>
                                                     <button
-                                                        onClick={(e) => handleAddToCartClick(e, produto)}
+                                                        onClick={() => handleAddToCartClick(produto)} // Removido o 'e'
                                                         disabled={!noEstoque}
                                                         className={`mt-2 w-full px-3 py-1 text-white text-sm font-semibold rounded-md transition-colors duration-300 ${
                                                             isButtonClicked ? 'bg-green-500' : 'bg-primary hover:bg-primary-dark'
@@ -176,7 +147,7 @@ const CadastrarVendaView = () => {
 
                             {/* Coluna da Direita: Carrinho e Pagamento */}
                             <div className="lg:col-span-1 space-y-6">
-                                <div ref={cartRef} className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50 sticky top-4">
+                                <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50 sticky top-4"> {/* Removido ref={cartRef} */}
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Resumo da Venda</h3>
                                     {carrinho.length === 0 ? (
                                         <p className="text-center text-gray-500 dark:text-gray-400">O carrinho está vazio.</p>
@@ -263,16 +234,23 @@ const CadastrarVendaView = () => {
                 </div>
             </main>
 
-            {/* Imagem voadora da animação */}
-            {isFlying && animationState.productImage && (
-                <img
-                    key={animationState.key}
-                    src={animationState.productImage}
-                    alt="Produto voando para o carrinho"
-                    className="fly-to-cart-image"
-                    style={flyingImageStyle}
-                />
-            )}
+            {/* Removido o elemento da imagem voadora */}
+
+            {/* Modal de Confirmação de Venda */}
+            <SaleConfirmationModal
+                isOpen={isConfirmationModalOpen}
+                onClose={cancelSaleConfirmation}
+                onConfirm={confirmSale}
+                carrinho={carrinho}
+                selectedAluno={selectedAluno}
+                selectedStudio={selectedStudio}
+                totalCarrinho={totalCarrinho}
+                metodoPagamento={metodoPagamento}
+                statusPagamento={statusPagamento}
+                allStudios={allStudios}
+                formatPrice={formatPrice}
+                formatDate={formatDate}
+            />
         </div>
     );
 };

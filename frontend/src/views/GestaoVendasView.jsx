@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import useGestaoVendasViewModel from '../viewmodels/useGestaoVendasViewModel';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
-import SaleCard from '../components/SaleCard'; // Importa o novo componente
+import SaleCard from '../components/SaleCard';
 
 const GestaoVendasView = () => {
     const navigate = useNavigate();
@@ -11,6 +11,13 @@ const GestaoVendasView = () => {
         vendas,
         loading,
         handleDeleteVenda,
+        sortBy,
+        setSortBy,
+        sortOrder,
+        setSortOrder,
+        allStudios,
+        studioFilter,
+        setStudioFilter,
     } = useGestaoVendasViewModel();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,14 +53,51 @@ const GestaoVendasView = () => {
 
             <main className="flex-grow p-4 space-y-4">
                 <div className="mx-auto max-w-7xl">
-                    {/* Ações */}
-                    <div className="flex justify-end mb-4">
+                    {/* Controles de Ações, Filtro e Ordenação */}
+                    <div className="flex flex-col lg:flex-row gap-4 mb-4">
                         <button
                             onClick={() => navigate('/vendas/nova')}
-                            className="px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark"
+                            className="flex min-w-[84px] max-w-[480px] w-full lg:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-action-primary text-white gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]"
                         >
-                            Registrar Nova Venda
+                            <div className="text-white">
+                                <span className="material-symbols-outlined">add</span>
+                            </div>
+                            <span className="truncate">Registrar Nova Venda</span>
                         </button>
+
+                        <div className="flex flex-col sm:flex-row gap-3 flex-wrap flex-grow">
+                            {/* Filtro por Estúdio */}
+                            <select
+                                value={studioFilter}
+                                onChange={(e) => setStudioFilter(e.target.value)}
+                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                            >
+                                <option value="all">Estúdio: Todos</option>
+                                {allStudios.map((studio) => (
+                                    <option key={studio.id} value={studio.id}>
+                                        Estúdio: {studio.nome}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Ordenação */}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                            >
+                                <option value="data_venda">Ordenar por Data</option>
+                                <option value="valor_total">Ordenar por Valor</option>
+                            </select>
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                            >
+                                <option value="asc">Crescente</option>
+                                <option value="desc">Decrescente</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Lista de Vendas em formato de Card */}

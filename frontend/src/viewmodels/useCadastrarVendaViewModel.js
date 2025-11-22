@@ -7,6 +7,8 @@ import financeiroService from '../services/financeiroService';
 import studiosService from '../services/studiosService';
 import { useToast } from '../context/ToastContext';
 
+// Removido o import de defaultProductImage
+
 const useCadastrarVendaViewModel = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
@@ -25,13 +27,9 @@ const useCadastrarVendaViewModel = () => {
 
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false); // Novo estado para o modal
 
-    // Estado para controlar a animação
-    const [animationState, setAnimationState] = useState({
-        key: 0,
-        productImage: null,
-        startPosition: null,
-    });
+    // Removido o estado animationState
 
     // Carregar dados iniciais
     useEffect(() => {
@@ -76,7 +74,8 @@ const useCadastrarVendaViewModel = () => {
         fetchProdutos(selectedStudio);
     }, [selectedStudio, fetchProdutos]);
 
-    const addToCarrinho = (produto, startPosition) => {
+    // Removido o parâmetro startPosition de addToCarrinho
+    const addToCarrinho = (produto) => {
         const itemInCarrinho = carrinho.find(item => item.produto_id === produto.id);
         let addedSuccessfully = false;
 
@@ -106,11 +105,7 @@ const useCadastrarVendaViewModel = () => {
         }
 
         if (addedSuccessfully) {
-            setAnimationState({
-                key: Date.now(),
-                productImage: produto.imagem || 'https://via.placeholder.com/50',
-                startPosition,
-            });
+            // Removida a lógica de setAnimationState
             showToast(`"${produto.nome}" adicionado ao carrinho!`, { type: 'success' });
         }
         return addedSuccessfully;
@@ -170,15 +165,9 @@ const useCadastrarVendaViewModel = () => {
 
     const totalCarrinho = carrinho.reduce((acc, item) => acc + item.quantidade * parseFloat(item.preco_unitario), 0);
 
-    const handleSubmit = async () => {
-        if (!selectedStudio) {
-            showToast('Por favor, selecione um estúdio.', { type: 'warning' });
-            return;
-        }
-        if (carrinho.length === 0) {
-            showToast('Adicione pelo menos um produto ao carrinho.', { type: 'warning' });
-            return;
-        }
+    // Nova função para confirmar a venda (chamada pelo modal)
+    const confirmSale = async () => {
+        setIsConfirmationModalOpen(false); // Fecha o modal
         setSubmitting(true);
 
         const produtosVendidosParaAPI = carrinho.map(item => ({
@@ -193,16 +182,10 @@ const useCadastrarVendaViewModel = () => {
             produtos_vendidos: produtosVendidosParaAPI,
         };
 
-        console.log("[DEBUG] Conteúdo do carrinho antes de mapear:", carrinho); // LOG 1
-        console.log("[DEBUG] produtos_vendidos enviados para a API:", produtosVendidosParaAPI); // LOG 2
-        console.log("[DEBUG] vendaData completa enviada para a API:", vendaData); // LOG 3
-
         try {
             const vendaResponse = await vendasService.createVenda(vendaData);
             const novaVenda = vendaResponse.data;
             
-            console.log("[DEBUG] Venda criada com ID:", novaVenda.id);
-
             const pagamentoData = {
                 venda_id: novaVenda.id,
                 valor_total: totalCarrinho.toFixed(2),
@@ -211,8 +194,6 @@ const useCadastrarVendaViewModel = () => {
                 data_pagamento: statusPagamento === 'PAGO' ? new Date().toISOString().split('T')[0] : null,
                 metodo_pagamento: metodoPagamento,
             };
-
-            console.log("[DEBUG] Dados do Pagamento enviados:", pagamentoData);
 
             await financeiroService.createPagamento(pagamentoData);
             
@@ -238,6 +219,23 @@ const useCadastrarVendaViewModel = () => {
         }
     };
 
+    // Função para abrir o modal de confirmação
+    const handleSubmit = () => {
+        if (!selectedStudio) {
+            showToast('Por favor, selecione um estúdio.', { type: 'warning' });
+            return;
+        }
+        if (carrinho.length === 0) {
+            showToast('Adicione pelo menos um produto ao carrinho.', { type: 'warning' });
+            return;
+        }
+        setIsConfirmationModalOpen(true); // Abre o modal
+    };
+
+    const cancelSaleConfirmation = () => {
+        setIsConfirmationModalOpen(false); // Fecha o modal
+    };
+
     return {
         loading,
         submitting,
@@ -251,7 +249,8 @@ const useCadastrarVendaViewModel = () => {
         selectedAluno,
         metodoPagamento,
         statusPagamento,
-        animationState,
+        // animationState, // Removido
+        isConfirmationModalOpen, // Exporta o estado do modal
         setMetodoPagamento,
         setStatusPagamento,
         setSelectedAluno,
@@ -261,7 +260,9 @@ const useCadastrarVendaViewModel = () => {
         incrementQuantity,
         decrementQuantity,
         updateQuantidade,
-        handleSubmit,
+        handleSubmit, // Agora abre o modal
+        confirmSale, // Nova função para confirmar a venda
+        cancelSaleConfirmation, // Nova função para cancelar a confirmação
     };
 };
 
