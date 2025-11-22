@@ -1,16 +1,35 @@
 import api from './api';
 
 /**
- * Busca todos os produtos.
- * @returns {Promise<Array>} Uma lista de produtos.
+ * Busca todos os produtos do catálogo geral.
+ * @returns {Promise<Array>} Uma lista de produtos com seus estoques em todos os estúdios.
  */
 export const getProducts = async () => {
   try {
-    // Correção: Removido o '/api/' duplicado. A baseURL já contém '/api/'.
     const response = await api.get('produtos/');
     return response.data;
   } catch (error) {
     console.error("Erro ao buscar produtos:", error);
+    throw error;
+  }
+};
+
+/**
+ * (NOVO) Busca a lista de produtos com estoque calculado para um estúdio específico.
+ * Ideal para a tela de vendas.
+ * @param {number} studioId - O ID do estúdio.
+ * @returns {Promise<Array>} Uma lista de produtos com o campo 'quantidade_em_estoque'.
+ */
+export const getProductsByStudio = async (studioId) => {
+  if (!studioId) {
+    return Promise.reject(new Error("É necessário fornecer o ID do estúdio."));
+  }
+  try {
+    const response = await api.get(`produtos/studio/${studioId}/`);
+    return response.data;
+  } catch (error)
+  {
+    console.error(`Erro ao buscar produtos para o estúdio ${studioId}:`, error);
     throw error;
   }
 };

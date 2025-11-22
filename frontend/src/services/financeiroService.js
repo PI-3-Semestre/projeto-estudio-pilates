@@ -21,7 +21,23 @@ const financeiroService = {
     deleteTransacao: (id) => {
         return api.delete(`financeiro/transacoes/${id}/`);
     },
-    // Add other specific financeiro endpoints as needed
+    
+    /**
+     * Cria um novo registro de pagamento, associado a uma venda.
+     * @param {object} pagamentoData - Os dados do pagamento.
+     * Ex: { venda_id: 3, valor_total: "114.90", status: "PAGO", ... }
+     */
+    createPagamento: (pagamentoData) => {
+        return api.post('/financeiro/pagamentos/', pagamentoData);
+    },
+
+    /**
+     * Busca os detalhes de um pagamento associado a um ID de venda específico.
+     * @param {number} vendaId - O ID da venda.
+     */
+    getPagamentoByVendaId: (vendaId) => {
+        return api.get(`/financeiro/pagamentos/venda/${vendaId}/`);
+    },
 };
 
 export default financeiroService;

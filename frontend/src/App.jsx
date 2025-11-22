@@ -41,6 +41,9 @@ import PlanoFormView from "./views/PlanoFormView";
 import DashboardStudioView from "./views/DashboardStudioView";
 import GerenciamentoFinanceiroView from "./views/GerenciamentoFinanceiroView";
 import GerenciamentoProdutosView from "./views/GerenciamentoProdutosView";
+import GestaoVendasView from "./views/GestaoVendasView";
+import CadastrarVendaView from "./views/CadastrarVendaView";
+import DetalhesVendaView from "./views/DetalhesVendaView";
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -335,6 +338,32 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <GerenciamentoFinanceiroView />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Rotas de Vendas */}
+      <Route
+        path="/vendas"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <GestaoVendasView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendas/nova"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <CadastrarVendaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendas/:id"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <DetalhesVendaView />
           </ProtectedRoute>
         }
       />
