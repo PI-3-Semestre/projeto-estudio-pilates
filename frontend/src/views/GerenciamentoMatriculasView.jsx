@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import useGerenciarMatriculasViewModel from '../viewmodels/useGerenciarMatriculasViewModel';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import MatriculaCard from '../components/MatriculaCard';
-import FilterBottomSheet from '../components/FilterBottomSheet'; // Importa o novo componente
+import FilterBottomSheet from '../components/FilterBottomSheet';
 
 const GerenciamentoMatriculasView = () => {
     const navigate = useNavigate();
@@ -78,6 +78,23 @@ const GerenciamentoMatriculasView = () => {
                         </button>
                     </div>
 
+                    {/* Campo de Busca (realocado aqui) */}
+                    <div className="mb-4">
+                        <label className="flex flex-col min-w-40 h-12 w-full">
+                            <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
+                                <div className="text-text-subtle-light dark:text-text-subtle-dark flex border-none bg-input-background-light dark:bg-input-background-dark items-center justify-center pl-4 rounded-l-xl border-r-0">
+                                    <span className="material-symbols-outlined">search</span>
+                                </div>
+                                <input
+                                    value={searchText}
+                                    onChange={(e) => setSearchText(e.target.value)}
+                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-0 border-none bg-input-background-light dark:bg-input-background-dark focus:border-none h-full placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                                    placeholder="Buscar por nome ou CPF do aluno..."
+                                />
+                            </div>
+                        </label>
+                    </div>
+
                     {/* Lista de Matrículas em formato de Card */}
                     <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Todas as Matrículas</h2>
@@ -118,21 +135,6 @@ const GerenciamentoMatriculasView = () => {
                 onClearFilters={clearFilters}
             >
                 <div className="flex flex-col gap-3">
-                    {/* Campo de Busca */}
-                    <label className="flex flex-col min-w-40 h-12 w-full">
-                        <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
-                            <div className="text-text-subtle-light dark:text-text-subtle-dark flex border-none bg-input-background-light dark:bg-input-background-dark items-center justify-center pl-4 rounded-l-xl border-r-0">
-                                <span className="material-symbols-outlined">search</span>
-                            </div>
-                            <input
-                                value={searchText}
-                                onChange={(e) => setSearchText(e.target.value)}
-                                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-0 border-none bg-input-background-light dark:bg-input-background-dark focus:border-none h-full placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                                placeholder="Buscar por nome ou CPF do aluno..."
-                            />
-                        </div>
-                    </label>
-
                     {/* Filtro por Estúdio */}
                     <select
                         value={studioFilter}

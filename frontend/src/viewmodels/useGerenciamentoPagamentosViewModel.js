@@ -14,9 +14,10 @@ const useGerenciamentoPagamentosViewModel = () => {
     const [sortOrder, setSortOrder] = useState('desc');
     const [statusFilter, setStatusFilter] = useState('all');
     const [metodoPagamentoFilter, setMetodoPagamentoFilter] = useState('all');
-    const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false); // Novo estado para a gaveta
+    const [searchText, setSearchText] = useState(''); // Novo estado para o texto de busca
+    const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
-    // Opções hardcoded para filtros (conforme análise crítica)
+    // Opções hardcoded para filtros
     const statusOptions = [
         { value: 'all', label: 'Status: Todos' },
         { value: 'PENDENTE', label: 'Pendente' },
@@ -32,7 +33,6 @@ const useGerenciamentoPagamentosViewModel = () => {
         { value: 'CARTAO_CREDITO', label: 'Cartão de Crédito' },
         { value: 'CARTAO_DEBITO', label: 'Cartão de Débito' },
         { value: 'BOLETO', label: 'Boleto' },
-        // Adicionar outros métodos conforme necessário ou se o backend fornecer um endpoint
     ];
 
     const fetchPagamentos = useCallback(async () => {
@@ -41,7 +41,7 @@ const useGerenciamentoPagamentosViewModel = () => {
         try {
             const response = await financeiroService.getPagamentos();
             setPagamentos(response.data);
-        } catch (err) { // Corrigido: removido o '=>'
+        } catch (err) {
             setError(err);
             showToast('Erro ao carregar os pagamentos.', { type: 'error' });
         } finally {
@@ -58,6 +58,22 @@ const useGerenciamentoPagamentosViewModel = () => {
         if (!pagamentos || pagamentos.length === 0) return [];
 
         let filtered = [...pagamentos];
+
+        // Aplica filtro de busca por texto
+        if (searchText.trim()) {
+            const query = searchText.toLowerCase().trim();
+            filtered = filtered.filter(pagamento => {
+                const alunoNomeMatricula = pagamento.matricula?.aluno?.nome?.toLowerCase();
+                const alunoCpfMatricula = pagamento.matricula?.aluno?.cpf;
+                const alunoNomeVenda = pagamento.venda?.aluno?.nome?.toLowerCase();
+                const alunoCpfVenda = pagamento.venda?.aluno?.cpf;
+
+                return (alunoNomeMatricula && alunoNomeMatricula.includes(query)) ||
+                       (alunoCpfMatricula && alunoCpfMatricula.includes(query)) ||
+                       (alunoNomeVenda && alunoNomeVenda.includes(query)) ||
+                       (alunoCpfVenda && alunoCpfVenda.includes(query));
+            });
+        }
 
         // Aplica filtro de status
         if (statusFilter !== 'all') {
@@ -97,7 +113,7 @@ const useGerenciamentoPagamentosViewModel = () => {
         });
 
         return filtered;
-    }, [pagamentos, statusFilter, metodoPagamentoFilter, sortBy, sortOrder]);
+    }, [pagamentos, searchText, statusFilter, metodoPagamentoFilter, sortBy, sortOrder]);
 
     const handleDeletePagamento = async (pagamento) => {
         try {
@@ -110,6 +126,7 @@ const useGerenciamentoPagamentosViewModel = () => {
     };
 
     const clearFilters = () => {
+        setSearchText(''); // Limpa o texto de busca
         setStatusFilter('all');
         setMetodoPagamentoFilter('all');
         setSortBy('data_vencimento');
@@ -128,6 +145,8 @@ const useGerenciamentoPagamentosViewModel = () => {
         setStatusFilter,
         metodoPagamentoFilter,
         setMetodoPagamentoFilter,
+        searchText,        // Exporta o estado de busca
+        setSearchText,     // Exporta o setter da busca
         statusOptions,
         metodoPagamentoOptions,
         isFilterSheetOpen,

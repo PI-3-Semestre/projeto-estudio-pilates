@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import useGerenciamentoPagamentosViewModel from '../viewmodels/useGerenciamentoPagamentosViewModel';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import PaymentCard from '../components/PaymentCard';
-import FilterBottomSheet from '../components/FilterBottomSheet'; // Importa o FilterBottomSheet
+import FilterBottomSheet from '../components/FilterBottomSheet';
 
 const GerenciamentoPagamentosView = () => {
     const navigate = useNavigate();
@@ -20,6 +20,8 @@ const GerenciamentoPagamentosView = () => {
         setStatusFilter,
         metodoPagamentoFilter,
         setMetodoPagamentoFilter,
+        searchText,
+        setSearchText,
         statusOptions,
         metodoPagamentoOptions,
         isFilterSheetOpen,
@@ -89,6 +91,23 @@ const GerenciamentoPagamentosView = () => {
                             <span className="material-symbols-outlined">filter_list</span>
                             <span className="truncate">Filtros</span>
                         </button>
+                    </div>
+
+                    {/* Campo de Busca (realocado aqui) */}
+                    <div className="mb-4">
+                        <label className="flex flex-col min-w-40 h-12 w-full">
+                            <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
+                                <div className="text-text-subtle-light dark:text-text-subtle-dark flex border-none bg-input-background-light dark:bg-input-background-dark items-center justify-center pl-4 rounded-l-xl border-r-0">
+                                    <span className="material-symbols-outlined">search</span>
+                                </div>
+                                <input
+                                    value={searchText}
+                                    onChange={(e) => setSearchText(e.target.value)}
+                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-0 border-none bg-input-background-light dark:bg-input-background-dark focus:border-none h-full placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                                    placeholder="Buscar por nome ou CPF do pagador..."
+                                />
+                            </div>
+                        </label>
                     </div>
 
                     {/* Lista de Pagamentos em formato de Card */}
