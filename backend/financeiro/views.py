@@ -45,15 +45,33 @@ class MatriculaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Otimiza a consulta para evitar problemas de N+1
-        ao buscar o perfil do aluno e o plano.
+        ao buscar o perfil do aluno, o plano e o studio.
         """
         return Matricula.objects.select_related(
             'aluno__aluno',
-            'plano'
+            'plano',
+            'studio'
         ).all()
 
     def perform_create(self, serializer):
         serializer.save()
+
+    @extend_schema(
+        summary="Buscar Matrículas por Aluno",
+        description="Retorna uma lista de matrículas associadas a um ID de aluno específico.",
+        responses={200: MatriculaSerializer(many=True)}
+    )
+    @action(detail=False, methods=['get'], url_path='aluno/(?P<aluno_id>[0-9]+)')
+    def retrieve_by_aluno(self, request, aluno_id=None):
+        """
+        Busca matrículas pelo ID do aluno associado.
+        """
+        # Usamos filter() pois um aluno pode ter mais de uma matrícula (histórico)
+        queryset = self.get_queryset().filter(aluno__id=aluno_id)
+        
+        # Se nenhuma matrícula for encontrada, retorna uma lista vazia (status 200 OK)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 @extend_schema(tags=['Financeiro - Pagamentos'])
 @extend_schema_view(
@@ -71,6 +89,7 @@ class PagamentoViewSet(viewsets.ModelViewSet):
     queryset = Pagamento.objects.all()
     serializer_class = PagamentoSerializer
     permission_classes = [CanManagePagamentos]
+    parser_classes = [MultiPartParser, FormParser]
 
     @extend_schema(
         summary="Anexar Comprovante (Aluno)",
@@ -145,6 +164,22 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(pagamento)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Buscar Pagamentos por Matrícula",
+        description="Retorna uma lista de pagamentos associados a um ID de matrícula específico.",
+        responses={200: PagamentoSerializer(many=True)}
+    )
+    @action(detail=False, methods=['get'], url_path='matricula/(?P<matricula_id>[0-9]+)')
+    def retrieve_by_matricula(self, request, matricula_id=None):
+        """
+        Busca pagamentos pelo ID da matrícula associada.
+        """
+        # Usamos filter() pois uma matrícula pode ter vários pagamentos (mensalidades).
+        queryset = self.get_queryset().filter(matricula__id=matricula_id)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 @extend_schema(tags=['Produtos'])
 class ProdutoViewSet(viewsets.ModelViewSet):
     """
@@ -191,6 +226,30 @@ class VendaViewSet(viewsets.ModelViewSet):
         serializer.save()
         # A lógica de criação de VendaProduto e atualização de estoque
         # foi movida para o método create do VendaSerializer.
+
+    @extend_schema(
+        summary="Buscar Vendas por Aluno",
+        description="Retorna uma lista de vendas associadas a um ID de aluno específico.",
+        responses={200: VendaSerializer(many=True)}
+    )
+    @action(
+        detail=False, 
+        methods=['get'], 
+        url_path='aluno/(?P<aluno_id>[0-9]+)',
+        permission_classes=[CanManagePagamentos] # Manter a mesma permissão da ViewSet
+    )
+    def retrieve_by_aluno(self, request, aluno_id=None):
+        """
+        Busca vendas pelo ID do aluno associado.
+        """
+        # Usamos filter() pois um aluno pode ter várias vendas (histórico)
+        queryset = self.get_queryset().filter(aluno__id=aluno_id)
+        
+        # Otimiza a consulta para buscar os produtos relacionados e evitar N+1 queries
+        queryset = queryset.prefetch_related('produtos')
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 @extend_schema(
     tags=['Estoque'],

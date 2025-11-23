@@ -1,6 +1,7 @@
 # financeiro/serializers.py
 from rest_framework import serializers
 from django.db import transaction # Importar transaction para garantir atomicidade
+import os
 from .models import Plano, Matricula, Pagamento, Produto, Venda, VendaProduto, Parcela, EstoqueStudio
 from studios.models import Studio
 from alunos.serializers import AlunoSerializer
@@ -50,8 +51,8 @@ class PlanoSerializer(serializers.ModelSerializer):
         ]
 class MatriculaSerializer(serializers.ModelSerializer):
     aluno = AlunoSerializer(source='aluno.aluno', read_only=True)
-    
     plano = PlanoSerializer(read_only=True)
+    studio = StudioNestedSerializer(read_only=True)
     
     aluno_id = serializers.PrimaryKeyRelatedField(
         queryset=Usuario.objects.filter(aluno__isnull=False),
@@ -61,6 +62,9 @@ class MatriculaSerializer(serializers.ModelSerializer):
     plano_id = serializers.PrimaryKeyRelatedField(
         queryset=Plano.objects.all(), source='plano', write_only=True
     )
+    studio_id = serializers.PrimaryKeyRelatedField(
+        queryset=Studio.objects.all(), source='studio', write_only=True
+    )
 
     class Meta:
         model = Matricula
@@ -68,11 +72,12 @@ class MatriculaSerializer(serializers.ModelSerializer):
             'id',
             'aluno',
             'plano',
+            'studio',
             'aluno_id',
             'plano_id',
+            'studio_id',
             'data_inicio',
             'data_fim',
-            'studio',
         ]
         
 class VendaSerializer(serializers.ModelSerializer):
@@ -175,8 +180,6 @@ class PagamentoSerializer(serializers.ModelSerializer):
             'data_pagamento',
             'comprovante_pagamento', 
         ]
-        # Definido read_only para upload seja feita pela action, sem ser feito nas rotas post/put
-        read_only_fields = ['comprovante_pagamento']
         
     def validate(self, data):
         if not data.get('matricula') and not data.get('venda'):
@@ -184,6 +187,20 @@ class PagamentoSerializer(serializers.ModelSerializer):
         if data.get('matricula') and data.get('venda'):
             raise serializers.ValidationError("Um pagamento não pode estar associado a uma matrícula e a uma venda ao mesmo tempo.")
         return data
+
+    def validate_comprovante_pagamento(self, value):
+        """
+        Valida a extensão do arquivo do comprovante.
+        """
+        # 'value' é o objeto do arquivo enviado (UploadedFile)
+        ext = os.path.splitext(value.name)[1]  # Pega a extensão do arquivo, ex: '.pdf'
+        valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
+
+        if not ext.lower() in valid_extensions:
+            raise serializers.ValidationError(
+                'Tipo de arquivo não suportado. Por favor, envie um arquivo PDF, JPG, JPEG ou PNG.'
+            )
+        return value
 
 class EstoqueStudioSerializer(serializers.ModelSerializer):
     studio_nome = serializers.CharField(source='studio.nome', read_only=True)
