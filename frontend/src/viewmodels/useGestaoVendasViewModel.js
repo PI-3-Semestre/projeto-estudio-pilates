@@ -1,56 +1,60 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import vendasService from '../services/vendasService';
-import studiosService from '../services/studiosService'; // Importar o serviço de estúdios
+import studiosService from '../services/studiosService';
 import { useToast } from '../context/ToastContext';
 
 const useGestaoVendasViewModel = () => {
     const { showToast } = useToast();
 
     const [vendas, setVendas] = useState([]);
-    const [allStudios, setAllStudios] = useState([]); // Novo estado para todos os estúdios
+    const [allStudios, setAllStudios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Estados para ordenação
+    // Estados para ordenação e filtro
     const [sortBy, setSortBy] = useState('data_venda');
     const [sortOrder, setSortOrder] = useState('desc');
+    const [studioFilter, setStudioFilter] = useState('all');
+    const [searchText, setSearchText] = useState(''); // Novo estado para o texto de busca
+    const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
-    // Novo estado para filtro de estúdio
-    const [studioFilter, setStudioFilter] = useState('all'); // 'all' para todos os estúdios
-
-    const fetchVendas = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await vendasService.getVendas();
-            setVendas(response.data);
+            const [vendasResponse, studiosResponse] = await Promise.all([
+                vendasService.getVendas(),
+                studiosService.getAllStudios(),
+            ]);
+            setVendas(vendasResponse.data);
+            setAllStudios(studiosResponse.data);
         } catch (err) {
             setError(err);
-            showToast('Erro ao carregar as vendas.', { type: 'error' });
+            showToast('Erro ao carregar os dados.', { type: 'error' });
         } finally {
             setLoading(false);
         }
     }, [showToast]);
 
-    const fetchStudios = useCallback(async () => {
-        try {
-            const response = await studiosService.getAllStudios();
-            setAllStudios(response.data);
-        } catch (err) {
-            showToast('Erro ao carregar a lista de estúdios para filtro.', { type: 'error' });
-        }
-    }, [showToast]);
-
     useEffect(() => {
-        fetchVendas();
-        fetchStudios(); // Carrega os estúdios ao montar o componente
-    }, [fetchVendas, fetchStudios]);
+        fetchData();
+    }, [fetchData]);
 
     // Lógica de filtragem e ordenação memoizada
     const processedVendas = useMemo(() => {
         if (!vendas || vendas.length === 0) return [];
 
         let filtered = [...vendas];
+
+        // Aplica filtro de busca por texto
+        if (searchText.trim()) {
+            const query = searchText.toLowerCase().trim();
+            filtered = filtered.filter(venda =>
+                (venda.aluno?.nome_completo?.toLowerCase().includes(query)) ||
+                (venda.aluno?.nome?.toLowerCase().includes(query)) || // Adicionado para consistência
+                (venda.aluno?.cpf?.includes(query))
+            );
+        }
 
         // Aplica o filtro de estúdio
         if (studioFilter !== 'all') {
@@ -76,38 +80,50 @@ const useGestaoVendasViewModel = () => {
             }
 
             if (typeof valueA === 'string' && typeof valueB === 'string') {
-                return sortOrder === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(a.valueA);
+                return sortOrder === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
             }
             return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
         });
 
         return filtered;
-    }, [vendas, studioFilter, sortBy, sortOrder]);
+    }, [vendas, searchText, studioFilter, sortBy, sortOrder]);
 
     const handleDeleteVenda = async (id) => {
         try {
             await vendasService.deleteVenda(id);
             showToast('Venda deletada com sucesso!', { type: 'success' });
-            // Atualiza a lista de vendas após a exclusão
             setVendas(prevVendas => prevVendas.filter(venda => venda.id !== id));
         } catch (err) {
             showToast('Erro ao deletar a venda. Verifique se há pagamentos associados.', { type: 'error' });
         }
     };
 
+    const clearFilters = () => {
+        setSearchText(''); // Limpa o texto de busca
+        setStudioFilter('all');
+        setSortBy('data_venda');
+        setSortOrder('desc');
+    };
+
     return {
-        vendas: processedVendas, // Agora retorna as vendas filtradas e ordenadas
+        vendas: processedVendas,
         loading,
         error,
         sortBy,
         setSortBy,
         sortOrder,
         setSortOrder,
-        allStudios,      // Exporta todos os estúdios
-        studioFilter,    // Exporta o filtro de estúdio atual
-        setStudioFilter, // Exporta a função para alterar o filtro de estúdio
+        allStudios,
+        studioFilter,
+        setStudioFilter,
+        searchText,        // Exporta o estado de busca
+        setSearchText,     // Exporta o setter da busca
+        isFilterSheetOpen,
+        openFilterSheet: () => setIsFilterSheetOpen(true),
+        closeFilterSheet: () => setIsFilterSheetOpen(false),
+        clearFilters,
         handleDeleteVenda,
-        refreshVendas: fetchVendas,
+        refreshVendas: fetchData,
     };
 };
 
