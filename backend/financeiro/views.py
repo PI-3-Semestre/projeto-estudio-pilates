@@ -210,7 +210,7 @@ class ProdutosPorStudioView(APIView):
         # Passa o 'studio_id' para o contexto do serializer
         # para que ele possa buscar a quantidade correta
         serializer = ProdutoEstoqueSerializer(produtos, many=True, context={'studio_id': studio_id})
-        
+
         return Response(serializer.data)
 
 @extend_schema(tags=['Vendas'])
