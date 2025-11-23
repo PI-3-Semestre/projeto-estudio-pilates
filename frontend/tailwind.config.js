@@ -12,7 +12,9 @@ export default {
         "background": {
           "light": "#f5f8f8",
           "dark": "#102220",
-          "page": "#f8fcfb"
+          "page": "#f8fcfb",
+          "login-light": "#a5c7c9", 
+          "login-dark": "#0d9488",
         },
         "card": {
           "light": "#ffffff",
@@ -46,7 +48,8 @@ export default {
         }
       },
       fontFamily: {
-        "display": ["Manrope", "sans-serif"]
+        "display": ["Manrope", "sans-serif"],
+        "poppins": ["Poppins", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0.5rem",
