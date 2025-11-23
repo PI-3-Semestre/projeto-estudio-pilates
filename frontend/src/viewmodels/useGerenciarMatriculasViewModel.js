@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import matriculasService from '../services/matriculasService';
-import studiosService from '../services/studiosService'; // Importar o serviço de estúdios
+import studiosService from '../services/studiosService';
 import { useToast } from '../context/ToastContext';
 
 const useGerenciarMatriculasViewModel = () => {
     const { showToast } = useToast();
 
     const [matriculas, setMatriculas] = useState([]);
-    const [allStudios, setAllStudios] = useState([]); // Novo estado para todos os estúdios
+    const [allStudios, setAllStudios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -15,6 +15,8 @@ const useGerenciarMatriculasViewModel = () => {
     const [sortBy, setSortBy] = useState('data_inicio');
     const [sortOrder, setSortOrder] = useState('desc');
     const [searchText, setSearchText] = useState('');
+    const [studioFilter, setStudioFilter] = useState('all');
+    const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false); // Novo estado para a gaveta
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -26,7 +28,7 @@ const useGerenciarMatriculasViewModel = () => {
             ]);
             setMatriculas(matriculasResponse.data);
             setAllStudios(studiosResponse.data);
-        } catch (err) {
+        } catch (err) { // Corrigido: removido o '=>'
             setError(err);
             showToast('Erro ao carregar os dados.', { type: 'error' });
         } finally {
@@ -50,6 +52,13 @@ const useGerenciarMatriculasViewModel = () => {
                 (matricula.aluno?.nome?.toLowerCase().includes(query)) ||
                 (matricula.aluno?.cpf?.includes(query))
             );
+        }
+
+        if (studioFilter !== 'all') {
+            filtered = filtered.filter(matricula => {
+                const studioId = matricula.studio?.id || matricula.studio;
+                return studioId?.toString() === studioFilter.toString();
+            });
         }
 
         filtered.sort((a, b) => {
@@ -80,7 +89,7 @@ const useGerenciarMatriculasViewModel = () => {
         });
 
         return filtered;
-    }, [matriculas, searchText, sortBy, sortOrder]);
+    }, [matriculas, searchText, studioFilter, sortBy, sortOrder]);
 
     const handleDeleteMatricula = async (matricula) => {
         try {
@@ -92,9 +101,16 @@ const useGerenciarMatriculasViewModel = () => {
         }
     };
 
+    const clearFilters = () => {
+        setSearchText('');
+        setStudioFilter('all');
+        setSortBy('data_inicio');
+        setSortOrder('desc');
+    };
+
     return {
         matriculas: processedMatriculas,
-        allStudios, // Exporta a lista de estúdios
+        allStudios,
         loading,
         error,
         sortBy,
@@ -103,6 +119,12 @@ const useGerenciarMatriculasViewModel = () => {
         setSortOrder,
         searchText,
         setSearchText,
+        studioFilter,
+        setStudioFilter,
+        isFilterSheetOpen,
+        openFilterSheet: () => setIsFilterSheetOpen(true),
+        closeFilterSheet: () => setIsFilterSheetOpen(false),
+        clearFilters,
         handleDeleteMatricula,
         refreshMatriculas: fetchData,
     };

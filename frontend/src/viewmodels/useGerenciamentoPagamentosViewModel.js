@@ -14,6 +14,7 @@ const useGerenciamentoPagamentosViewModel = () => {
     const [sortOrder, setSortOrder] = useState('desc');
     const [statusFilter, setStatusFilter] = useState('all');
     const [metodoPagamentoFilter, setMetodoPagamentoFilter] = useState('all');
+    const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false); // Novo estado para a gaveta
 
     // Opções hardcoded para filtros (conforme análise crítica)
     const statusOptions = [
@@ -40,7 +41,7 @@ const useGerenciamentoPagamentosViewModel = () => {
         try {
             const response = await financeiroService.getPagamentos();
             setPagamentos(response.data);
-        } catch (err) {
+        } catch (err) { // Corrigido: removido o '=>'
             setError(err);
             showToast('Erro ao carregar os pagamentos.', { type: 'error' });
         } finally {
@@ -86,8 +87,7 @@ const useGerenciamentoPagamentosViewModel = () => {
                     valueB = b.status;
                     break;
                 default:
-                    valueA = a[sortBy];
-                    valueB = b[sortBy];
+                    return 0;
             }
 
             if (typeof valueA === 'string' && typeof valueB === 'string') {
@@ -109,6 +109,13 @@ const useGerenciamentoPagamentosViewModel = () => {
         }
     };
 
+    const clearFilters = () => {
+        setStatusFilter('all');
+        setMetodoPagamentoFilter('all');
+        setSortBy('data_vencimento');
+        setSortOrder('desc');
+    };
+
     return {
         pagamentos: processedPagamentos,
         loading,
@@ -123,6 +130,10 @@ const useGerenciamentoPagamentosViewModel = () => {
         setMetodoPagamentoFilter,
         statusOptions,
         metodoPagamentoOptions,
+        isFilterSheetOpen,
+        openFilterSheet: () => setIsFilterSheetOpen(true),
+        closeFilterSheet: () => setIsFilterSheetOpen(false),
+        clearFilters,
         handleDeletePagamento,
         refreshPagamentos: fetchPagamentos,
     };

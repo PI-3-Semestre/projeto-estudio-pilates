@@ -19,11 +19,47 @@ const MatriculaCard = ({ matricula, onDelete, onEdit, onRenovar, allStudios }) =
         return `ID: ${studioData}`;
     };
 
+    const handleActionClick = (e, action) => {
+        e.stopPropagation(); // Impede a navegação do Link pai
+        e.preventDefault(); // Impede o comportamento padrão do link
+        action(matricula);
+    };
+
     return (
-        <div className="bg-white dark:bg-card-dark shadow-md rounded-xl p-4 space-y-2 border border-gray-200 dark:border-gray-700">
+        <Link to={`/matriculas/${matricula.id}`} className="relative block bg-white dark:bg-card-dark shadow-md rounded-xl p-4 space-y-2 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300">
+            {/* Ícones de Ação */}
+            <div className="absolute top-2 right-2 flex space-x-1 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-1 rounded-full">
+                {onRenovar && (
+                    <button
+                        onClick={(e) => handleActionClick(e, onRenovar)}
+                        className="p-1.5 text-green-600 hover:bg-green-100 dark:hover:bg-green-800 rounded-full"
+                        title="Renovar"
+                    >
+                        <span className="material-symbols-outlined text-lg">autorenew</span>
+                    </button>
+                )}
+                {onEdit && (
+                    <button
+                        onClick={(e) => handleActionClick(e, onEdit)}
+                        className="p-1.5 text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded-full"
+                        title="Editar"
+                    >
+                        <span className="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={(e) => handleActionClick(e, onDelete)}
+                        className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-800 rounded-full"
+                        title="Excluir"
+                    >
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                )}
+            </div>
+
             <div className="flex justify-between items-center border-b pb-2 mb-2 border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Matrícula #{matricula.id}</h3>
-                {/* Adicionar um status se a API fornecer */}
             </div>
 
             <div className="grid grid-cols-2 gap-y-2 text-sm">
@@ -48,36 +84,7 @@ const MatriculaCard = ({ matricula, onDelete, onEdit, onRenovar, allStudios }) =
                     <p className="font-medium text-gray-800 dark:text-gray-200">{getStudioName(matricula.studio)}</p>
                 </div>
             </div>
-
-            <div className="flex justify-end space-x-2 border-t pt-2 mt-2 border-gray-200 dark:border-gray-700">
-                {onRenovar && (
-                    <button
-                        onClick={() => onRenovar(matricula)}
-                        className="px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                    >
-                        Renovar
-                    </button>
-                )}
-                <Link
-                    to={`/matriculas/${matricula.id}`}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                >
-                    Detalhes
-                </Link>
-                <button
-                    onClick={() => onEdit(matricula)}
-                    className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
-                >
-                    Editar
-                </button>
-                <button
-                    onClick={() => onDelete(matricula)}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                >
-                    Excluir
-                </button>
-            </div>
-        </div>
+        </Link>
     );
 };
 

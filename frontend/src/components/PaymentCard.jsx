@@ -25,10 +25,41 @@ const PaymentCard = ({ pagamento, onDelete, onEdit, formatPrice, formatDate }) =
             break;
     }
 
+    const handleActionClick = (e, action) => {
+        e.stopPropagation(); // Impede a navegação do Link pai
+        e.preventDefault(); // Impede o comportamento padrão do link
+        action(pagamento);
+    };
+
     return (
-        <div className="bg-white dark:bg-card-dark shadow-md rounded-xl p-4 space-y-2 border border-gray-200 dark:border-gray-700">
+        <Link to={`/financeiro/pagamentos/${pagamento.id}`} className="relative block bg-white dark:bg-card-dark shadow-md rounded-xl p-4 space-y-2 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300">
+            {/* Ícones de Ação */}
+            <div className="absolute top-2 right-2 flex space-x-1 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-1 rounded-full">
+                {onEdit && (
+                    <button
+                        onClick={(e) => handleActionClick(e, onEdit)}
+                        className="p-1.5 text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded-full"
+                        title="Editar"
+                    >
+                        <span className="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={(e) => handleActionClick(e, onDelete)}
+                        className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-800 rounded-full"
+                        title="Excluir"
+                    >
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                )}
+            </div>
+
             <div className="flex justify-between items-center border-b pb-2 mb-2 border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pagamento #{pagamento.id}</h3>
+                {/* Status realocado para uma nova linha */}
+            </div>
+            <div className="mb-2"> {/* Nova div para o status */}
                 <span className={`text-sm font-semibold ${statusClass}`}>{pagamento.status}</span>
             </div>
 
@@ -61,13 +92,13 @@ const PaymentCard = ({ pagamento, onDelete, onEdit, formatPrice, formatDate }) =
                     </p>
                     {isMatricula && (
                         <>
-                            <p className="font-medium text-gray-800 dark:text-gray-200">{pagamento.matricula.aluno.nome_completo}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{pagamento.matricula.plano.nome}</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-200">{pagamento.matricula.aluno?.nome_completo || pagamento.matricula.aluno?.nome}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{pagamento.matricula.plano?.nome}</p>
                         </>
                     )}
                     {isVenda && (
                         <>
-                            <p className="font-medium text-gray-800 dark:text-gray-200">{pagamento.venda.aluno?.nome_completo || 'Venda Avulsa'}</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-200">{pagamento.venda.aluno?.nome_completo || pagamento.venda.aluno?.nome || 'Venda Avulsa'}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Venda #{pagamento.venda.id}</p>
                         </>
                     )}
@@ -81,33 +112,13 @@ const PaymentCard = ({ pagamento, onDelete, onEdit, formatPrice, formatDate }) =
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline text-sm"
+                        onClick={(e) => e.stopPropagation()} // Impede a navegação do Link pai
                     >
                         Ver Comprovante
                     </a>
                 </div>
             )}
-
-            <div className="flex justify-end space-x-2 border-t pt-2 mt-2 border-gray-200 dark:border-gray-700">
-                <Link
-                    to={`/financeiro/pagamentos/${pagamento.id}`}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                >
-                    Detalhes
-                </Link>
-                <button
-                    onClick={() => onEdit(pagamento)}
-                    className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
-                >
-                    Editar
-                </button>
-                <button
-                    onClick={() => onDelete(pagamento)}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                >
-                    Excluir
-                </button>
-            </div>
-        </div>
+        </Link>
     );
 };
 

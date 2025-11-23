@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import useGerenciamentoPagamentosViewModel from '../viewmodels/useGerenciamentoPagamentosViewModel';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import PaymentCard from '../components/PaymentCard';
+import FilterBottomSheet from '../components/FilterBottomSheet'; // Importa o FilterBottomSheet
 
 const GerenciamentoPagamentosView = () => {
     const navigate = useNavigate();
@@ -21,6 +22,10 @@ const GerenciamentoPagamentosView = () => {
         setMetodoPagamentoFilter,
         statusOptions,
         metodoPagamentoOptions,
+        isFilterSheetOpen,
+        openFilterSheet,
+        closeFilterSheet,
+        clearFilters,
     } = useGerenciamentoPagamentosViewModel();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,8 +70,8 @@ const GerenciamentoPagamentosView = () => {
 
             <main className="flex-grow p-4 space-y-4">
                 <div className="mx-auto max-w-7xl">
-                    {/* Controles de Ações, Filtros e Ordenação */}
-                    <div className="flex flex-col lg:flex-row gap-4 mb-4">
+                    {/* Controles de Ações e Botão de Filtro */}
+                    <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between items-center">
                         <button
                             onClick={() => navigate('/financeiro/pagamentos/novo')}
                             className="flex min-w-[84px] max-w-[480px] w-full lg:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-action-primary text-white gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]"
@@ -77,52 +82,13 @@ const GerenciamentoPagamentosView = () => {
                             <span className="truncate">Registrar Novo Pagamento</span>
                         </button>
 
-                        <div className="flex flex-col sm:flex-row gap-3 flex-wrap flex-grow">
-                            {/* Filtro por Status */}
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
-                            >
-                                {statusOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {/* Filtro por Método de Pagamento */}
-                            <select
-                                value={metodoPagamentoFilter}
-                                onChange={(e) => setMetodoPagamentoFilter(e.target.value)}
-                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
-                            >
-                                {metodoPagamentoOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {/* Ordenação */}
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
-                            >
-                                <option value="data_vencimento">Ordenar por Vencimento</option>
-                                <option value="valor_total">Ordenar por Valor</option>
-                                <option value="status">Ordenar por Status</option>
-                            </select>
-                            <select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value)}
-                                className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
-                            >
-                                <option value="asc">Crescente</option>
-                                <option value="desc">Decrescente</option>
-                            </select>
-                        </div>
+                        <button
+                            onClick={openFilterSheet}
+                            className="flex min-w-[84px] max-w-[480px] w-full lg:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 bg-input-background-light dark:bg-input-background-dark text-text-light dark:text-text-dark gap-2 pl-5 text-base font-bold leading-normal tracking-[0.015em]"
+                        >
+                            <span className="material-symbols-outlined">filter_list</span>
+                            <span className="truncate">Filtros</span>
+                        </button>
                     </div>
 
                     {/* Lista de Pagamentos em formato de Card */}
@@ -157,6 +123,60 @@ const GerenciamentoPagamentosView = () => {
                 title="Confirmar Exclusão"
                 message="Você tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita."
             />
+
+            {/* Bottom Sheet de Filtros */}
+            <FilterBottomSheet
+                isOpen={isFilterSheetOpen}
+                onClose={closeFilterSheet}
+                onClearFilters={clearFilters}
+            >
+                <div className="flex flex-col gap-3">
+                    {/* Filtro por Status */}
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                    >
+                        {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Filtro por Método de Pagamento */}
+                    <select
+                        value={metodoPagamentoFilter}
+                        onChange={(e) => setMetodoPagamentoFilter(e.target.value)}
+                        className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                    >
+                        {metodoPagamentoOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Ordenação */}
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                    >
+                        <option value="data_vencimento">Ordenar por Vencimento</option>
+                        <option value="valor_total">Ordenar por Valor</option>
+                        <option value="status">Ordenar por Status</option>
+                    </select>
+                    <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                    >
+                        <option value="asc">Crescente</option>
+                        <option value="desc">Decrescente</option>
+                    </select>
+                </div>
+            </FilterBottomSheet>
         </div>
     );
 };
