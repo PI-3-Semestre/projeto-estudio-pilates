@@ -145,7 +145,7 @@ const GerenciamentoFinanceiroView = () => {
                         <QuickActionButton to="/produtos" icon="inventory_2" label="Gestão de Produtos" />
                         <QuickActionButton to="/matriculas" icon="assignment_ind" label="Gestão de Matrículas" />
                         <QuickActionButton to="/vendas" icon="shopping_cart" label="Gestão de Vendas" />
-                        <QuickActionButton to="/financeiro/pagamentos" icon="payments" label="Gestão de Pagamentos" /> {/* Rota corrigida */}
+                        <QuickActionButton to="/financeiro/pagamentos" icon="payments" label="Gestão de Pagamentos" />
                         <QuickActionButton to="/relatorios" icon="bar_chart" label="Relatórios Financeiros" />
                     </div>
                 </div>

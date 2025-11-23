@@ -4,7 +4,7 @@ import useDetalhesAlunoViewModel from "../viewmodels/useDetalhesAlunoViewModel";
 import { format } from "date-fns";
 
 const DetalhesAlunoView = () => {
-  const { aluno, studioNames, loading, error, handleDelete, formatPhotoUrl } =
+  const { aluno, matriculas, studioNames, loading, error, handleDelete, formatPhotoUrl } =
     useDetalhesAlunoViewModel();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -15,6 +15,10 @@ const DetalhesAlunoView = () => {
   const confirmDelete = () => {
     handleDelete();
     closeModal();
+  };
+
+  const handleRenovar = (matricula) => {
+    navigate('/matriculas/nova', { state: { matriculaParaRenovar: matricula } });
   };
 
   if (loading) {
@@ -149,6 +153,32 @@ const DetalhesAlunoView = () => {
             </div>
           </div>
         </div>
+
+        {/* Seção de Matrículas */}
+        <div className="w-full max-w-lg mx-auto mt-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Matrículas</h2>
+            {matriculas.length > 0 ? (
+                <div className="space-y-4">
+                    {matriculas.map(matricula => (
+                        <div key={matricula.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
+                            <p className="font-bold">{matricula.plano.nome}</p>
+                            <p className="text-sm text-gray-500">
+                                {format(new Date(matricula.data_inicio), "dd/MM/yyyy")} - {format(new Date(matricula.data_fim), "dd/MM/yyyy")}
+                            </p>
+                            <button
+                                onClick={() => handleRenovar(matricula)}
+                                className="mt-2 px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                            >
+                                Renovar
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-center text-gray-500 dark:text-gray-400">Nenhuma matrícula encontrada.</p>
+            )}
+        </div>
+
         <div className="w-full max-w-lg mx-auto mt-6 space-y-3">
           <Link
             to={`/alunos/${aluno.cpf}/editar`}

@@ -45,9 +45,13 @@ import GestaoVendasView from "./views/GestaoVendasView";
 import CadastrarVendaView from "./views/CadastrarVendaView";
 import DetalhesVendaView from "./views/DetalhesVendaView";
 import GerenciamentoPagamentosView from "./views/GerenciamentoPagamentosView";
-import DetalhesPagamentoView from "./views/DetalhesPagamentoView"; // Importa DetalhesPagamentoView
-import CadastrarPagamentoView from "./views/CadastrarPagamentoView"; // Importa CadastrarPagamentoView
-import EditarPagamentoView from "./views/EditarPagamentoView";     // Importa EditarPagamentoView
+import DetalhesPagamentoView from "./views/DetalhesPagamentoView";
+import CadastrarPagamentoView from "./views/CadastrarPagamentoView";
+import EditarPagamentoView from "./views/EditarPagamentoView";
+import GerenciamentoMatriculasView from "./views/GerenciamentoMatriculasView";
+import CadastrarMatriculaView from "./views/CadastrarMatriculaView";
+import DetalhesMatriculaView from "./views/DetalhesMatriculaView";
+import EditarMatriculaView from "./views/EditarMatriculaView"; // Importa a nova view
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -376,15 +380,48 @@ const PrivateRoutes = () => {
       <Route
         path="/financeiro/pagamentos"
         element={
-          <ProtectedRoute adminOnly={true}> {/* Usando adminOnly por enquanto */}
+          <ProtectedRoute adminOnly={true}>
             <GerenciamentoPagamentosView />
           </ProtectedRoute>
         }
       />
-      {/* Rotas para detalhes, novo e editar serão adicionadas posteriormente */}
       <Route path="/financeiro/pagamentos/:id" element={<ProtectedRoute adminOnly={true}><DetalhesPagamentoView /></ProtectedRoute>} />
       <Route path="/financeiro/pagamentos/novo" element={<ProtectedRoute adminOnly={true}><CadastrarPagamentoView /></ProtectedRoute>} />
       <Route path="/financeiro/pagamentos/:id/editar" element={<ProtectedRoute adminOnly={true}><EditarPagamentoView /></ProtectedRoute>} />
+
+      {/* Rotas de Matrículas */}
+      <Route
+        path="/matriculas"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <GerenciamentoMatriculasView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/matriculas/nova"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <CadastrarMatriculaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/matriculas/:id"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <DetalhesMatriculaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/matriculas/:id/editar"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <EditarMatriculaView />
+          </ProtectedRoute>
+        }
+      />
 
 
       <Route path="*" element={<Navigate to="/dashboard" />} />

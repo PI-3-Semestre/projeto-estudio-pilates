@@ -5,7 +5,18 @@ const vendasService = {
      * Retorna uma lista com todas as vendas registradas.
      */
     getVendas: () => {
-        return api.get('/vendas/'); // Removido o parâmetro de filtro
+        return api.get('/vendas/');
+    },
+
+    /**
+     * Busca todas as vendas de um aluno específico.
+     * @param {number} alunoId - O ID do usuário (aluno).
+     */
+    getVendasByAlunoId: (alunoId) => {
+        if (!alunoId) {
+            return Promise.reject(new Error("É necessário fornecer o ID do aluno."));
+        }
+        return api.get(`/vendas/aluno/${alunoId}/`);
     },
 
     /**

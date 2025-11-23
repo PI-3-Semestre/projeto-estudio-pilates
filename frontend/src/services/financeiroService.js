@@ -24,11 +24,14 @@ const financeiroService = {
     
     /**
      * Cria um novo registro de pagamento, associado a uma venda ou matrícula.
-     * @param {object} pagamentoData - Os dados do pagamento.
-     * Ex: { venda_id: 3, valor_total: "114.90", status: "PAGO", ... }
+     * @param {FormData} formData - Os dados do pagamento em formato FormData.
      */
-    createPagamento: (pagamentoData) => {
-        return api.post('/financeiro/pagamentos/', pagamentoData);
+    createPagamento: (formData) => {
+        return api.post('/financeiro/pagamentos/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     },
 
     /**
@@ -91,6 +94,14 @@ const financeiroService = {
      */
     getPagamentoByVendaId: (vendaId) => {
         return api.get(`/financeiro/pagamentos/venda/${vendaId}/`);
+    },
+
+    /**
+     * Busca todos os pagamentos associados a um ID de matrícula específico.
+     * @param {number} matriculaId - O ID da matrícula.
+     */
+    getPagamentosByMatriculaId: (matriculaId) => {
+        return api.get(`/financeiro/pagamentos/matricula/${matriculaId}/`);
     },
 };
 
