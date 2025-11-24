@@ -1,11 +1,71 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Avatar from "../components/Avatar";
 import useGerenciarAlunosViewModel from "../viewmodels/useGerenciarAlunosViewModel";
 
 const GerenciarAlunosView = () => {
-  const { alunos, loading, error } = useGerenciarAlunosViewModel();
+  const { alunos, studios, loading, error, formatPhotoUrl } =
+    useGerenciarAlunosViewModel();
+
+  // Filter states
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [unidadeFilter, setUnidadeFilter] = useState("all");
+
+  // Filter logic using useMemo for performance
+  const filteredAlunos = useMemo(() => {
+    let filtered = alunos;
+
+    // Text search filter (name or CPF)
+    if (searchText.trim()) {
+      const query = searchText.toLowerCase().trim();
+      filtered = filtered.filter(
+        (aluno) =>
+          aluno.nome.toLowerCase().includes(query) || aluno.cpf.includes(query)
+      );
+    }
+
+    // Status filter
+    if (statusFilter === "active") {
+      filtered = filtered.filter((aluno) => aluno.is_active);
+    } else if (statusFilter === "inactive") {
+      filtered = filtered.filter((aluno) => !aluno.is_active);
+    }
+
+    // Unidade filter
+    if (unidadeFilter !== "all") {
+      const unidadeId = parseInt(unidadeFilter);
+      filtered = filtered.filter(
+        (aluno) => aluno.unidades && aluno.unidades.includes(unidadeId)
+      );
+    }
+
+    return filtered;
+  }, [alunos, searchText, statusFilter, unidadeFilter]);
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    searchText.trim() || statusFilter !== "all" || unidadeFilter !== "all";
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchText("");
+    setStatusFilter("all");
+    setUnidadeFilter("all");
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+  };
+
+  const handleUnidadeChange = (e) => {
+    setUnidadeFilter(e.target.value);
+  };
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-page dark:bg-background-dark group/design-root overflow-x-hidden">
@@ -21,6 +81,8 @@ const GerenciarAlunosView = () => {
                       <span className="material-symbols-outlined">search</span>
                     </div>
                     <input
+                      value={searchText}
+                      onChange={handleSearchChange}
                       className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-0 border-none bg-input-background-light dark:bg-input-background-dark focus:border-none h-full placeholder:text-text-subtle-light dark:placeholder:text-text-subtle-dark px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                       placeholder="Buscar por nome ou CPF..."
                     />
@@ -28,28 +90,51 @@ const GerenciarAlunosView = () => {
                 </label>
               </div>
               <div className="flex gap-3 flex-wrap">
-                <button className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4">
-                  <p className="text-text-light dark:text-text-dark text-sm font-medium leading-normal">
-                    Status: Todos
-                  </p>
-                  <div className="text-text-light dark:text-text-dark">
-                    <span className="material-symbols-outlined">
-                      arrow_drop_down
-                    </span>
-                  </div>
-                </button>
-                <button className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4">
-                  <p className="text-text-light dark:text-text-dark text-sm font-medium leading-normal">
-                    Unidade: Todas
-                  </p>
-                  <div className="text-text-light dark:text-text-dark">
-                    <span className="material-symbols-outlined">
-                      arrow_drop_down
-                    </span>
-                  </div>
-                </button>
+                <select
+                  value={statusFilter}
+                  onChange={handleStatusChange}
+                  className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                >
+                  <option value="all">Status: Todos</option>
+                  <option value="active">Status: Ativo</option>
+                  <option value="inactive">Status: Inativo</option>
+                </select>
+                <select
+                  value={unidadeFilter}
+                  onChange={handleUnidadeChange}
+                  className="flex h-12 lg:h-auto shrink-0 items-center justify-center gap-x-2 rounded-xl bg-input-background-light dark:bg-input-background-dark px-4 text-text-light dark:text-text-dark text-sm font-medium leading-normal border-none focus:ring-2 focus:ring-action-primary/50 focus:outline-none"
+                >
+                  <option value="all">Unidade: Todas</option>
+                  {studios.map((studio) => (
+                    <option key={studio.id} value={studio.id}>
+                      Unidade: {studio.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
+            {/* Results count and clear filters */}
+            <div className="flex items-center justify-between">
+              <p className="text-text-subtle-light dark:text-text-subtle-dark text-sm">
+                {hasActiveFilters
+                  ? `${filteredAlunos.length} de ${alunos.length} alunos ${
+                      filteredAlunos.length === 1 ? "encontrado" : "encontrados"
+                    }`
+                  : `${alunos.length} alunos ${
+                      alunos.length === 1 ? "cadastrado" : "cadastrados"
+                    }`}
+              </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-action-primary hover:text-action-primary/80 text-sm font-medium underline"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+
             <div className="flex">
               <Link
                 to="/alunos/cadastrar-usuario"
@@ -64,7 +149,11 @@ const GerenciarAlunosView = () => {
             </div>
           </div>
 
-          {loading && <p className="text-text-light dark:text-text-dark">Carregando alunos...</p>}
+          {loading && (
+            <p className="text-text-light dark:text-text-dark">
+              Carregando alunos...
+            </p>
+          )}
           {error && <p className="text-red-500">Erro ao carregar alunos.</p>}
 
           {/* Desktop view */}
@@ -90,22 +179,27 @@ const GerenciarAlunosView = () => {
                 </tr>
               </thead>
               <tbody>
-                {alunos.map((aluno) => (
-                  <tr key={aluno.cpf} className="bg-card-light dark:bg-card-dark border-b dark:border-gray-700">
+                {filteredAlunos.map((aluno) => (
+                  <tr
+                    key={aluno.cpf}
+                    className="bg-card-light dark:bg-card-dark border-b dark:border-gray-700"
+                  >
                     <th
                       className="px-6 py-4 font-medium text-text-light dark:text-text-dark whitespace-nowrap"
                       scope="row"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar
-                          imageUrl={aluno.foto}
+                          imageUrl={formatPhotoUrl(aluno.foto)}
                           alt={`Foto de ${aluno.nome}`}
                           className="h-10 w-10 shrink-0"
                         />
                         <span>{aluno.nome}</span>
                       </div>
                     </th>
-                    <td className="px-6 py-4 text-text-subtle-light dark:text-text-subtle-dark">{aluno.email}</td>
+                    <td className="px-6 py-4 text-text-subtle-light dark:text-text-subtle-dark">
+                      {aluno.email}
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`text-xs font-semibold inline-flex px-2.5 py-0.5 rounded-full ${
@@ -136,7 +230,7 @@ const GerenciarAlunosView = () => {
 
           {/* Mobile view */}
           <div className="lg:hidden space-y-4">
-            {alunos.map((aluno) => (
+            {filteredAlunos.map((aluno) => (
               <div
                 key={aluno.cpf}
                 className="bg-background-page dark:bg-background-dark rounded-lg p-4"
@@ -144,7 +238,7 @@ const GerenciarAlunosView = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <Avatar
-                      imageUrl={aluno.foto}
+                      imageUrl={formatPhotoUrl(aluno.foto)}
                       alt={`Foto de ${aluno.nome}`}
                       className="h-14 w-14"
                     />

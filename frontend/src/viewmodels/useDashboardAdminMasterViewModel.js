@@ -1,16 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import dashboardService from '../services/dashboardService';
+import { useToast } from '../context/ToastContext';
 
 const useDashboardAdminMasterViewModel = () => {
-    // In the future, you can add logic here to fetch data for the dashboard
-    const [stats, setStats] = useState({
-        newStudents: 2,
-        updatedProfiles: 1,
-        cancelledClasses: 1,
-        paymentsReceived: 1,
-    });
+    const [dashboardData, setDashboardData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { showToast } = useToast();
+
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await dashboardService.getAdminMasterDashboardData(); // Alterado aqui
+            setDashboardData(response.data);
+        } catch (err) {
+            setError(err);
+            showToast('Erro ao carregar os dados do dashboard.', { type: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    }, [showToast]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     return {
-        stats,
+        dashboardData,
+        loading,
+        error,
     };
 };
 

@@ -28,7 +28,7 @@ const authService = {
           errorMessage = apiError; // Usa o erro da API se for outro
         }
       }
-      
+
       throw new Error(errorMessage);
     }
   },

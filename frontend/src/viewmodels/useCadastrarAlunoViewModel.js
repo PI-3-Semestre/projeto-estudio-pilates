@@ -54,7 +54,9 @@ const useCadastrarAlunoViewModel = () => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, foto: reader.result }));
+                // Extract only the base64 part (remove 'data:image/...;base64,' prefix)
+                const base64String = reader.result.split(',')[1];
+                setFormData(prev => ({ ...prev, foto: base64String }));
             };
             reader.readAsDataURL(file);
         }

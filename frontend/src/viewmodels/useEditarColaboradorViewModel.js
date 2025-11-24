@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getColaboradorPorCpf, getUsuario } from '../services/api';
@@ -12,7 +12,7 @@ const useEditarColaboradorViewModel = () => {
         username: '',
         email: '',
         cpf: '',
-        
+
         // Colaborador fields
         nome_completo: '',
         registro_profissional: '',
@@ -44,7 +44,7 @@ const useEditarColaboradorViewModel = () => {
                 if (colaboradorData && colaboradorData.usuario) {
                     const usuarioResponse = await getUsuario(colaboradorData.usuario);
                     const usuarioData = usuarioResponse.data;
-                    
+
                     const fullData = {
                         ...colaboradorData,
                         usuario: usuarioData
@@ -66,7 +66,7 @@ const useEditarColaboradorViewModel = () => {
                     });
                 } else {
                     setColaborador(colaboradorData);
-                     setFormData({
+                    setFormData({
                         ...formData,
                         nome_completo: colaboradorData.nome_completo,
                         registro_profissional: colaboradorData.registro_profissional,
@@ -91,7 +91,7 @@ const useEditarColaboradorViewModel = () => {
         }
     }, [cpf]);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         if (name.startsWith("endereco.")) {
             const field = name.split(".")[1];
@@ -105,7 +105,7 @@ const useEditarColaboradorViewModel = () => {
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
-    };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

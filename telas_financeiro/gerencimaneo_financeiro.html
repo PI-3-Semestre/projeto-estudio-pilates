@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Gerenciamento Financeiro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#0fbdab",
+                "background-light": "#f6f8f8",
+                "background-dark": "#102220",
+              },
+              fontFamily: {
+                "display": ["Lexend", "sans-serif"]
+              },
+              borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "1rem",
+                "xl": "1.5rem",
+                "full": "9999px"
+              },
+            },
+          },
+        }
+    </script>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="relative flex min-h-screen w-full flex-col">
+    <main class="flex-grow">
+        <header class="sticky top-0 z-10 flex items-center bg-background-light/80 p-4 backdrop-blur-sm dark:bg-background-dark/80">
+            <div class="flex items-center gap-2">
+                <button class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-800 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10 -ml-3">
+                    <span class="material-symbols-outlined text-2xl">arrow_back</span>
+                </button>
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white">Gerenciamento Financeiro</h1>
+            </div>
+        </header>
+        <div class="p-4 space-y-4">
+            <div class="flex flex-col rounded-xl bg-primary/20 p-4 dark:bg-primary/30">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Resumo Financeiro</h2>
+                <div class="mt-3 grid grid-cols-2 gap-3 text-gray-800 dark:text-gray-100 sm:grid-cols-3">
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold">R$ 12.5k</span>
+                        <span class="text-sm">Receita Total</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold">R$ 1.2k</span>
+                        <span class="text-sm">Pag. Pendentes</span>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">sell</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Gestão de Planos</h3>
+                </a>
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">inventory_2</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Gestão de Produtos</h3>
+                </a>
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">assignment_ind</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Gestão de Matrículas</h3>
+                </a>
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">shopping_cart</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Gestão de Vendas</h3>
+                </a>
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">payments</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Gestão de Pagamentos</h3>
+                </a>
+                <a class="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-white p-4 text-center shadow-sm hover:bg-gray-50 dark:bg-white/10 dark:hover:bg-white/20" href="#">
+                    <span class="material-symbols-outlined text-3xl text-primary">bar_chart</span>
+                    <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Relatórios Financeiros</h3>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body></html>

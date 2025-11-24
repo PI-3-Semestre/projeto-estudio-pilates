@@ -10,6 +10,9 @@ const useGestaoUsuariosViewModel = () => {
         const fetchUsers = async () => {
             try {
                 const response = await api.get('/usuarios/');
+                if (response.data && response.data.length > 0) {
+                    console.log("Dados recebidos do /usuarios/ (ViewModel):", response.data[0]);
+                }
                 setUsers(response.data);
             } catch (err) {
                 setError(err);

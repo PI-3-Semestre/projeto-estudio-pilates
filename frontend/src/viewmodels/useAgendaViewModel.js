@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import api from '../services/api'; // Import api
 import { getAulas } from '../services/aulasService';
 import studiosService from '../services/studiosService';
 import { format, parseISO, isSameDay, addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const useAgendaViewModel = () => {
-    const [aulas, setAulas] = useState([]);
+    const [allAgendamentos, setAllAgendamentos] = useState([]); // Store all appointments
+    const [allAulas, setAllAulas] = useState([]); // Store all classes
     const [studios, setStudios] = useState([]);
     const [selectedStudioId, setSelectedStudioId] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,16 +27,27 @@ const useAgendaViewModel = () => {
         }
     }, []);
 
-    const fetchAulas = useCallback(async (studioId) => {
-        if (!studioId) return;
-        setLoading(true);
-        setError(null);
+    // Function to fetch all classes
+    const fetchAllAulas = useCallback(async () => {
         try {
-            const response = await getAulas(studioId);
-            setAulas(response.data);
+            const response = await getAulas();
+            setAllAulas(response.data);
         } catch (err) {
             setError('Não foi possível carregar as aulas.');
             console.error('Erro ao buscar aulas:', err);
+        }
+    }, []);
+
+    // New function to fetch all appointments
+    const fetchAgendamentos = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await api.get('/agendamentos/aulas-alunos/');
+            setAllAgendamentos(response.data);
+        } catch (err) {
+            setError('Não foi possível carregar a agenda.');
+            console.error('Erro ao buscar agendamentos:', err);
         } finally {
             setLoading(false);
         }
@@ -42,17 +55,42 @@ const useAgendaViewModel = () => {
 
     useEffect(() => {
         fetchStudios();
-    }, [fetchStudios]);
+        fetchAllAulas(); // Fetch all classes
+        fetchAgendamentos(); // Fetch appointments on initial load
+    }, [fetchStudios, fetchAllAulas, fetchAgendamentos]);
 
-    useEffect(() => {
-        if (selectedStudioId) {
-            fetchAulas(selectedStudioId);
-        }
-    }, [selectedStudioId, fetchAulas]);
+    // a studio has a name and an id.
+    const currentStudioName = useMemo(() => {
+        return studios.find(s => s.id === selectedStudioId)?.nome;
+    }, [studios, selectedStudioId]);
 
-    const filteredAulasByDate = aulas.filter(aula =>
-        isSameDay(parseISO(aula.data_hora_inicio), selectedDate)
-    );
+    // Derive aulas with enrollment counts
+    const aulasWithEnrollments = useMemo(() => {
+        // Create a map to count enrollments per aula
+        const enrollmentCount = new Map();
+        allAgendamentos.forEach(agendamento => {
+            const aulaId = agendamento.aula.id;
+            enrollmentCount.set(aulaId, (enrollmentCount.get(aulaId) || 0) + 1);
+        });
+
+        // Add enrollment count to all aulas (0 if none)
+        return allAulas.map(aula => ({
+            ...aula,
+            alunosInscritos: enrollmentCount.get(aula.id) || 0,
+        }));
+    }, [allAulas, allAgendamentos]);
+
+    const filteredAulas = useMemo(() => {
+        if (!currentStudioName) return [];
+
+        return aulasWithEnrollments.filter(aula => {
+            const isSameDate = isSameDay(parseISO(aula.data_hora_inicio), selectedDate);
+            // The studio name in the class object must match the selected studio name
+            const isSameStudio = aula.studio === currentStudioName;
+            return isSameDate && isSameStudio;
+        });
+    }, [aulasWithEnrollments, selectedDate, currentStudioName]);
+
 
     const getWeekDays = useCallback(() => {
         const start = startOfWeek(selectedDate, { locale: ptBR });
@@ -62,8 +100,29 @@ const useAgendaViewModel = () => {
     const formattedDate = (date) => format(date, 'dd/MM', { locale: ptBR });
     const formattedDayOfWeek = (date) => format(date, 'EEE', { locale: ptBR });
 
+    const setPreviousWeek = useCallback(() => {
+        const newDate = addDays(selectedDate, -7);
+        setSelectedDate(newDate);
+    }, [selectedDate]);
+
+    const setNextWeek = useCallback(() => {
+        const newDate = addDays(selectedDate, 7);
+        setSelectedDate(newDate);
+    }, [selectedDate]);
+
+    const daysWithClasses = useMemo(() => {
+        const dateSet = new Set();
+        aulasWithEnrollments.forEach(aula => {
+            if (aula.studio === currentStudioName) {
+                const date = format(parseISO(aula.data_hora_inicio), 'yyyy-MM-dd');
+                dateSet.add(date);
+            }
+        });
+        return dateSet;
+    }, [aulasWithEnrollments, currentStudioName]);
+
     return {
-        aulas: filteredAulasByDate,
+        aulas: filteredAulas, // Use the new filteredAulas
         studios,
         selectedStudioId,
         setSelectedStudioId,
@@ -74,7 +133,10 @@ const useAgendaViewModel = () => {
         getWeekDays,
         formattedDate,
         formattedDayOfWeek,
-        currentStudioName: studios.find(s => s.id === selectedStudioId)?.nome || 'Carregando...',
+        setPreviousWeek,
+        setNextWeek,
+        daysWithClasses,
+        currentStudioName: currentStudioName || 'Carregando...',
     };
 };
 

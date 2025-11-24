@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Class Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#0fbdab",
+                    "background-light": "#f6f8f8",
+                    "background-dark": "#102220",
+                },
+                fontFamily: {
+                    "display": ["Manrope"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+                },
+            },
+        },
+    }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex flex-col bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center p-4 justify-between">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-800 dark:text-gray-200">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold text-gray-900 dark:text-gray-100">Yoga - 09:00</h1>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 text-sm font-bold text-primary dark:text-primary">Editar</button>
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-800 dark:text-gray-200">
+<span class="material-symbols-outlined text-2xl">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex flex-col flex-1">
+<!-- Summary Card -->
+<section class="p-4 pt-2">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-gray-800/50 shadow-sm @xl:flex-row @xl:items-start">
+<div class="w-full shrink-0 @xl:w-40 bg-center bg-no-repeat aspect-video @xl:aspect-square bg-cover rounded-t-xl @xl:rounded-l-xl @xl:rounded-tr-none" data-alt="Yoga class in a bright studio" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYAuo4zFvx_-UAHGzkmxe7DriE4_nj4gwDbwm76bAS-cRXyQfNggWChTXATU8ztvQwmQNbHbxDPYcQuiLsj1QTHEvZ126S-ljc0ENo-BXgtmmpjVHpAcfNJEwmQPcf_ct5U1ZM7_dCQtN0lSZj3ZWm13n3q4TXcH_Lb-i6LCES_LwgofzDCJGyXzMS9v3RbHmU9ErnVfA1sqk9ur4kT376aPROP76ui-lCJuRo2NOGuwGzmKeFEGp4rgNrVC1TfY7AcqctRPqVYdvG");'></div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-lg font-bold text-gray-900 dark:text-gray-100">Instructor: Ana Souza</p>
+<div class="flex flex-col gap-1">
+<p class="text-base font-normal text-gray-600 dark:text-gray-400">Vagas: 8/10</p>
+<p class="text-base font-normal text-gray-600 dark:text-gray-400">Data: 25 de Outubro</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Management Tabs -->
+<nav class="sticky top-[72px] z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<div class="border-b border-gray-200 dark:border-gray-700 px-4">
+<div class="flex justify-between">
+<a class="flex flex-1 flex-col items-center justify-center border-b-[3px] border-b-primary pb-[13px] pt-4 text-gray-900 dark:text-gray-100" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Inscritos</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center border-b-[3px] border-b-transparent pb-[13px] pt-4 text-gray-500 dark:text-gray-400" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Espera</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center border-b-[3px] border-b-transparent pb-[13px] pt-4 text-gray-500 dark:text-gray-400" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Adicionar</p>
+</a>
+</div>
+</div>
+</nav>
+<!-- Tab Content -->
+<div class="flex-grow px-4 pb-4">
+<!-- 'Inscritos' Tab Content -->
+<div id="inscritos-content">
+<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 py-4">Alunos Inscritos (8)</h3>
+<div class="flex flex-col gap-2">
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 p-3 rounded-lg min-h-14 justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAjpWpyIXKE-dBXueodCiReQzTV04SeTJ4Bl9DkJwi-QyPnrGQ_vyjDx2M07STjNWL4B9qT2XZO4vrRMIF9wbAWGeJwLvXIQaW6slxo3r3DpQdtRXfnfH3A2CpAoVU6dh_09LuNPDlp2dePv1oc0iGZie_XXbTFoYv6gqOKD5bQ-3OI7fQZlP7tCp8_alJnEwSeKhe970sEx9i5hcfgnTUDX4627LYTLj8PhRAx2bgQVu8RSiIOjlLT7vTEnazinXWVjACLgSbEr15K");'></div>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">Carlos Ferreira</p>
+</div>
+<div class="relative shrink-0">
+<select class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 pl-3 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-primary text-sm font-medium">
+<option>Agendado</option>
+<option>Presente</option>
+<option>Ausente c/ Repo</option>
+<option>Ausente s/ Repo</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+<span class="material-symbols-outlined text-base">expand_more</span>
+</div>
+</div>
+</div>
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 p-3 rounded-lg min-h-14 justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvVrm-7cqJAlxKAj9B77eCONi1y5z_oJXBft1A9HB5r8am7NkKsosEv1S4qyEc1A0bjumS3KMUYpabxoEGpZDGwuAPdCLXZn77biGIrRyLEBnQec8PR2ufoUWTwVpJsrr_AofMCAaTXAvohc6tVgQK2hZGt7A3AajP25n0xJ_SBQraC2cdKoxM-NJsU_YFdv1Abwlala2Wi7_Q0TW9J2IvAwvBQ2gH1JCdMad7gyBG1ZiwnI3-3p_oMGlEmpFfzob_sW6me0G7ofOt");'></div>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">Bruna Marques</p>
+</div>
+<div class="relative shrink-0">
+<select class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 pl-3 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-primary text-sm font-medium">
+<option>Agendado</option>
+<option>Presente</option>
+<option>Ausente c/ Repo</option>
+<option>Ausente s/ Repo</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+<span class="material-symbols-outlined text-base">expand_more</span>
+</div>
+</div>
+</div>
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 p-3 rounded-lg min-h-14 justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB_2rugH64MTNj_yFtonpO3zU8xzczT19BR14XPfmUgNEBKR3D8kCF_KMJ4qGgwC9besGodv3__xzkNNxb79zmSwd61HbvkrQ6pchvxU5i6APpXjfWyGKv50TCAxJCxNlBBBje82yt2j1E6QLEzlzIuefqX5xXjnidcTeLvTKlzSA7eV4KQesF8sUGQU5WZDe4NKjOAlvYanNgPiQlsi0chxvpMo3iACLAD-GaLy6vbLF5QxejPyaZ1yEY-4wuY7EHMziwDrbjPZays");'></div>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">Ricardo Almeida</p>
+</div>
+<div class="relative shrink-0">
+<select class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 pl-3 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-primary text-sm font-medium">
+<option>Agendado</option>
+<option>Presente</option>
+<option>Ausente c/ Repo</option>
+<option>Ausente s/ Repo</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+<span class="material-symbols-outlined text-base">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 'Espera' Tab Content (Initially hidden) -->
+<div class="hidden" id="espera-content">
+<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 py-4">Lista de Espera (2)</h3>
+<div class="flex flex-col gap-2">
+<!-- Waitlist Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 p-3 rounded-lg min-h-14 justify-between">
+<div class="flex items-center gap-4">
+<p class="font-bold text-gray-500 dark:text-gray-400 w-6 text-center">1.</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBr5vsRSGOcrfK5xZW9AZvv5yudl-B7lLaIPggRRLv-_I21RtRVnHY7aM_AJIpamOMxWbBl81s-Sr1iQ6AtaLMrXAW-LYEqLb4uqjuE8VtDt214xAR5447KVtryRNgDs7zWT9_hnf8SaA35A4NDwOuh0VtVXhCC9B-Dc-wGgp7JgbS1v0TExc4fBfjlA8dUnqBeBLUC1f_piTegzxz3zN4eCBuEo6fMV0Wi3iJjx_UozfDD7j6pg6E62RrZcQux5lfcZQQFm8Ai3zYR");'></div>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">Lucas Mendes</p>
+</div>
+<div class="flex gap-2 shrink-0">
+<button class="px-3 py-2 text-xs font-bold text-white bg-primary rounded-lg">Mover</button>
+<button class="px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 bg-gray-200 dark:bg-gray-700 rounded-lg">Remover</button>
+</div>
+</div>
+<!-- Waitlist Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 p-3 rounded-lg min-h-14 justify-between">
+<div class="flex items-center gap-4">
+<p class="font-bold text-gray-500 dark:text-gray-400 w-6 text-center">2.</p>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC5Hg1Q3GMGenOrznzxBVlN-EPHVsWJSTTCMsqwq6-xwcEDgWJXvZVcix6xfNRI1qth3ow_cfBuIu4iabQzsAQkLR_LCqA-KTT1NUpgr2u-MyfQdrpfa7-gKk749sqhAhgqr_zSOG1wVsWQEj2vpkagqYePFBRvHcf9VBRE-K3pQg5Rsvh5O3gtg6hCJSP8BrE4gazmPvP8Yxqd-deoFoWhZXo4mptaANBm0hB8Fqf4_4mbInm7SmpGuGahVF7KDGaHf0yINlMLA0Vb");'></div>
+<p class="text-base font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">Sofia Costa</p>
+</div>
+<div class="flex gap-2 shrink-0">
+<button class="px-3 py-2 text-xs font-bold text-white bg-primary rounded-lg">Mover</button>
+<button class="px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 bg-gray-200 dark:bg-gray-700 rounded-lg">Remover</button>
+</div>
+</div>
+</div>
+</div>
+<!-- 'Adicionar' Tab Content (Initially hidden) -->
+<div class="hidden" id="adicionar-content">
+<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 py-4">Adicionar Aluno</h3>
+<div class="flex flex-col gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Buscar por nome ou CPF" type="text"/>
+</div>
+<button class="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg disabled:bg-primary/50" disabled="">Adicionar à Aula</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
