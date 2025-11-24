@@ -16,5 +16,5 @@ urlpatterns = [
 
     # Rotas para redefinição de senha
     path('password-reset/', PasswordResetRequestAPIView.as_view(), name='password_reset_request'),
-    path('password-reset/confirm/', PasswordResetConfirmAPIView.as_view(), name='password_reset_confirm'),
+    path('password-reset/confirm/', PasswordResetConfirmAPIView.as_view(), name='password_reset_confirm'),    
 ]

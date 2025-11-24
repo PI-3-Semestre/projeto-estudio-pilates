@@ -29,6 +29,7 @@ djangorestframework-simplejwt = "^5.5.1"
 django-cors-headers = "^4.9.0"
 drf-nested-routers = "^0.95.0"
 faker = "^38.0.0"
+resend = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.9.0"

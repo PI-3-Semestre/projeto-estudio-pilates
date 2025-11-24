@@ -18,6 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+# IMPORTANTE: Use um e-mail do domínio que você verificou no Resend.
+# Para testes iniciais, o Resend permite usar "onboarding@resend.dev" se enviar APENAS para o seu próprio email de cadastro.
+DEFAULT_FROM_EMAIL = "onboarding@resend.dev"
+
 # SECURITY WARNING: keep the secret key used in production secret!
 # A chave secreta é lida da variável de ambiente DJANGO_SECRET_KEY
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
