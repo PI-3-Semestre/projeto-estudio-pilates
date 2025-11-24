@@ -15,6 +15,31 @@ from .serializers import (
 )
 from datetime import date, timedelta
 
+
+# Funções auxiliares para reduzir a duplicação de código
+def get_date_range_from_params(request):
+    """
+    Extrai e valida as datas de início e fim dos parâmetros da requisição.
+    Retorna uma tupla (data_inicio, data_fim).
+    Lança ValueError se o formato da data for inválido.
+    """
+    data_inicio_str = request.query_params.get('data_inicio')
+    data_fim_str = request.query_params.get('data_fim')
+
+    data_inicio = date.fromisoformat(data_inicio_str) if data_inicio_str else date.today() - timedelta(days=365)
+    data_fim = date.fromisoformat(data_fim_str) if data_fim_str else date.today()
+    
+    return data_inicio, data_fim
+
+def filter_pagamentos_by_studio(queryset, studio_id):
+    """Aplica filtro de studio a um queryset de Pagamento."""
+    if studio_id:
+        return queryset.filter(
+            Q(matricula__studio_id=studio_id) | Q(venda__studio_id=studio_id)
+        )
+    return queryset
+
+
 @extend_schema(
     tags=['Relatórios'],
     summary="Relatório de Faturamento Total e Mensal",
@@ -29,13 +54,9 @@ class RelatorioFaturamentoView(APIView):
     permission_classes = [IsAdminFinanceiro]
 
     def get(self, request):
-        data_inicio_str = request.query_params.get('data_inicio')
-        data_fim_str = request.query_params.get('data_fim')
         studio_id = request.query_params.get('studio_id')
-
         try:
-            data_inicio = date.fromisoformat(data_inicio_str) if data_inicio_str else date.today() - timedelta(days=365)
-            data_fim = date.fromisoformat(data_fim_str) if data_fim_str else date.today()
+            data_inicio, data_fim = get_date_range_from_params(request)
         except ValueError:
             return Response({"error": "Formato de data inválido. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -44,13 +65,7 @@ class RelatorioFaturamentoView(APIView):
             data_pagamento__range=[data_inicio, data_fim]
         )
 
-        # --- CORREÇÃO APLICADA ---
-        # Substituído o .union() por um filtro com Q object
-        if studio_id:
-            queryset = queryset.filter(
-                Q(matricula__studio_id=studio_id) | Q(venda__studio_id=studio_id)
-            )
-        # --- FIM DA CORREÇÃO ---
+        queryset = filter_pagamentos_by_studio(queryset, studio_id)
 
         faturamento_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
 
@@ -91,13 +106,9 @@ class RelatorioVendasProdutoView(APIView):
     permission_classes = [IsAdminFinanceiro]
 
     def get(self, request):
-        data_inicio_str = request.query_params.get('data_inicio')
-        data_fim_str = request.query_params.get('data_fim')
         studio_id = request.query_params.get('studio_id')
-
         try:
-            data_inicio = date.fromisoformat(data_inicio_str) if data_inicio_str else date.today() - timedelta(days=365)
-            data_fim = date.fromisoformat(data_fim_str) if data_fim_str else date.today()
+            data_inicio, data_fim = get_date_range_from_params(request)
         except ValueError:
             return Response({"error": "Formato de data inválido. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -151,13 +162,9 @@ class RelatorioStatusPagamentosView(APIView):
     permission_classes = [IsAdminFinanceiro]
 
     def get(self, request):
-        data_inicio_str = request.query_params.get('data_inicio')
-        data_fim_str = request.query_params.get('data_fim')
         studio_id = request.query_params.get('studio_id')
-
         try:
-            data_inicio = date.fromisoformat(data_inicio_str) if data_inicio_str else date.today() - timedelta(days=365)
-            data_fim = date.fromisoformat(data_fim_str) if data_fim_str else date.today()
+            data_inicio, data_fim = get_date_range_from_params(request)
         except ValueError:
             return Response({"error": "Formato de data inválido. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -165,13 +172,7 @@ class RelatorioStatusPagamentosView(APIView):
             data_vencimento__range=[data_inicio, data_fim]
         )
 
-        # --- CORREÇÃO APLICADA ---
-        # Substituído o .union() por um filtro com Q object
-        if studio_id:
-            queryset = queryset.filter(
-                Q(matricula__studio_id=studio_id) | Q(venda__studio_id=studio_id)
-            )
-        # --- FIM DA CORREÇÃO ---
+        queryset = filter_pagamentos_by_studio(queryset, studio_id)
 
         status_pagamentos = (
             queryset
