@@ -15,8 +15,8 @@ class Studio(models.Model):
 
     class Meta:
         ordering = ['nome']
-        verbose_name = "Studio (Unidade)"
-        verbose_name_plural = "Studios (Unidades)"
+        verbose_name = "Studio"
+        verbose_name_plural = "Studios"
         
         # Permissões customizadas a nível de objeto (usadas por libs como django-guardian).
         # Permitem dar a um usuário permissões específicas para uma instância particular de Studio.

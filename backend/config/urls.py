@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
 # Importar as ViewSets de financeiro.views
-from financeiro.views import PlanoViewSet, MatriculaViewSet, ProdutoViewSet, VendaViewSet # Adicionado ProdutoViewSet e VendaViewSet
+from financeiro.views import PlanoViewSet, MatriculaViewSet, VendaViewSet
 
 # Criar roteadores específicos para Planos e Matrículas
 planos_router = DefaultRouter()
@@ -32,10 +32,7 @@ planos_router.register(r'', PlanoViewSet, basename='plano')
 matriculas_router = DefaultRouter()
 matriculas_router.register(r'', MatriculaViewSet, basename='matricula')
 
-# Criar roteadores específicos para Produtos e Vendas
-produtos_router = DefaultRouter()
-produtos_router.register(r'', ProdutoViewSet, basename='produto')
-
+# Criar roteadores específicos para Vendas
 vendas_router = DefaultRouter()
 vendas_router.register(r'', VendaViewSet, basename='venda')
 
@@ -57,17 +54,17 @@ urlpatterns = [
     path("api/studios/", include("studios.urls")),
     path("api/avaliacoes/", include("avaliacoes.urls")),
     path("api/auth/", include("autenticacao.urls")),
-    
+
     # Rotas separadas para Planos e Matrículas
     path('api/planos/', include(planos_router.urls)),
     path('api/matriculas/', include(matriculas_router.urls)),
 
-    # Rotas separadas para Produtos e Vendas
-    path('api/produtos/', include(produtos_router.urls)), # Nova rota para Produtos
-    path('api/vendas/', include(vendas_router.urls)),     # Nova rota para Vendas
+    # Rotas separadas para Vendas
+    path('api/vendas/', include(vendas_router.urls)),
 
-    path('api/financeiro/', include('financeiro.urls')), # O restante do financeiro (Pagamentos)
+    path('api/financeiro/', include('financeiro.urls')), # O restante do financeiro (Pagamentos e agora Produtos)
     path('api/notifications/', include('notifications.urls')),
+    path('api/relatorios/', include('relatorios.urls')),
     path('api/', include('core.urls')), # Rota para o Dashboard
 ]
 

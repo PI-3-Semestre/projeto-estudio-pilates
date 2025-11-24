@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from simple_history.models import HistoricalRecords
 
 
 class Plano(models.Model):
@@ -26,6 +27,7 @@ class Matricula(models.Model):
     data_inicio = models.DateField()
     data_fim = models.DateField()
     studio = models.ForeignKey('studios.Studio', on_delete=models.PROTECT, related_name='matriculas', null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.aluno} - {self.plano}"
@@ -38,6 +40,8 @@ class Venda(models.Model):
     data_venda = models.DateField(auto_now_add=True)
     produtos = models.ManyToManyField(Produto, through="VendaProduto")
     studio = models.ForeignKey('studios.Studio', on_delete=models.PROTECT, related_name='vendas', null=True)
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0) # Adicionado o campo valor_total
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"Venda {self.id} - {self.aluno}"
@@ -72,6 +76,7 @@ class Pagamento(models.Model):
     comprovante_pagamento = models.FileField(
         upload_to="comprovantes_pagamento/", null=True, blank=True
     )
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"Pagamento {self.id} - {self.status}"
@@ -96,6 +101,7 @@ class EstoqueStudio(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
     studio = models.ForeignKey('studios.Studio', on_delete=models.CASCADE)
     quantidade = models.PositiveIntegerField()
+    history = HistoricalRecords()
 
     class Meta:
         unique_together = ('produto', 'studio')
