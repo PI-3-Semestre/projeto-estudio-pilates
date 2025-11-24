@@ -8,6 +8,24 @@ from alunos.serializers import AlunoSerializer
 from alunos.models import Aluno
 from usuarios.models import Usuario 
 
+# --- Serializers de Histórico ---
+class HistoricalRecordSerializer(serializers.ModelSerializer):
+    history_user = serializers.StringRelatedField()
+    history_type = serializers.CharField()
+    history_date = serializers.DateTimeField()
+
+    class Meta:
+        # O modelo será definido dinamicamente
+        exclude = ['history_id', 'history_change_reason']
+
+def create_historical_serializer(model_class):
+    class CustomHistoricalRecordSerializer(HistoricalRecordSerializer):
+        class Meta(HistoricalRecordSerializer.Meta):
+            model = model_class
+    return CustomHistoricalRecordSerializer
+
+# --- Serializers Principais ---
+
 # Serializer aninhado para Studio
 class StudioNestedSerializer(serializers.ModelSerializer):
     class Meta:

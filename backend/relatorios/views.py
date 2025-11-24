@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
 from django.db.models.functions import TruncMonth
 
 from financeiro.models import Pagamento, Venda, VendaProduto, Matricula, Plano
@@ -44,10 +44,13 @@ class RelatorioFaturamentoView(APIView):
             data_pagamento__range=[data_inicio, data_fim]
         )
 
+        # --- CORREÇÃO APLICADA ---
+        # Substituído o .union() por um filtro com Q object
         if studio_id:
-            pagamentos_de_matriculas = queryset.filter(matricula__studio_id=studio_id)
-            pagamentos_de_vendas = queryset.filter(venda__studio_id=studio_id)
-            queryset = pagamentos_de_matriculas.union(pagamentos_de_vendas)
+            queryset = queryset.filter(
+                Q(matricula__studio_id=studio_id) | Q(venda__studio_id=studio_id)
+            )
+        # --- FIM DA CORREÇÃO ---
 
         faturamento_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
 
@@ -162,10 +165,13 @@ class RelatorioStatusPagamentosView(APIView):
             data_vencimento__range=[data_inicio, data_fim]
         )
 
+        # --- CORREÇÃO APLICADA ---
+        # Substituído o .union() por um filtro com Q object
         if studio_id:
-            pagamentos_de_matriculas = queryset.filter(matricula__studio_id=studio_id)
-            pagamentos_de_vendas = queryset.filter(venda__studio_id=studio_id)
-            queryset = pagamentos_de_matriculas.union(pagamentos_de_vendas)
+            queryset = queryset.filter(
+                Q(matricula__studio_id=studio_id) | Q(venda__studio_id=studio_id)
+            )
+        # --- FIM DA CORREÇÃO ---
 
         status_pagamentos = (
             queryset

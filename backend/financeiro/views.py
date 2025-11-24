@@ -20,7 +20,8 @@ from .serializers import (
     VendaSerializer,
     EstoqueAjusteSerializer,
     EstoqueStudioSerializer,
-    ProdutoEstoqueSerializer
+    ProdutoEstoqueSerializer,
+    create_historical_serializer,
 )
 from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos
 
@@ -71,6 +72,18 @@ class MatriculaViewSet(viewsets.ModelViewSet):
         
         # Se nenhuma matrícula for encontrada, retorna uma lista vazia (status 200 OK)
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Consultar Histórico da Matrícula",
+        responses=create_historical_serializer(Matricula.history.model)(many=True)
+    )
+    @action(detail=True, methods=['get'], permission_classes=[IsAdminFinanceiro])
+    def historico(self, request, pk=None):
+        matricula = self.get_object()
+        history = matricula.history.all().order_by('-history_date')
+        serializer_class = create_historical_serializer(matricula.history.model)
+        serializer = serializer_class(history, many=True)
         return Response(serializer.data)
 
 @extend_schema(tags=['Financeiro - Pagamentos'])
@@ -180,6 +193,18 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Consultar Histórico do Pagamento",
+        responses=create_historical_serializer(Pagamento.history.model)(many=True)
+    )
+    @action(detail=True, methods=['get'], permission_classes=[IsAdminFinanceiro])
+    def historico(self, request, pk=None):
+        pagamento = self.get_object()
+        history = pagamento.history.all().order_by('-history_date')
+        serializer_class = create_historical_serializer(pagamento.history.model)
+        serializer = serializer_class(history, many=True)
+        return Response(serializer.data)
+
 @extend_schema(tags=['Produtos'])
 class ProdutoViewSet(viewsets.ModelViewSet):
     """
@@ -249,6 +274,18 @@ class VendaViewSet(viewsets.ModelViewSet):
         queryset = queryset.prefetch_related('produtos')
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Consultar Histórico da Venda",
+        responses=create_historical_serializer(Venda.history.model)(many=True)
+    )
+    @action(detail=True, methods=['get'], permission_classes=[IsAdminFinanceiro])
+    def historico(self, request, pk=None):
+        venda = self.get_object()
+        history = venda.history.all().order_by('-history_date')
+        serializer_class = create_historical_serializer(venda.history.model)
+        serializer = serializer_class(history, many=True)
         return Response(serializer.data)
 
 @extend_schema(

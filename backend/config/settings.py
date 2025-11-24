@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "cpf_field",  # Para validação de CPF
     "phonenumber_field",
     "corsheaders",  # +++ ADICIONADO para gerenciar o CORS
+    "simple_history", # Para o histórico de alterações
     # --- Nossas Apps ---
     "core.apps.CoreConfig",
     "usuarios.apps.UsuariosConfig",
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware", # Para o histórico de alterações
 ]
 
 ROOT_URLCONF = "config.urls"
