@@ -1,13 +1,23 @@
 import api from './api';
 
+const postWithFormData = (url, formData) => {
+    return api.post(url, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
 const financeiroService = {
     getResumoFinanceiro: () => {
         // Assuming an endpoint for financial summary
         return api.get('financeiro/resumo/'); 
     },
-    getTransacoes: (filters) => {
+    getTransacoes: (filters, page = 1) => {
         // Assuming an endpoint for transactions with filters
-        return api.get('financeiro/transacoes/', { params: filters });
+        return api.get('financeiro/transacoes/', { 
+            params: { ...filters, page } 
+        });
     },
     getDetalhesTransacao: (id) => {
         return api.get(`financeiro/transacoes/${id}/`);
@@ -27,11 +37,7 @@ const financeiroService = {
      * @param {FormData} formData - Os dados do pagamento em formato FormData.
      */
     createPagamento: (formData) => {
-        return api.post('/financeiro/pagamentos/', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        return postWithFormData('/financeiro/pagamentos/', formData);
     },
 
     /**
@@ -81,11 +87,7 @@ const financeiroService = {
      * @param {FormData} formData - O FormData contendo o arquivo do comprovante.
      */
     anexarComprovante: (id, formData) => {
-        return api.post(`/financeiro/pagamentos/${id}/anexar_comprovante/`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        return postWithFormData(`/financeiro/pagamentos/${id}/anexar_comprovante/`, formData);
     },
 
     /**

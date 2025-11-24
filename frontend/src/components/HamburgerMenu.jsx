@@ -3,12 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const HamburgerMenu = ({ toggleMenu }) => {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
 
     const handleLogout = () => {
         logout();
         // The redirection will be handled by the AppRoutes component
     };
+
+    const isAdmin = user?.perfil === 'ADMIN_MASTER' || user?.perfil === 'ADMINISTRADOR';
 
     const MainMenu = (
         <div className="p-6 flex h-full w-full flex-col">
@@ -37,42 +39,52 @@ const HamburgerMenu = ({ toggleMenu }) => {
                             <p className="text-base font-semibold text-text-light dark:text-text-dark">Agenda</p>
                         </Link>
                     </li>
-                    <li>
-                        <Link to="/alunos" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">school</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Alunos</p>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/colaboradores" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">groups</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Colaboradores</p>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/usuarios" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">manage_accounts</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Usuarios</p>
-                        </Link>
-                    </li>
-                    <li>
-                        <a className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary" href="#">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">storefront</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Studios</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary" href="#">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">assessment</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Avaliações</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary" href="#">
-                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">payments</span>
-                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Financeiro</p>
-                        </a>
-                    </li>
+                    {isAdmin && (
+                        <>
+                            <li>
+                                <Link to="/alunos" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">school</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Alunos</p>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/colaboradores" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">groups</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Colaboradores</p>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/usuarios" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">manage_accounts</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Usuarios</p>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/studios" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">storefront</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Studios</p>
+                                </Link>
+                            </li>
+                            <li>
+                                <a className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary" href="#">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">assessment</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Avaliações</p>
+                                </a>
+                            </li>
+                            <li>
+                                <Link to="/financeiro" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">payments</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Financeiro</p>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/relatorios" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                                    <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">bar_chart</span>
+                                    <p className="text-base font-semibold text-text-light dark:text-text-dark">Relatórios</p>
+                                </Link>
+                            </li>
+                        </>
+                    )}
                     <li>
                         <Link to="/configuracoes" className="flex h-12 w-full items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
                             <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">settings</span>

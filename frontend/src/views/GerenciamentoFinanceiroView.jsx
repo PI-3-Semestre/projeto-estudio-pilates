@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import useGerenciamentoFinanceiroViewModel from '../viewmodels/useGerenciamentoFinanceiroViewModel';
+import { useToast } from '../context/ToastContext';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
 const GerenciamentoFinanceiroView = () => {
     const {
@@ -10,10 +12,43 @@ const GerenciamentoFinanceiroView = () => {
         loadingResumo,
         loadingTransacoes,
         filters,
+        pagination,
         applyFilters,
         handleDeleteTransacao,
+        goToPage,
         error,
     } = useGerenciamentoFinanceiroViewModel();
+    const { showToast } = useToast();
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [transactionToDelete, setTransactionToDelete] = useState(null);
+
+    const openDeleteModal = (transaction) => {
+        setTransactionToDelete(transaction);
+        setDeleteModalOpen(true);
+    };
+
+    const closeDeleteModal = () => {
+        setTransactionToDelete(null);
+        setDeleteModalOpen(false);
+    };
+
+    const confirmDelete = () => {
+        if (transactionToDelete) {
+            handleDeleteTransacao(transactionToDelete.id);
+            closeDeleteModal();
+        }
+    };
+
+    const handleFilterChange = (newFilter) => {
+        const { startDate, endDate } = { ...filters, ...newFilter };
+
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            showToast('A data de início não pode ser posterior à data de fim.', { type: 'warning' });
+            return;
+        }
+        
+        applyFilters(newFilter);
+    };
 
     const formatPrice = (price) => {
         if (!price) return "R$ 0,00";
@@ -46,6 +81,30 @@ const GerenciamentoFinanceiroView = () => {
         </Link>
     );
 
+    const PaginationControls = () => (
+        <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-gray-700 dark:text-gray-400">
+                Página {pagination.currentPage} de {pagination.totalPages} ({pagination.totalCount} registros)
+            </span>
+            <div className="flex items-center space-x-2">
+                <button
+                    onClick={() => goToPage(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                    Anterior
+                </button>
+                <button
+                    onClick={() => goToPage(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage === pagination.totalPages}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                    Próximo
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <div className="flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
             <Header title="Gerenciamento Financeiro" showBackButton={true} />
@@ -72,7 +131,7 @@ const GerenciamentoFinanceiroView = () => {
                                     type="date"
                                     id="startDate"
                                     value={filters.startDate}
-                                    onChange={(e) => applyFilters({ startDate: e.target.value })}
+                                    onChange={(e) => handleFilterChange({ startDate: e.target.value })}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 />
                             </div>
@@ -82,7 +141,7 @@ const GerenciamentoFinanceiroView = () => {
                                     type="date"
                                     id="endDate"
                                     value={filters.endDate}
-                                    onChange={(e) => applyFilters({ endDate: e.target.value })}
+                                    onChange={(e) => handleFilterChange({ endDate: e.target.value })}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 />
                             </div>
@@ -91,7 +150,7 @@ const GerenciamentoFinanceiroView = () => {
                                 <select
                                     id="typeFilter"
                                     value={filters.type}
-                                    onChange={(e) => applyFilters({ type: e.target.value })}
+                                    onChange={(e) => handleFilterChange({ type: e.target.value })}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 >
                                     <option value="all">Todos</option>
@@ -108,32 +167,35 @@ const GerenciamentoFinanceiroView = () => {
                         {loadingTransacoes ? (
                             <p>Carregando transações...</p>
                         ) : transacoes.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-gray-50 dark:bg-gray-800">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Data</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Descrição</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Valor</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Tipo</th>
-                                            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-card-dark dark:divide-gray-700">
-                                        {transacoes.map((transacao) => (
-                                            <tr key={transacao.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{transacao.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.description}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{formatPrice(transacao.amount)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.type}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button onClick={() => handleDeleteTransacao(transacao.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Excluir</button>
-                                                </td>
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead className="bg-gray-50 dark:bg-gray-800">
+                                            <tr>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Data</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Descrição</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Valor</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Tipo</th>
+                                                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200 dark:bg-card-dark dark:divide-gray-700">
+                                            {transacoes.map((transacao) => (
+                                                <tr key={transacao.id}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{transacao.date}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.description}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{formatPrice(transacao.amount)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.type}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button onClick={() => openDeleteModal(transacao)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Excluir</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <PaginationControls />
+                            </>
                         ) : (
                             <p className="text-center text-gray-500 dark:text-gray-400">Nenhuma transação encontrada.</p>
                         )}
@@ -150,6 +212,14 @@ const GerenciamentoFinanceiroView = () => {
                     </div>
                 </div>
             </main>
+
+            <ConfirmDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={closeDeleteModal}
+                onConfirm={confirmDelete}
+                title="Confirmar Exclusão"
+                message={`Tem certeza de que deseja excluir a transação "${transactionToDelete?.description}"? Esta ação não pode ser desfeita.`}
+            />
         </div>
     );
 };

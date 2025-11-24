@@ -51,7 +51,8 @@ import EditarPagamentoView from "./views/EditarPagamentoView";
 import GerenciamentoMatriculasView from "./views/GerenciamentoMatriculasView";
 import CadastrarMatriculaView from "./views/CadastrarMatriculaView";
 import DetalhesMatriculaView from "./views/DetalhesMatriculaView";
-import EditarMatriculaView from "./views/EditarMatriculaView"; // Importa a nova view
+import EditarMatriculaView from "./views/EditarMatriculaView";
+import RelatoriosView from "./views/RelatoriosView"; // Importa a nova view
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -419,6 +420,16 @@ const PrivateRoutes = () => {
         element={
           <ProtectedRoute adminOnly={true}>
             <EditarMatriculaView />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Rota de Relatórios */}
+      <Route
+        path="/relatorios"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <RelatoriosView />
           </ProtectedRoute>
         }
       />
