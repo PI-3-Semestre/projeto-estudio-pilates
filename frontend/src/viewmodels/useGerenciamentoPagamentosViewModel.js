@@ -40,10 +40,11 @@ const useGerenciamentoPagamentosViewModel = () => {
         setError(null);
         try {
             const response = await financeiroService.getPagamentos();
-            setPagamentos(response.data);
+            setPagamentos(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError(err);
             showToast('Erro ao carregar os pagamentos.', { type: 'error' });
+            setPagamentos([]); // Ensure pagamentos is an array even on error
         } finally {
             setLoading(false);
         }
@@ -55,9 +56,12 @@ const useGerenciamentoPagamentosViewModel = () => {
 
     // Lógica de filtragem e ordenação
     const processedPagamentos = useMemo(() => {
-        if (!pagamentos || pagamentos.length === 0) return [];
+        // Ensure pagamentos is an array before proceeding
+        const currentPagamentos = Array.isArray(pagamentos) ? pagamentos : [];
 
-        let filtered = [...pagamentos];
+        if (currentPagamentos.length === 0) return [];
+
+        let filtered = [...currentPagamentos];
 
         // Aplica filtro de busca por texto
         if (searchText.trim()) {

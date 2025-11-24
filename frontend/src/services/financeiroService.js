@@ -9,29 +9,6 @@ const postWithFormData = (url, formData) => {
 };
 
 const financeiroService = {
-    getResumoFinanceiro: () => {
-        // Assuming an endpoint for financial summary
-        return api.get('financeiro/resumo/'); 
-    },
-    getTransacoes: (filters, page = 1) => {
-        // Assuming an endpoint for transactions with filters
-        return api.get('financeiro/transacoes/', { 
-            params: { ...filters, page } 
-        });
-    },
-    getDetalhesTransacao: (id) => {
-        return api.get(`financeiro/transacoes/${id}/`);
-    },
-    createTransacao: (data) => {
-        return api.post('financeiro/transacoes/', data);
-    },
-    updateTransacao: (id, data) => {
-        return api.put(`financeiro/transacoes/${id}/`, data);
-    },
-    deleteTransacao: (id) => {
-        return api.delete(`financeiro/transacoes/${id}/`);
-    },
-    
     /**
      * Cria um novo registro de pagamento, associado a uma venda ou matrícula.
      * @param {FormData} formData - Os dados do pagamento em formato FormData.

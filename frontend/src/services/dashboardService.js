@@ -1,8 +1,8 @@
 import api from './api';
 
 const dashboardService = {
-    getDashboardData: () => {
-        return api.get('dashboard/');
+    getAdminMasterDashboardData: () => {
+        return api.get('/dashboard/');
     },
 };
 

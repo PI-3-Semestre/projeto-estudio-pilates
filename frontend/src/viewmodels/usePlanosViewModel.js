@@ -13,10 +13,12 @@ const usePlanosViewModel = () => {
             setLoading(true);
             setError(null);
             const response = await planosService.getAllPlanos();
-            setPlanos(response.data);
+            // Ensure response.data is an array before setting the state
+            setPlanos(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError(err);
             showToast('Erro ao buscar planos.', { type: 'error' });
+            setPlanos([]); // Ensure planos is an array even on error
         } finally {
             setLoading(false);
         }

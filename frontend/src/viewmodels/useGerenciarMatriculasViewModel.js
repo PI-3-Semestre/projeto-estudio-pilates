@@ -26,11 +26,13 @@ const useGerenciarMatriculasViewModel = () => {
                 matriculasService.getMatriculas(),
                 studiosService.getAllStudios(),
             ]);
-            setMatriculas(matriculasResponse.data);
-            setAllStudios(studiosResponse.data);
-        } catch (err) { // Corrigido: removido o '=>'
+            setMatriculas(Array.isArray(matriculasResponse.data) ? matriculasResponse.data : []);
+            setAllStudios(Array.isArray(studiosResponse.data) ? studiosResponse.data : []);
+        } catch (err) {
             setError(err);
             showToast('Erro ao carregar os dados.', { type: 'error' });
+            setMatriculas([]); // Ensure matriculas is an array even on error
+            setAllStudios([]); // Ensure allStudios is an array even on error
         } finally {
             setLoading(false);
         }
@@ -42,9 +44,12 @@ const useGerenciarMatriculasViewModel = () => {
 
     // Lógica de filtragem e ordenação
     const processedMatriculas = useMemo(() => {
-        if (!matriculas || matriculas.length === 0) return [];
+        // Ensure matriculas is an array before proceeding
+        const currentMatriculas = Array.isArray(matriculas) ? matriculas : [];
 
-        let filtered = [...matriculas];
+        if (currentMatriculas.length === 0) return [];
+
+        let filtered = [...currentMatriculas];
 
         if (searchText.trim()) {
             const query = searchText.toLowerCase().trim();

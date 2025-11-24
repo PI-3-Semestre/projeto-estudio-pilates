@@ -26,11 +26,13 @@ const useGestaoVendasViewModel = () => {
                 vendasService.getVendas(),
                 studiosService.getAllStudios(),
             ]);
-            setVendas(vendasResponse.data);
-            setAllStudios(studiosResponse.data);
+            setVendas(Array.isArray(vendasResponse.data) ? vendasResponse.data : []);
+            setAllStudios(Array.isArray(studiosResponse.data) ? studiosResponse.data : []);
         } catch (err) {
             setError(err);
             showToast('Erro ao carregar os dados.', { type: 'error' });
+            setVendas([]); // Ensure vendas is an array even on error
+            setAllStudios([]); // Ensure allStudios is an array even on error
         } finally {
             setLoading(false);
         }
@@ -42,9 +44,12 @@ const useGestaoVendasViewModel = () => {
 
     // Lógica de filtragem e ordenação memoizada
     const processedVendas = useMemo(() => {
-        if (!vendas || vendas.length === 0) return [];
+        // Ensure vendas is an array before proceeding
+        const currentVendas = Array.isArray(vendas) ? vendas : [];
 
-        let filtered = [...vendas];
+        if (currentVendas.length === 0) return [];
+
+        let filtered = [...currentVendas];
 
         // Aplica filtro de busca por texto
         if (searchText.trim()) {

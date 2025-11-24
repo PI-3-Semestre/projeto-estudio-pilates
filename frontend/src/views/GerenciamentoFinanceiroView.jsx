@@ -1,57 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import useGerenciamentoFinanceiroViewModel from '../viewmodels/useGerenciamentoFinanceiroViewModel';
 import { useToast } from '../context/ToastContext';
-import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
 const GerenciamentoFinanceiroView = () => {
     const {
-        resumo,
-        transacoes,
-        loadingResumo,
-        loadingTransacoes,
-        filters,
-        pagination,
-        applyFilters,
-        handleDeleteTransacao,
-        goToPage,
+        dashboardData,
+        loadingDashboard,
         error,
     } = useGerenciamentoFinanceiroViewModel();
     const { showToast } = useToast();
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [transactionToDelete, setTransactionToDelete] = useState(null);
-
-    const openDeleteModal = (transaction) => {
-        setTransactionToDelete(transaction);
-        setDeleteModalOpen(true);
-    };
-
-    const closeDeleteModal = () => {
-        setTransactionToDelete(null);
-        setDeleteModalOpen(false);
-    };
-
-    const confirmDelete = () => {
-        if (transactionToDelete) {
-            handleDeleteTransacao(transactionToDelete.id);
-            closeDeleteModal();
-        }
-    };
-
-    const handleFilterChange = (newFilter) => {
-        const { startDate, endDate } = { ...filters, ...newFilter };
-
-        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-            showToast('A data de início não pode ser posterior à data de fim.', { type: 'warning' });
-            return;
-        }
-        
-        applyFilters(newFilter);
-    };
 
     const formatPrice = (price) => {
-        if (!price) return "R$ 0,00";
+        if (price === null || price === undefined) return "R$ 0,00";
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL',
@@ -81,127 +43,50 @@ const GerenciamentoFinanceiroView = () => {
         </Link>
     );
 
-    const PaginationControls = () => (
-        <div className="flex items-center justify-between mt-4">
-            <span className="text-sm text-gray-700 dark:text-gray-400">
-                Página {pagination.currentPage} de {pagination.totalPages} ({pagination.totalCount} registros)
-            </span>
-            <div className="flex items-center space-x-2">
-                <button
-                    onClick={() => goToPage(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage === 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                    Anterior
-                </button>
-                <button
-                    onClick={() => goToPage(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                    Próximo
-                </button>
-            </div>
-        </div>
-    );
-
     return (
         <div className="flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
-            <Header title="Gerenciamento Financeiro" showBackButton={true} />
+            <Header title="Gestão Financeira" showBackButton={true} />
             
             <main className="flex-grow p-4 space-y-4">
                 <div className="mx-auto max-w-4xl">
-                    {/* Resumo Financeiro */}
-                    <div className="flex flex-col rounded-xl bg-primary/20 p-4 dark:bg-primary/30 mb-4">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Resumo Financeiro</h2>
-                        <div className="mt-3 grid grid-cols-2 gap-3 text-gray-800 dark:text-gray-100 sm:grid-cols-3">
-                            <SummaryCard title="Receita Total" value={formatPrice(resumo?.receitaTotal)} isLoading={loadingResumo} />
-                            <SummaryCard title="Pag. Pendentes" value={formatPrice(resumo?.pagamentosPendentes)} isLoading={loadingResumo} />
-                            {/* Adicionar mais cards de resumo conforme o backend */}
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <strong className="font-bold">Erro:</strong>
+                            <span className="block sm:inline"> {error.message || 'Ocorreu um erro ao carregar o dashboard.'}</span>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Filtros */}
-                    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50 mb-4">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Filtros</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Data Início</label>
-                                <input
-                                    type="date"
-                                    id="startDate"
-                                    value={filters.startDate}
-                                    onChange={(e) => handleFilterChange({ startDate: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Data Fim</label>
-                                <input
-                                    type="date"
-                                    id="endDate"
-                                    value={filters.endDate}
-                                    onChange={(e) => handleFilterChange({ endDate: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-200">Tipo</label>
-                                <select
-                                    id="typeFilter"
-                                    value={filters.type}
-                                    onChange={(e) => handleFilterChange({ type: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                >
-                                    <option value="all">Todos</option>
-                                    <option value="receita">Receita</option>
-                                    <option value="despesa">Despesa</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tabela de Transações */}
-                    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Transações</h2>
-                        {loadingTransacoes ? (
-                            <p>Carregando transações...</p>
-                        ) : transacoes.length > 0 ? (
+                    {loadingDashboard ? (
+                        <p>Carregando dados do dashboard...</p>
+                    ) : (
+                        dashboardData && (
                             <>
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                        <thead className="bg-gray-50 dark:bg-gray-800">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Data</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Descrição</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Valor</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Tipo</th>
-                                                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200 dark:bg-card-dark dark:divide-gray-700">
-                                            {transacoes.map((transacao) => (
-                                                <tr key={transacao.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{transacao.date}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.description}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{formatPrice(transacao.amount)}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{transacao.type}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <button onClick={() => openDeleteModal(transacao)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Excluir</button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                {/* Seção Financeiro */}
+                                <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50 mb-4">
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Resumo Financeiro</h2>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <SummaryCard title="Receita Confirmada Mês" value={formatPrice(dashboardData.financeiro.receita_confirmada_mes)} />
+                                        <SummaryCard title="Receita Pendente Mês" value={formatPrice(dashboardData.financeiro.receita_pendente_mes)} />
+                                        <SummaryCard title="Pagamentos Atrasados" value={dashboardData.financeiro.pagamentos_atrasados_total} />
+                                    </div>
                                 </div>
-                                <PaginationControls />
-                            </>
-                        ) : (
-                            <p className="text-center text-gray-500 dark:text-gray-400">Nenhuma transação encontrada.</p>
-                        )}
-                    </div>
 
-                    {/* Botões de Ação Rápida */}
+                                {/* Seção Insights Estratégicos */}
+                                <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-background-dark/50 mb-4">
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Insights Estratégicos</h2>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <SummaryCard title="Novas Matrículas Mês" value={dashboardData.insights_estrategicos.novas_matriculas_mes} />
+                                        <SummaryCard title="Receita Produtos Mês" value={formatPrice(dashboardData.insights_estrategicos.receita_produtos_mes)} />
+                                        <SummaryCard title="Taxa Ocupação Média 30d" value={`${dashboardData.insights_estrategicos.taxa_ocupacao_media_30d}%`} />
+                                        <SummaryCard title="Plano Mais Popular" value={dashboardData.insights_estrategicos.plano_mais_popular} />
+                                        <SummaryCard title="Instrutor Destaque" value={dashboardData.insights_estrategicos.instrutor_destaque} />
+                                    </div>
+                                </div>
+                            </>
+                        )
+                    )}
+
+                    {/* Botões de Ação Rápida (permanecem inalterados) */}
                     <div className="grid grid-cols-2 gap-4">
                         <QuickActionButton to="/planos" icon="sell" label="Gestão de Planos" />
                         <QuickActionButton to="/produtos" icon="inventory_2" label="Gestão de Produtos" />
@@ -212,14 +97,6 @@ const GerenciamentoFinanceiroView = () => {
                     </div>
                 </div>
             </main>
-
-            <ConfirmDeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={closeDeleteModal}
-                onConfirm={confirmDelete}
-                title="Confirmar Exclusão"
-                message={`Tem certeza de que deseja excluir a transação "${transactionToDelete?.description}"? Esta ação não pode ser desfeita.`}
-            />
         </div>
     );
 };

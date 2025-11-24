@@ -11,9 +11,10 @@ const useNotificationsViewModel = () => {
         try {
             setLoading(true);
             const response = await notificationsService.getNotifications();
-            setNotifications(response.data);
+            setNotifications(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             showToast('Erro ao buscar notificações.', { type: 'error' });
+            setNotifications([]); // Ensure notifications is an array even on error
         } finally {
             setLoading(false);
         }
@@ -50,7 +51,7 @@ const useNotificationsViewModel = () => {
     }, [showToast, fetchNotifications]);
 
     const unreadCount = useMemo(() => {
-        return notifications.filter(n => !n.is_read).length;
+        return (Array.isArray(notifications) ? notifications : []).filter(n => !n.is_read).length;
     }, [notifications]);
 
     return {

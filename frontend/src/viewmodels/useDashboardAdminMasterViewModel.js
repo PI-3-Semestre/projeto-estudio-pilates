@@ -12,7 +12,7 @@ const useDashboardAdminMasterViewModel = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await dashboardService.getDashboardData();
+            const response = await dashboardService.getAdminMasterDashboardData(); // Alterado aqui
             setDashboardData(response.data);
         } catch (err) {
             setError(err);
