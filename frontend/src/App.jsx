@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 
@@ -52,13 +52,63 @@ import GerenciamentoMatriculasView from "./views/GerenciamentoMatriculasView";
 import CadastrarMatriculaView from "./views/CadastrarMatriculaView";
 import DetalhesMatriculaView from "./views/DetalhesMatriculaView";
 import EditarMatriculaView from "./views/EditarMatriculaView";
-import RelatoriosView from "./views/RelatoriosView"; // Importa a nova view
+import RelatoriosView from "./views/RelatoriosView";
+import DashboardAlunoView from "./views/DashboardAlunoView";
+import MeusAgendamentosView from "./views/MeusAgendamentosView"; // Importar MeusAgendamentosView
+
+// Componente para redirecionar para a dashboard correta com base no userType
+const HomeRedirect = () => {
+  const { user, userType, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      if (userType) {
+        switch (userType) {
+          case 'aluno':
+            if (user?.unidades && user.unidades.length === 1) {
+              navigate(`/aluno/dashboard/${user.unidades[0].id}`, { replace: true });
+            } else {
+              // Se tiver múltiplas unidades ou nenhuma, redireciona para uma rota genérica de aluno
+              // ou para uma tela de seleção de estúdio, se implementada.
+              navigate('/aluno/dashboard', { replace: true });
+            }
+            break;
+          case 'admin_master':
+            navigate('/admin-master/dashboard', { replace: true });
+            break;
+          case 'administrador':
+            navigate('/administrador/painel', { replace: true });
+            break;
+          case 'recepcionista':
+            navigate('/recepcionista/atendimento', { replace: true });
+            break;
+          // Adicione outros tipos de colaborador conforme necessário
+          default:
+            navigate('/dashboard-generico', { replace: true }); // Página padrão ou de erro
+            break;
+        }
+      } else {
+        // Se userType não estiver definido (e não estiver carregando), redireciona para o login
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [user, userType, loading, navigate]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
+      <p className="text-gray-700 dark:text-gray-300">Carregando...</p>
+    </div>
+  );
+};
+
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginView />} />
+      {/* Redireciona qualquer outra rota pública para o login */}
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
@@ -68,14 +118,97 @@ const PublicRoutes = () => {
 const PrivateRoutes = () => {
   return (
     <Routes>
+      {/* Rota raiz e /dashboard agora usam HomeRedirect para direcionar corretamente */}
+      <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+
+      {/* Rotas do Aluno */}
       <Route
-        path="/dashboard"
+        path="/aluno/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedUserTypes={['aluno']}>
+            <DashboardAlunoView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/dashboard/:studioId"
+        element={
+          <ProtectedRoute allowedUserTypes={['aluno']}>
+            <DashboardAlunoView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/meus-agendamentos"
+        element={
+          <ProtectedRoute allowedUserTypes={['aluno']}>
+            <MeusAgendamentosView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/marcar-aula" // Rota para o aluno marcar aula
+        element={
+          <ProtectedRoute allowedUserTypes={['aluno']}> {/* Permitir apenas alunos */}
+            <MarcarAulaView />
+          </ProtectedRoute>
+        }
+      />
+      {/* Adicionar rota para seleção de estúdio, se necessário */}
+      <Route
+        path="/aluno/selecionar-studio"
+        element={
+          <ProtectedRoute allowedUserTypes={['aluno']}>
+            {/* Componente para seleção de estúdio */}
+            <div>Tela de Seleção de Estúdio (Ainda não implementada)</div>
+          </ProtectedRoute>
+        }
+      />
+
+
+      {/* Rotas de Admin Master */}
+      <Route
+        path="/admin-master/dashboard"
+        element={
+          <ProtectedRoute allowedUserTypes={['admin_master']}>
             <DashboardAdminMasterView />
           </ProtectedRoute>
         }
       />
+      {/* Rotas de Administrador */}
+      <Route
+        path="/administrador/painel"
+        element={
+          <ProtectedRoute allowedUserTypes={['administrador']}>
+            {/* Componente para o painel do administrador */}
+            <div>Painel do Administrador (Ainda não implementado)</div>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas de Recepcionista */}
+      <Route
+        path="/recepcionista/atendimento"
+        element={
+          <ProtectedRoute allowedUserTypes={['recepcionista']}>
+            {/* Componente para o atendimento da recepcionista */}
+            <div>Atendimento da Recepcionista (Ainda não implementada)</div>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas de Dashboard Genérica (para tipos não mapeados) */}
+      <Route
+        path="/dashboard-generico"
+        element={
+          <ProtectedRoute>
+            {/* Componente para dashboard genérica */}
+            <div>Dashboard Genérica (Ainda não implementada)</div>
+          </ProtectedRoute>
+        }
+      />
+
+
+      {/* Rotas existentes para colaboradores/admins */}
       <Route
         path="/alunos"
         element={
@@ -223,7 +356,7 @@ const PrivateRoutes = () => {
       <Route
         path="/marcar-aula"
         element={
-          <ProtectedRoute adminOnly={true}>
+          <ProtectedRoute allowedUserTypes={['aluno', 'admin_master', 'administrador', 'recepcionista', 'fisioterapeuta', 'instrutor']}>
             <MarcarAulaView />
           </ProtectedRoute>
         }
@@ -435,13 +568,23 @@ const PrivateRoutes = () => {
       />
 
 
-      <Route path="*" element={<Navigate to="/dashboard" />} />
+      {/* Catch-all para rotas privadas não encontradas, redireciona para a HomeRedirect */}
+      <Route path="*" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
     </Routes>
   );
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
+        <p className="text-gray-700 dark:text-gray-300">Carregando autenticação...</p>
+      </div>
+    );
+  }
+
   return isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
 };
 

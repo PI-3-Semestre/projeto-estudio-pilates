@@ -1,32 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import Icon from '../components/Icon';
-import useMarcarAulaViewModel from '../viewmodels/useMarcarAulaViewModel';
-import { format, isSameDay, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale'; // Importar ptBR
-import ClassCard from '../components/ClassCard';
-import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import AgendamentoCard from '../components/AgendamentoCard';
 import { useToast } from '../context/ToastContext';
-import { useNavigate } from 'react-router-dom';
+import agendamentosService from '../services/agendamentosService';
+import useMeusAgendamentosViewModel from '../viewmodels/useMeusAgendamentosViewModel';
+import { format, parseISO } from 'date-fns';
+import Icon from '../components/Icon';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useLocation } from 'react-router-dom';
 
-const MarcarAulaView = () => {
+const MeusAgendamentosView = () => {
   const { showToast } = useToast();
-  const navigate = useNavigate();
-
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [tempDate, setTempDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
-  const [showActionModal, setShowActionModal] = useState(false);
-  const [actionModalData, setActionModalData] = useState(null); // { aulaId, isFull }
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [agendamentoToCancelId, setAgendamentoToCancelId] = useState(null);
+
+  const location = useLocation();
+  const { initialDate, initialStudioId, forceRefresh } = location.state || {}; // Extrair forceRefresh
 
   const {
+    agendamentos,
     studios,
-    modalidades,
-    filteredClasses,
     selectedStudioId,
     setSelectedStudioId,
-    selectedModalityId,
-    setSelectedModalityId,
     selectedDate,
     setSelectedDate,
     loading,
@@ -36,12 +34,27 @@ const MarcarAulaView = () => {
     formattedDayOfWeek,
     setPreviousWeek,
     setNextWeek,
-    daysWithAvailableClasses,
+    daysWithAgendamentos,
     currentStudioName,
-    currentModalityName,
-    marcarAula,
-    entrarListaEspera,
-  } = useMarcarAulaViewModel();
+    refreshAgendamentos,
+  } = useMeusAgendamentosViewModel(
+    initialDate ? parseISO(initialDate) : undefined,
+    initialStudioId !== undefined ? initialStudioId : undefined,
+    forceRefresh // Passar forceRefresh para o ViewModel
+  );
+
+  // Limpar o estado de navegação após o uso para evitar re-refreshs indesejados
+  useEffect(() => {
+    if (forceRefresh) {
+      // Isso é um hack para limpar o state da location sem causar um re-render imediato
+      // Em React Router v6, você pode usar navigate('.', { replace: true, state: {} })
+      // Mas para evitar dependência de navigate aqui, vamos apenas deixar o state ser consumido
+      // e o ViewModel reagirá apenas uma vez a ele.
+      // Se for necessário limpar o state para evitar que um refresh da página re-dispare a lógica,
+      // seria preciso usar navigate com replace: true e um state vazio.
+    }
+  }, [forceRefresh]);
+
 
   useEffect(() => {
     setTempDate(format(selectedDate, "yyyy-MM-dd"));
@@ -52,74 +65,40 @@ const MarcarAulaView = () => {
     setSelectedStudioId(value === 'all' ? 'all' : parseInt(value));
   };
 
-  const handleModalityChange = (event) => {
-    const value = event.target.value;
-    setSelectedModalityId(value === 'all' ? 'all' : parseInt(value));
-  };
-
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
 
-  const openActionModal = (aulaId, isFull) => {
-    setActionModalData({ aulaId, isFull });
-    setShowActionModal(true);
+  const openCancelModal = (agendamentoId) => {
+    setAgendamentoToCancelId(agendamentoId);
+    setShowCancelModal(true);
   };
 
-  const confirmAction = async () => {
-    if (!actionModalData) return;
-
-    const { aulaId, isFull } = actionModalData;
-    let result;
+  const confirmCancelAgendamento = async () => {
+    if (!agendamentoToCancelId) return;
 
     try {
-      if (isFull) {
-        result = await entrarListaEspera(aulaId);
-        if (result.success) {
-          showToast('Você entrou na lista de espera com sucesso!', 'success');
-        } else {
-          console.log("Erro recebido do ViewModel para Toast (Lista de Espera):", result.error); // DEBUG
-          showToast(result.error, 'error'); // Simplificado
-        }
-      } else {
-        result = await marcarAula(aulaId);
-        if (result.success) {
-          showToast('Aula marcada com sucesso!', 'success');
-          const agendamentoCriado = result.data;
-          if (agendamentoCriado && agendamentoCriado.aula) {
-            navigate('/aluno/meus-agendamentos', {
-              state: {
-                initialDate: agendamentoCriado.aula.data_hora_inicio,
-                initialStudioId: agendamentoCriado.aula.studio?.id,
-                forceRefresh: true,
-              },
-            });
-          } else {
-            navigate('/aluno/meus-agendamentos', { state: { forceRefresh: true } });
-          }
-        } else {
-          console.log("Erro recebido do ViewModel para Toast (Marcar Aula):", result.error); // DEBUG
-          showToast(result.error, 'error'); // Simplificado
-        }
-      }
+      await agendamentosService.cancelarAgendamento(agendamentoToCancelId);
+      showToast('Agendamento cancelado com sucesso!', 'success');
+      refreshAgendamentos();
     } catch (err) {
-      console.error("Erro na ação:", err);
-      showToast("Ocorreu um erro inesperado.", 'error');
+      console.error("Erro ao cancelar agendamento:", err);
+      const errorMessage = err.response?.data?.detail || "Não foi possível cancelar o agendamento.";
+      showToast(errorMessage, 'error');
     } finally {
-      setShowActionModal(false);
-      setActionModalData(null);
+      setShowCancelModal(false);
+      setAgendamentoToCancelId(null);
     }
   };
 
-
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-gray-900 dark:text-white transition-colors duration-300">
-      <Header title="Marcar Aula" showBackButton={true} />
+      <Header title="Meus Agendamentos" showBackButton={true} />
 
       <main className="flex-1 pb-24">
         <header className="sticky top-0 z-20 flex items-center justify-between bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Aulas Disponíveis
+            Seus Agendamentos
           </h1>
           <div className="flex items-center space-x-2">
             <button
@@ -136,10 +115,9 @@ const MarcarAulaView = () => {
           </div>
         </header>
 
-        {/* Filtros de Estúdio e Modalidade, e Navegação Semanal */}
         <div className="sticky top-[72px] z-10 bg-background-light dark:bg-background-dark">
-          <div className="bg-blue-600/10 px-4 py-3 dark:bg-blue-500/20 flex flex-col sm:flex-row gap-2 justify-between items-center">
-            <div className="flex items-center gap-2">
+          <div className="bg-blue-600/10 px-4 py-3 dark:bg-blue-500/20">
+            <div className="flex flex-col items-start gap-2 xl:flex-row xl:items-center xl:justify-between xl:gap-4">
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 Estúdio:{" "}
                 <span className="font-bold">{currentStudioName}</span>
@@ -152,23 +130,6 @@ const MarcarAulaView = () => {
                 {studios.map((studio) => (
                   <option key={studio.id} value={studio.id}>
                     {studio.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                Modalidade:{" "}
-                <span className="font-bold">{currentModalityName}</span>
-              </p>
-              <select
-                value={selectedModalityId}
-                onChange={handleModalityChange}
-                className="appearance-none whitespace-nowrap rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm hover:bg-gray-50 dark:bg-zinc-800 dark:text-primary dark:hover:bg-zinc-700/80"
-              >
-                {modalidades.map((modality) => (
-                  <option key={modality.id} value={modality.id}>
-                    {modality.nome}
                   </option>
                 ))}
               </select>
@@ -191,7 +152,7 @@ const MarcarAulaView = () => {
                       key={date.toISOString()}
                       onClick={() => handleDateChange(date)}
                       className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-center ${
-                        isSameDay(date, selectedDate)
+                        format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
                           ? "bg-primary/10 text-primary dark:bg-primary/20"
                           : "text-gray-500 dark:text-gray-400"
                       }`}
@@ -202,7 +163,7 @@ const MarcarAulaView = () => {
                       <span className="text-sm font-semibold">
                         {formattedDate(date)}
                       </span>
-                      {daysWithAvailableClasses.has(format(date, "yyyy-MM-dd")) && (
+                      {daysWithAgendamentos.has(format(date, "yyyy-MM-dd")) && (
                         <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                       )}
                     </button>
@@ -231,23 +192,22 @@ const MarcarAulaView = () => {
 
           {loading ? (
             <>
-              <ClassCard isLoading={true} />
-              <ClassCard isLoading={true} />
-              <ClassCard isLoading={true} />
+              <AgendamentoCard isLoading={true} />
+              <AgendamentoCard isLoading={true} />
+              <AgendamentoCard isLoading={true} />
             </>
-          ) : filteredClasses.length === 0 ? (
-            <div className="flex h-64 flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-gray-600 dark:text-gray-300">
-              <p>Nenhuma aula disponível encontrada para os filtros selecionados.</p>
-            </div>
+          ) : agendamentos.length > 0 ? (
+            agendamentos.map(agendamento => (
+              <AgendamentoCard
+                key={agendamento.id}
+                agendamento={agendamento}
+                onCancel={openCancelModal}
+              />
+            ))
           ) : (
-            <div className="space-y-3">
-              {filteredClasses.map(aula => (
-                <ClassCard
-                  key={aula.id}
-                  aula={aula}
-                  onMarcarAula={openActionModal}
-                />
-              ))}
+            <div className="flex h-64 flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-gray-600 dark:text-gray-300">
+              <p>Nenhum agendamento encontrado para este dia e estúdio.</p>
+              <p className="mt-2">Que tal <a href="/aluno/marcar-aula" className="text-primary hover:underline">marcar uma aula</a>?</p>
             </div>
           )}
         </div>
@@ -300,23 +260,17 @@ const MarcarAulaView = () => {
         </div>
       )}
 
-      {showActionModal && actionModalData && (
-        <ConfirmDeleteModal
-          isOpen={showActionModal}
-          onClose={() => setShowActionModal(false)}
-          onConfirm={confirmAction}
-          title={actionModalData.isFull ? "Entrar na Lista de Espera" : "Confirmar Agendamento"}
-          message={actionModalData.isFull ?
-            "Esta aula está lotada. Deseja entrar na lista de espera? Você será notificado se uma vaga surgir." :
-            "Você tem certeza que deseja agendar esta aula? Um crédito será utilizado."
-          }
-          confirmButtonText={actionModalData.isFull ? "Sim, Entrar" : "Sim, Agendar"}
-          cancelButtonText="Não, Voltar"
-          confirmButtonColor={actionModalData.isFull ? "bg-yellow-500 hover:bg-yellow-600" : "bg-primary hover:bg-primary/90"}
-        />
-      )}
+      <ConfirmDeleteModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelAgendamento}
+        title="Confirmar Cancelamento"
+        message="Você tem certeza que deseja cancelar este agendamento? Esta ação não poderá ser desfeita."
+        confirmButtonText="Sim, Cancelar"
+        cancelButtonText="Não, Manter"
+      />
     </div>
   );
 };
 
-export default MarcarAulaView;
+export default MeusAgendamentosView;
