@@ -1,21 +1,29 @@
-# autenticacao/serializers.py
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
 from usuarios.models import Colaborador
+from alunos.models import Aluno # Importar o modelo Aluno
+from studios.models import Studio # Importar o modelo Studio
+
+class StudioSerializer(serializers.ModelSerializer):
+    """
+    Serializer auxiliar para formatar os dados de um Studio.
+    """
+    class Meta:
+        model = Studio
+        fields = ['id', 'nome']
 
 class PerfilColaboradorSerializer(serializers.ModelSerializer):
     """ 
     Serializer auxiliar para formatar os dados do perfil de um colaborador.
     Usado para aninhar os dados do usuário na resposta do login.
     """
-    
+
     # Campos somente leitura que buscam dados do modelo Usuario relacionado.
     nome = serializers.CharField(source='usuario.get_full_name', read_only=True)
     email = serializers.CharField(source='usuario.email', read_only=True)
     cpf = serializers.CharField(source='usuario.cpf', read_only=True)
-    
+
     # Usa StringRelatedField para obter a representação em string dos perfis (ex: "Administrador").
     perfis = serializers.StringRelatedField(many=True)
 
@@ -23,6 +31,20 @@ class PerfilColaboradorSerializer(serializers.ModelSerializer):
         model = Colaborador
         # Campos a serem incluídos na resposta.
         fields = ['usuario', 'email', 'nome', 'cpf', 'perfis']
+
+class PerfilAlunoSerializer(serializers.ModelSerializer):
+    """
+    Serializer auxiliar para formatar os dados do perfil de um aluno.
+    Usado para aninhar os dados do usuário na resposta do login.
+    """
+    nome = serializers.CharField(source='usuario.get_full_name', read_only=True)
+    email = serializers.CharField(source='usuario.email', read_only=True)
+    cpf = serializers.CharField(source='usuario.cpf', read_only=True)
+    unidades = StudioSerializer(many=True, read_only=True) # Adiciona o serializer de Studio para as unidades
+
+    class Meta:
+        model = Aluno
+        fields = ['usuario', 'email', 'nome', 'cpf', 'dataNascimento', 'contato', 'profissao', 'unidades']
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -38,19 +60,53 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
 
         # 2. Se a autenticação foi bem-sucedida, `self.user` conterá o objeto do usuário.
+        user_profile_data = None
+        user_type = None
+
         try:
             # Tenta acessar o perfil de colaborador associado ao usuário.
             colaborador_profile = self.user.colaborador
+            perfil_serializer = PerfilColaboradorSerializer(colaborador_profile)
+            user_profile_data = perfil_serializer.data
+            user_type = 'colaborador'
+            
+            # Adiciona os perfis específicos do colaborador
+            if colaborador_profile.perfis.filter(nome='ADMIN_MASTER').exists():
+                user_type = 'admin_master'
+            elif colaborador_profile.perfis.filter(nome='ADMINISTRADOR').exists():
+                user_type = 'administrador'
+            elif colaborador_profile.perfis.filter(nome='RECEPCIONISTA').exists():
+                user_type = 'recepcionista'
+            elif colaborador_profile.perfis.filter(nome='FISIOTERAPEUTA').exists():
+                user_type = 'fisioterapeuta'
+            elif colaborador_profile.perfis.filter(nome='INSTRUTOR').exists():
+                user_type = 'instrutor'
+
         except Colaborador.DoesNotExist:
-            # Se o usuário não tem um perfil de colaborador (ex: é um aluno ou um superuser sem perfil),
-            # simplesmente retorna os tokens sem dados extras de perfil.
-            return data
-        
-        # 3. Se um perfil de colaborador foi encontrado, serializa seus dados.
-        perfil_serializer = PerfilColaboradorSerializer(colaborador_profile)
-        
-        # 4. Adiciona os dados do perfil serializado à resposta final, sob a chave 'user'.
-        data['user'] = perfil_serializer.data
+            try:
+                # Se não é colaborador, tenta acessar o perfil de aluno.
+                aluno_profile = self.user.aluno
+                perfil_serializer = PerfilAlunoSerializer(aluno_profile)
+                user_profile_data = perfil_serializer.data
+                user_type = 'aluno'
+            except Aluno.DoesNotExist:
+                # Se não é nem colaborador nem aluno, pode ser um superuser puro ou outro tipo de usuário sem perfil específico.
+                # Neste caso, apenas retorna os dados básicos do usuário.
+                user_profile_data = {
+                    'id': self.user.id,
+                    'username': self.user.username,
+                    'email': self.user.email,
+                    'is_superuser': self.user.is_superuser,
+                    'is_staff': self.user.is_staff,
+                }
+                if self.user.is_superuser:
+                    user_type = 'superuser'
+                else:
+                    user_type = 'usuario_generico' # Ou outro tipo padrão
+
+        # Adiciona os dados do perfil serializado e o tipo de usuário à resposta final.
+        data['user'] = user_profile_data
+        data['user_type'] = user_type
 
         return data
 

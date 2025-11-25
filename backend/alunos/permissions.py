@@ -5,28 +5,27 @@ from usuarios.models import Colaborador
 class IsAdminOrRecepcionista(permissions.BasePermission):
     """
     Permissão customizada para permitir acesso a Admins ou Recepcionistas.
+    Permite leitura e escrita APENAS para colaboradores com perfis específicos.
     """
     message = "Apenas usuários com perfil de Administrador ou Recepcionista podem realizar esta ação."
 
     def has_permission(self, request, view):
-        # Permissão de leitura é permitida para qualquer usuário autenticado.
-        if request.method in permissions.SAFE_METHODS:
-            return request.user and request.user.is_authenticated
-
-        # Permissão de escrita (POST, PUT, DELETE) é permitida apenas para admins ou recepcionistas.
+        # 1. O usuário deve estar logado
         if not request.user or not request.user.is_authenticated:
             return False
         
+        # 2. Superusuário sempre tem permissão
         if request.user.is_superuser:
             return True
             
+        # 3. O usuário deve ter um perfil de Colaborador e um dos perfis necessários
         try:
             # Verifica se o colaborador tem algum dos perfis necessários.
             return request.user.colaborador.perfis.filter(
                 nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
             ).exists()
         except Colaborador.DoesNotExist:
-            # O usuário não tem um perfil de colaborador
+            # O usuário não tem um perfil de colaborador (ex: é um Aluno)
             return False
 
 STAFF_ROLES_PERMITIDOS = {

@@ -12,6 +12,7 @@ from .models import (
     CreditoAula,
     Aluno
 )
+from studios.models import Studio
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -42,6 +43,16 @@ class ModalidadeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class StudioNestedSerializer(serializers.ModelSerializer):
+    """
+    Serializer leve para representar o Studio em respostas aninhadas.
+    Retorna apenas os campos essenciais: id, nome e agora o endereço.
+    """
+    class Meta:
+        model = Studio
+        fields = ['id', 'nome', 'endereco'] # Adicionado o campo 'endereco'
+
+
 class AulaWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Aula
@@ -60,8 +71,11 @@ class AulaReadSerializer(serializers.ModelSerializer):
     modalidade = ModalidadeSerializer(read_only=True)
     instrutor_principal = serializers.StringRelatedField(read_only=True)
     instrutor_substituto = serializers.StringRelatedField(read_only=True)
-    studio = serializers.StringRelatedField(read_only=True)
+    studio = StudioNestedSerializer(read_only=True)
     
+    # NOVO CAMPO: vagas_preenchidas
+    vagas_preenchidas = serializers.SerializerMethodField()
+
     class Meta:
         model = Aula
         fields = [
@@ -74,7 +88,17 @@ class AulaReadSerializer(serializers.ModelSerializer):
             "studio",
             "instrutor_principal",
             "instrutor_substituto",
+            "vagas_preenchidas", # <-- Adicione o campo aqui também
         ]   
+    
+    # NOVO MÉTODO: get_vagas_preenchidas
+    def get_vagas_preenchidas(self, obj):
+        """
+        Calcula o número de vagas preenchidas para a aula.
+        Conta apenas os agendamentos com status 'AGENDADO'.
+        """
+        return obj.alunos_inscritos.filter(status_presenca='AGENDADO').count()
+
 
 class AulaAlunoSerializer(serializers.ModelSerializer):
     class Meta:

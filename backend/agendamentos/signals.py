@@ -2,7 +2,8 @@
 from django.db import transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Aula, AulaAluno, ListaEspera, CreditoAula
+from .models import Aula, AulaAluno, ListaEspera, CreditoAula # Importe Aula
+from django.utils import timezone
 from datetime import timedelta
 
 def verificar_conflito_horario(aluno, nova_aula):
@@ -92,7 +93,17 @@ def on_aula_aluno_cancelada(sender, instance, **kwargs):
         credito.save()
 
     # Processa a lista de espera da aula que teve o agendamento cancelado
-    processar_lista_espera(instance.aula.id)
+    # Acessa o ID da aula diretamente e tenta buscar o objeto Aula
+    # para evitar o erro DoesNotExist se a Aula já foi deletada.
+    try:
+        # Tenta obter a Aula usando o ID armazenado na instância de AulaAluno
+        # Se a Aula já foi deletada, esta linha levantará DoesNotExist
+        aula_obj = Aula.objects.get(id=instance.aula_id)
+        processar_lista_espera(aula_obj.id)
+    except Aula.DoesNotExist:
+        # Se a Aula não existe mais (ex: foi deletada em cascata),
+        # não há lista de espera para processar para uma aula inexistente.
+        pass
 
 @receiver(post_save, sender=Aula)
 def on_aula_capacidade_aumentada(sender, instance, created, **kwargs):
