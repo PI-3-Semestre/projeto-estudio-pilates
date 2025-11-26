@@ -113,9 +113,7 @@ const AgendaView = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const dashboardPath = selectedStudioId
-                  ? `/studios/${selectedStudioId}/dashboard`
-                  : "/dashboard";
+                const dashboardPath = "/dashboard";
                 navigate(dashboardPath);
               }}
               className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
