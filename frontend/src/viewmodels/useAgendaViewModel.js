@@ -86,7 +86,7 @@ const useAgendaViewModel = () => {
         return aulasWithEnrollments.filter(aula => {
             const isSameDate = isSameDay(parseISO(aula.data_hora_inicio), selectedDate);
             // The studio name in the class object must match the selected studio name
-            const isSameStudio = aula.studio === currentStudioName;
+            const isSameStudio = aula.studio?.nome === currentStudioName;
             return isSameDate && isSameStudio;
         });
     }, [aulasWithEnrollments, selectedDate, currentStudioName]);
@@ -113,7 +113,7 @@ const useAgendaViewModel = () => {
     const daysWithClasses = useMemo(() => {
         const dateSet = new Set();
         aulasWithEnrollments.forEach(aula => {
-            if (aula.studio === currentStudioName) {
+            if (aula.studio?.nome === currentStudioName) {
                 const date = format(parseISO(aula.data_hora_inicio), 'yyyy-MM-dd');
                 dateSet.add(date);
             }

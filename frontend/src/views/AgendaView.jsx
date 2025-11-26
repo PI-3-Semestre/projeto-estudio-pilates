@@ -112,7 +112,12 @@ const AgendaView = () => {
         <header className="sticky top-0 z-20 flex items-center justify-between bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                const dashboardPath = selectedStudioId
+                  ? `/studios/${selectedStudioId}/dashboard`
+                  : "/dashboard";
+                navigate(dashboardPath);
+              }}
               className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
             >
               <span className="material-symbols-outlined text-2xl">
