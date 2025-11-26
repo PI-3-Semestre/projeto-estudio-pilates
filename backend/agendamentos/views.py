@@ -214,6 +214,21 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
         serializer = ListaEsperaSerializer(lista_espera, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Lista todos os alunos inscritos em uma aula específica",
+        responses={200: AgendamentoAlunoReadSerializer(many=True)}
+    )
+    @action(detail=True, methods=['get'], url_path='inscricoes', permission_classes=[IsAuthenticated, IsStaffAutorizado])
+    def inscricoes(self, request, pk=None):
+        """
+        Retorna uma lista de todos os alunos inscritos em uma aula específica.
+        Apenas usuários da equipe (staff) podem acessar esta lista.
+        """
+        aula = self.get_object()
+        inscricoes = AulaAluno.objects.filter(aula=aula).order_by('aluno__usuario__username')
+        serializer = AgendamentoAlunoReadSerializer(inscricoes, many=True)
+        return Response(serializer.data)
+
     
 @extend_schema(tags=['Agendamentos - Inscrições (Aulas-Alunos)'])
 @extend_schema_view(
