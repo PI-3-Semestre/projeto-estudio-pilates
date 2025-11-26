@@ -75,7 +75,6 @@ const MarcarAulaView = () => {
       if (isFull) {
         result = await entrarListaEspera(aulaId);
         if (result.success) {
-          // Usa a mensagem da API se disponível, senão uma mensagem padrão.
           showToast(result.message || 'Você entrou na lista de espera com sucesso!', 'success');
         } else {
           showToast(result.error, 'error');
@@ -134,7 +133,6 @@ const MarcarAulaView = () => {
           </div>
         </header>
 
-        {/* Filtros de Estúdio e Modalidade, e Navegação Semanal */}
         <div className="sticky top-[72px] z-10 bg-background-light dark:bg-background-dark">
           <div className="bg-blue-600/10 px-4 py-3 dark:bg-blue-500/20 flex flex-col sm:flex-row gap-2 justify-between items-center">
             <div className="flex items-center gap-2">

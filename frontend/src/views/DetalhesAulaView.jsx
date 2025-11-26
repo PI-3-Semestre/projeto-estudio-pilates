@@ -182,7 +182,7 @@ const DetalhesAulaView = () => {
                     Local
                   </p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {aula.studio}
+                    {aula.studio?.nome}
                   </p>
                 </div>
               </div>

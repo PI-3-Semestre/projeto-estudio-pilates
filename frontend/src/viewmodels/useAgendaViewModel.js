@@ -27,27 +27,16 @@ const useAgendaViewModel = () => {
         }
     }, []);
 
-    // Function to fetch all classes
+    // Function to fetch all classes from new endpoint
     const fetchAllAulas = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const response = await getAulas();
+            const response = await api.get('/agendamentos/aulas/');
             setAllAulas(response.data);
         } catch (err) {
             setError('Não foi possível carregar as aulas.');
             console.error('Erro ao buscar aulas:', err);
-        }
-    }, []);
-
-    // New function to fetch all appointments
-    const fetchAgendamentos = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await api.get('/agendamentos/aulas-alunos/');
-            setAllAgendamentos(response.data);
-        } catch (err) {
-            setError('Não foi possível carregar a agenda.');
-            console.error('Erro ao buscar agendamentos:', err);
         } finally {
             setLoading(false);
         }
@@ -56,29 +45,20 @@ const useAgendaViewModel = () => {
     useEffect(() => {
         fetchStudios();
         fetchAllAulas(); // Fetch all classes
-        fetchAgendamentos(); // Fetch appointments on initial load
-    }, [fetchStudios, fetchAllAulas, fetchAgendamentos]);
+    }, [fetchStudios, fetchAllAulas]);
 
     // a studio has a name and an id.
     const currentStudioName = useMemo(() => {
         return studios.find(s => s.id === selectedStudioId)?.nome;
     }, [studios, selectedStudioId]);
 
-    // Derive aulas with enrollment counts
+    // Process aulas with enrollment counts (directly from vagas_preenchidas field)
     const aulasWithEnrollments = useMemo(() => {
-        // Create a map to count enrollments per aula
-        const enrollmentCount = new Map();
-        allAgendamentos.forEach(agendamento => {
-            const aulaId = agendamento.aula.id;
-            enrollmentCount.set(aulaId, (enrollmentCount.get(aulaId) || 0) + 1);
-        });
-
-        // Add enrollment count to all aulas (0 if none)
         return allAulas.map(aula => ({
             ...aula,
-            alunosInscritos: enrollmentCount.get(aula.id) || 0,
+            alunosInscritos: parseInt(aula.vagas_preenchidas || "0"),
         }));
-    }, [allAulas, allAgendamentos]);
+    }, [allAulas]);
 
     const filteredAulas = useMemo(() => {
         if (!currentStudioName) return [];
@@ -86,7 +66,7 @@ const useAgendaViewModel = () => {
         return aulasWithEnrollments.filter(aula => {
             const isSameDate = isSameDay(parseISO(aula.data_hora_inicio), selectedDate);
             // The studio name in the class object must match the selected studio name
-            const isSameStudio = aula.studio === currentStudioName;
+            const isSameStudio = aula.studio?.nome === currentStudioName;
             return isSameDate && isSameStudio;
         });
     }, [aulasWithEnrollments, selectedDate, currentStudioName]);
@@ -113,7 +93,7 @@ const useAgendaViewModel = () => {
     const daysWithClasses = useMemo(() => {
         const dateSet = new Set();
         aulasWithEnrollments.forEach(aula => {
-            if (aula.studio === currentStudioName) {
+            if (aula.studio?.nome === currentStudioName) {
                 const date = format(parseISO(aula.data_hora_inicio), 'yyyy-MM-dd');
                 dateSet.add(date);
             }
