@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Icon from '../components/Icon';
 import useMarcarAulaViewModel from '../viewmodels/useMarcarAulaViewModel';
-import { format, isSameDay, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale'; // Importar ptBR
+import { format, isSameDay } from 'date-fns';
 import ClassCard from '../components/ClassCard';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useToast } from '../context/ToastContext';
@@ -76,10 +75,10 @@ const MarcarAulaView = () => {
       if (isFull) {
         result = await entrarListaEspera(aulaId);
         if (result.success) {
-          showToast('Você entrou na lista de espera com sucesso!', 'success');
+          // Usa a mensagem da API se disponível, senão uma mensagem padrão.
+          showToast(result.message || 'Você entrou na lista de espera com sucesso!', 'success');
         } else {
-          console.log("Erro recebido do ViewModel para Toast (Lista de Espera):", result.error); // DEBUG
-          showToast(result.error, 'error'); // Simplificado
+          showToast(result.error, 'error');
         }
       } else {
         result = await marcarAula(aulaId);
@@ -98,8 +97,7 @@ const MarcarAulaView = () => {
             navigate('/aluno/meus-agendamentos', { state: { forceRefresh: true } });
           }
         } else {
-          console.log("Erro recebido do ViewModel para Toast (Marcar Aula):", result.error); // DEBUG
-          showToast(result.error, 'error'); // Simplificado
+          showToast(result.error, 'error');
         }
       }
     } catch (err) {

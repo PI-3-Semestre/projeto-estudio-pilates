@@ -7,6 +7,31 @@ import agendamentosService from '../services/agendamentosService';
 import { format, parseISO, isSameDay, addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Função utilitária para extrair mensagens de erro da API de forma robusta
+const extractErrorMessage = (err, defaultMessage) => {
+  const apiErrorData = err.response?.data;
+  if (!apiErrorData) {
+    return defaultMessage;
+  }
+
+  if (apiErrorData.non_field_errors && Array.isArray(apiErrorData.non_field_errors)) {
+    return apiErrorData.non_field_errors.join(' ');
+  }
+
+  if (apiErrorData.detail) {
+    return Array.isArray(apiErrorData.detail) ? apiErrorData.detail.join(' ') : apiErrorData.detail;
+  }
+
+  // Tratamento para erros de campo (ex: {"aula": ["ID inválido"]})
+  const fieldErrors = Object.values(apiErrorData).flat();
+  if (fieldErrors.length > 0) {
+    return fieldErrors.join(' ');
+  }
+
+  return defaultMessage;
+};
+
+
 const useMarcarAulaViewModel = () => {
   const { user, loading: authLoading } = useAuth();
   const [allStudios, setAllStudios] = useState([]);
@@ -46,12 +71,9 @@ const useMarcarAulaViewModel = () => {
   const fetchAllAulas = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log("Chamando fetchAllAulas (para atualizar vagas)..."); // DEBUG: Ponto 5
     try {
-      // A rota GET /api/agendamentos/aulas/ deve retornar todas as aulas
-      const response = await getAulas(); // Assumindo que getAulas não tem filtros por padrão
+      const response = await getAulas();
       setAllAulas(response.data);
-      console.log("Todas as aulas disponíveis após fetch:", response.data); // DEBUG: Ponto 5
     } catch (err) {
       console.error("Erro ao buscar aulas:", err);
       setError('Não foi possível carregar as aulas disponíveis.');
@@ -81,23 +103,15 @@ const useMarcarAulaViewModel = () => {
   // 2.1.4 Lógica de Filtragem de Aulas
   const filteredClasses = useMemo(() => {
     return allAulas.filter(aula => {
-      // Filtrar por data
       const isSameDate = isSameDay(parseISO(aula.data_hora_inicio), selectedDate);
       if (!isSameDate) return false;
 
-      // Filtrar por estúdio
       const isStudioMatch = selectedStudioId === 'all' || aula.studio?.id === parseInt(selectedStudioId);
       if (!isStudioMatch) return false;
 
-      // Filtrar por modalidade
       const isModalityMatch = selectedModalityId === 'all' || aula.modalidade?.id === parseInt(selectedModalityId);
       if (!isModalityMatch) return false;
 
-      // Apenas aulas com vagas
-      const hasVacancies = aula.vagas_preenchidas < aula.capacidade_maxima;
-      if (!hasVacancies) return false;
-
-      // Apenas aulas futuras
       const isFutureClass = parseISO(aula.data_hora_inicio) > new Date();
       if (!isFutureClass) return false;
 
@@ -143,22 +157,13 @@ const useMarcarAulaViewModel = () => {
 
   const marcarAula = useCallback(async (aulaId) => {
     try {
-      const payload = { aula: aulaId };
+      const payload = { aula: aulaId, entrar_lista_espera: false };
       const response = await agendamentosService.marcarAula(payload);
-      fetchAllAulas(); // Atualiza as vagas na tela de Marcar Aula
-      return { success: true, data: response }; // Retorna o agendamento criado
+      fetchAllAulas();
+      return { success: true, data: response };
     } catch (err) {
       console.error("Erro ao marcar aula:", err);
-      // Ajuste para extrair a mensagem de erro corretamente (Ponto 2 da Fase 2)
-      const apiErrorData = err.response?.data;
-      let errorMessage = "Não foi possível marcar a aula.";
-      if (apiErrorData) {
-        if (apiErrorData.non_field_errors && Array.isArray(apiErrorData.non_field_errors)) {
-          errorMessage = apiErrorData.non_field_errors[0];
-        } else if (apiErrorData.detail) { // Para o caso de 'detail' ser string ou array
-          errorMessage = Array.isArray(apiErrorData.detail) ? apiErrorData.detail[0] : apiErrorData.detail;
-        }
-      }
+      const errorMessage = extractErrorMessage(err, "Não foi possível marcar a aula.");
       return { success: false, error: errorMessage };
     }
   }, [fetchAllAulas]);
@@ -167,20 +172,12 @@ const useMarcarAulaViewModel = () => {
     try {
       const payload = { aula: aulaId, entrar_lista_espera: true };
       const response = await agendamentosService.marcarAula(payload);
-      fetchAllAulas(); // Atualiza as vagas na tela de Marcar Aula
-      return { success: true, data: response }; // Retorna o agendamento criado
+      fetchAllAulas();
+      // Retorna a mensagem específica da API para a lista de espera
+      return { success: true, data: response, message: response.detail };
     } catch (err) {
       console.error("Erro ao entrar na lista de espera:", err);
-      // Ajuste para extrair a mensagem de erro corretamente (Ponto 2 da Fase 2)
-      const apiErrorData = err.response?.data;
-      let errorMessage = "Não foi possível entrar na lista de espera.";
-      if (apiErrorData) {
-        if (apiErrorData.non_field_errors && Array.isArray(apiErrorData.non_field_errors)) {
-          errorMessage = apiErrorData.non_field_errors[0];
-        } else if (apiErrorData.detail) {
-          errorMessage = Array.isArray(apiErrorData.detail) ? apiErrorData.detail[0] : apiErrorData.detail;
-        }
-      }
+      const errorMessage = extractErrorMessage(err, "Não foi possível entrar na lista de espera.");
       return { success: false, error: errorMessage };
     }
   }, [fetchAllAulas]);
