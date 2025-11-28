@@ -96,7 +96,7 @@ const LoginView = () => {
               </button>
 
               <div className="text-center mt-4">
-                <a href="#" className="text-sm text-primary hover:underline">
+                <a href="/esqueceu-senha" className="text-sm text-primary hover:underline">
                   Esqueci minha senha
                 </a>
               </div>
