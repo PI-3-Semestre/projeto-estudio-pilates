@@ -8,6 +8,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Views
 import LoginView from "./views/LoginView";
+import EsqueceuSenhaView from "./views/EsqueceuSenhaView";
+import RedefinirSenhaView from "./views/RedefinirSenhaView";
 import DashboardAdminMasterView from "./views/DashboardAdminMasterView";
 import GerenciarAlunosView from "./views/GerenciarAlunosView";
 import CadastrarUsuarioView from "./views/CadastrarUsuarioView";
@@ -59,6 +61,8 @@ const PublicRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginView />} />
+      <Route path="/esqueceu-senha" element={<EsqueceuSenhaView />} />
+      <Route path="/password-reset-confirm/:token" element={<RedefinirSenhaView />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

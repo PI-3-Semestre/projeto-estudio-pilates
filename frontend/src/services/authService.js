@@ -32,7 +32,6 @@ const authService = {
       throw new Error(errorMessage);
     }
   },
-
   /**
    * Cria um novo usuário (aluno) a partir de uma conta de administrador.
    * @param {object} userData - Os dados do usuário para criação.
@@ -47,8 +46,38 @@ const authService = {
       throw error;
     }
   },
-
   // Outros métodos de serviço de autenticação podem ser adicionados aqui.
+  /**
+   * Passo 1: Solicita o envio do e-mail de recuperação.
+   * Rota no backend: /api/auth/password-reset/
+   */
+  requestPasswordReset: async (emailOrCpf) => {
+    try {
+      // O backend espera "identifier" (CPF ou Email)
+      const response = await api.post('/auth/password-reset/', { 
+        identifier: emailOrCpf 
+      });
+      return response.data;
+    } catch (error) {
+      throw error; 
+    }
+  },
+  /**
+   * Passo 2: Confirma a troca de senha.
+   * Rota no backend: /api/auth/password-reset/confirm/
+   */
+  confirmPasswordReset: async (token, newPassword) => {
+    try {
+      const response = await api.post('/auth/password-reset/confirm/', {
+        token,
+        password: newPassword,
+        password_confirm: newPassword, // Seu serializer pode exigir este campo
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default authService;
