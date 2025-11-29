@@ -37,7 +37,9 @@ if not SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".pythonanywhere.com"]
+#ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# Django lê lista de sites permitidos da variável de ambiente, separando por vírgula
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # Application definition
 
@@ -186,11 +188,21 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # +++ ADICIONADO: Configurações do CORS (Cross-Origin Resource Sharing) +++
 # Lista de origens (seu frontend) que têm permissão para fazer requisições.
 # Altere a porta se o seu frontend rodar em uma porta diferente (ex: 8080, 4200).
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173"
-]
+CORS_ALLOWED_ORIGINS_ENV = os.environ.get("CORS_ALLOWED_ORIGINS")
+
+# Se a variável for "*", libera geral (útil para testes iniciais ou apps públicas)
+if CORS_ALLOWED_ORIGINS_ENV == "*":
+    CORS_ALLOW_ALL_ORIGINS = True
+# Se tiver domínios listados (separados por vírgula), usa eles
+elif CORS_ALLOWED_ORIGINS_ENV:
+    CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_ENV.split(",")
+# Se não tiver variável nenhuma (Localhost), usa os padrões de desenvolvimento
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+    ]
 
 # Para testes rápidos, você pode permitir todas as origens (NÃO USE EM PRODUÇÃO)
 # CORS_ALLOW_ALL_ORIGINS = True
