@@ -37,8 +37,7 @@ if not SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".pythonanywhere.com"]
 
 # Application definition
 
@@ -151,6 +150,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+### MUDANÇA PA: O PythonAnywhere EXIGE o STATIC_ROOT para rodar o collectstatic ###
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -173,6 +175,10 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+### MUDANÇA PA: Correção CRÍTICA para o Swagger funcionar em HTTPS no PythonAnywhere ###
+# Sem isso, o Swagger tenta carregar via HTTP e o navegador bloqueia (Mixed Content)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # --- Configuração de E-mail (para desenvolvimento) ---
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
