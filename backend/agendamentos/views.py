@@ -25,11 +25,11 @@ from .serializers import (
     CreditoAulaSerializer, BloqueioAgendaReadSerializer, BloqueioAgendaWriteSerializer, AulaReadSerializer, AulaWriteSerializer,
     AulaAlunoSerializer
 )
-from .permissions import HasRole, CanUpdateAula, IsOwnerDoAgendamento, Colaborador
+from .permissions import CanUpdateAula, IsOwnerDoAgendamento
 from alunos.permissions import IsStaffAutorizado
 from alunos.models import Aluno
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from core.permissions import StudioPermissionMixin
+from core.permissions import StudioPermissionMixin, HasRole
 from notifications.models import Notification
 
 def processar_lista_espera(aula):

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -23,7 +23,62 @@ from .serializers import (
     ProdutoEstoqueSerializer,
     create_historical_serializer,
 )
-from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos
+from .permissions import IsAdminFinanceiro, IsPaymentOwner, CanManagePagamentos, IsAlunoOwner, IsAlunoOwnerOfMatricula
+from django.db.models import Q
+
+@extend_schema(tags=['Financeiro - Matrículas (Aluno)'])
+class MinhasMatriculasListView(generics.ListAPIView):
+    """
+    Endpoint para o aluno logado visualizar suas próprias matrículas.
+    """
+    serializer_class = MatriculaSerializer
+    
+    def get_permissions(self):
+        """
+        Instancia e retorna a lista de permissões que esta view requer.
+        """
+        print("DEBUG: MinhasMatriculasListView.get_permissions sendo chamado.")
+        return [IsAuthenticated(), IsAlunoOwner()]
+
+    def get_queryset(self):
+        """
+        Retorna as matrículas do aluno logado, ordenadas da mais recente para a mais antiga.
+        """
+        user = self.request.user # O objeto Usuario
+        return Matricula.objects.filter(aluno=user).select_related( # Filtrar por Usuario
+            'aluno', # aluna é FK para Usuario
+            'plano',
+            'studio'
+        ).order_by('-data_inicio')
+
+@extend_schema(tags=['Financeiro - Pagamentos (Aluno)'])
+class MeusPagamentosListView(generics.ListAPIView):
+    """
+    Endpoint para o aluno logado visualizar seus próprios pagamentos.
+    """
+    serializer_class = PagamentoSerializer
+    
+    def get_permissions(self):
+        """
+        Instancia e retorna a lista de permissões que esta view requer.
+        """
+        print("DEBUG: MeusPagamentosListView.get_permissions sendo chamado.")
+        return [IsAuthenticated(), IsAlunoOwner()]
+
+    def get_queryset(self):
+        """
+        Retorna os pagamentos do aluno logado, ordenados pela data de vencimento.
+        """
+        user = self.request.user # O objeto Usuario
+        # Filtra pagamentos associados a matrículas do aluno OU a vendas do aluno
+        return Pagamento.objects.filter(
+            Q(matricula__aluno=user) | Q(venda__aluno=user)
+        ).select_related(
+            'matricula__aluno', # aluna é FK para Usuario
+            'matricula__plano',
+            'venda__aluno' # aluna é FK para Usuario
+        ).order_by('-data_vencimento')
+
 
 @extend_schema(tags=['Planos'])
 class PlanoViewSet(viewsets.ModelViewSet):
@@ -49,7 +104,7 @@ class MatriculaViewSet(viewsets.ModelViewSet):
         ao buscar o perfil do aluno, o plano e o studio.
         """
         return Matricula.objects.select_related(
-            'aluno__aluno',
+            'aluno', # aluna é FK para Usuario
             'plano',
             'studio'
         ).all()
@@ -342,9 +397,16 @@ class EstoquePorStudioView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, studio_id, format=None):
+        # Garante que o estúdio existe
         get_object_or_404(Studio, pk=studio_id)
-        estoque = EstoqueStudio.objects.filter(studio_id=studio_id)
-        serializer = EstoqueStudioSerializer(estoque, many=True)
+
+        # Pega todos os produtos do catálogo
+        produtos = Produto.objects.all()
+
+        # Passa o 'studio_id' para o contexto do serializer
+        # para que ele possa buscar a quantidade correta
+        serializer = ProdutoEstoqueSerializer(produtos, many=True, context={'studio_id': studio_id})
+
         return Response(serializer.data)
 
 @extend_schema(tags=['Estoque'])
