@@ -1,3 +1,5 @@
+![Define Pilates Logo](https://github.com/PI-3-Semestre/Projeto-Estudio-Pilates/blob/main/logo.png?raw=true)
+
 # 🧘‍♀️ Define Pilates - Sistema de Gestão de Estúdios
 
 Bem-vindo(a) ao **Define Pilates**. Este é um sistema completo para gerenciamento de estúdios de Pilates, oferecendo soluções para administrar alunos, agendamentos, finanças e múltiplas unidades.
@@ -16,6 +18,9 @@ O projeto opera em duas partes integradas:
 - **Gestão de Usuários:** Login seguro (JWT), perfis variados (Admin, Instrutor, Fisioterapeuta, Recepcionista) e controle de acesso granular por estúdio.
 - **Gestão de Alunos:** Cadastro completo com foto e associação a múltiplos estúdios.
 - **Avaliações e Prontuários:** Registro de avaliações fisioterapêuticas, histórico médico e acompanhamento de evolução (fisioterapia e educação física).
+
+### 🚧 Em Breve (Roadmap)
+
 - **Agendamentos:** Grade de horários, controle de presença, lista de espera automática e reposição de aulas.
 - **Financeiro:** Venda de produtos, controle de estoque, planos de matrícula e fluxo de caixa.
 - **Notificações:** Alertas internos sobre eventos importantes.
@@ -178,6 +183,22 @@ Com o backend rodando, você pode consultar a documentação técnica das rotas 
 - **Pagamentos Online:** Integração com gateways (Stripe/PagSeguro)
 - **App Mobile:** Aplicativo para alunos agendarem aulas
 - **Relatórios Avançados:** Geração de PDFs e CSVs financeiros e operacionais
+
+---
+
+## 👥 Equipe de Desenvolvimento
+
+| Nome |
+|------|
+| Wellington Siqueira Porto |
+| Carlos Leonel Nina Quispe |
+| Davi Bernardes Machado |
+| Dmitri José Nunes Ferreira |
+| Elias Pereira Lopes |
+| Felipe Rocha de Oliveira |
+| Kauã Hiro dos Santos Mizumoto |
+| Matheus Salinas Zancope |
+
 
 ---
 
