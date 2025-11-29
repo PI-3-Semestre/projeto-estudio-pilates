@@ -2,6 +2,15 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from usuarios.models import Colaborador
 
+class IsAluno(BasePermission):
+    """
+    Permissão customizada que verifica se o usuário logado possui um perfil de Aluno.
+    """
+    message = "Apenas usuários com perfil de aluno podem acessar esta funcionalidade."
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and hasattr(request.user, 'aluno')
+
 class CanManageAvaliacaoObject(BasePermission):
     """
     Permissão customizada para o gerenciamento de Avaliações.

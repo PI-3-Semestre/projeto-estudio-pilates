@@ -1,6 +1,32 @@
-from rest_framework.serializers import ModelSerializer, CharField
+from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField
 from avaliacoes.models import Avaliacao
+from alunos.models import Aluno
 from drf_extra_fields.fields import Base64ImageField
+
+class AvaliacaoCreateSerializer(ModelSerializer):
+    """
+    Serializer otimizado para a CRIAÇÃO de uma nova avaliação.
+    Recebe o ID do aluno diretamente no corpo do JSON.
+    """
+    aluno = PrimaryKeyRelatedField(queryset=Aluno.objects.all())
+    foto_avaliacao_postural = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Avaliacao
+        # Inclui todos os campos que o front-end deve enviar
+        fields = [
+            'aluno',
+            'data_avaliacao',
+            'diagnostico_fisioterapeutico',
+            'historico_medico',
+            'patologias',
+            'exames_complementares',
+            'medicamentos_em_uso',
+            'tratamentos_realizados',
+            'objetivo_aluno',
+            'foto_avaliacao_postural',
+            'data_reavalicao',
+        ]
 
 class AvaliacaoSerializer(ModelSerializer):
     """

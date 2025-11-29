@@ -3,6 +3,15 @@ from . import views
 
 # Define os padrões de URL para o aplicativo de avaliações.
 urlpatterns = [
+    # Rota para o aluno logado ver suas próprias avaliações
+    path('me/', views.MinhasAvaliacoesListView.as_view(), name='minhas-avaliacoes-list'),
+
+    # Rota para listar todas as avaliações (GET) ou criar uma nova (POST)
+    path('', views.AvaliacaoGlobalListCreateView.as_view(), name='avaliacao-global-list-create'),
+
+    # Rota para listar o histórico de avaliações de um aluno pelo ID
+    path('alunos/<int:aluno_id>/', views.AvaliacaoListByAlunoIdView.as_view(), name='aluno-id-avaliacoes-list'),
+
     # Rota para listar o histórico de avaliações de um aluno ou criar uma nova.
     # Acessível via GET (listar) e POST (criar).
     # Ex: /api/alunos/12345678901/avaliacoes/
