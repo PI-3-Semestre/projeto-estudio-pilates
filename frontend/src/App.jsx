@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 
@@ -25,6 +25,7 @@ import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
+import CadastrarAulaView from "./views/CadastrarAulaView"; // Importando a nova view
 import DetalhesAulaView from "./views/DetalhesAulaView";
 import EditarAulaView from "./views/EditarAulaView";
 import GerenciamentoStudiosView from "./views/GerenciamentoStudiosView";
@@ -54,7 +55,52 @@ import GerenciamentoMatriculasView from "./views/GerenciamentoMatriculasView";
 import CadastrarMatriculaView from "./views/CadastrarMatriculaView";
 import DetalhesMatriculaView from "./views/DetalhesMatriculaView";
 import EditarMatriculaView from "./views/EditarMatriculaView";
-import RelatoriosView from "./views/RelatoriosView"; // Importa a nova view
+import RelatoriosView from "./views/RelatoriosView";
+import DashboardAlunoView from "./views/DashboardAlunoView";
+import MeusAgendamentosView from "./views/MeusAgendamentosView";
+
+// Componente para redirecionar para a dashboard correta com base no userType
+const HomeRedirect = () => {
+  const { user, userType, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      if (userType) {
+        switch (userType) {
+          case 'aluno':
+            if (user?.unidades && user.unidades.length === 1) {
+              navigate(`/aluno/dashboard/${user.unidades[0].id}`, { replace: true });
+            } else {
+              navigate('/aluno/dashboard', { replace: true });
+            }
+            break;
+          case 'admin_master':
+            navigate('/admin-master/dashboard', { replace: true });
+            break;
+          case 'studio_admin':
+            navigate(`/studios/${user.studios[0]}/dashboard`, { replace: true });
+            break;
+          case 'recepcionista':
+            navigate('/recepcionista/atendimento', { replace: true });
+            break;
+          default:
+            navigate('/dashboard-generico', { replace: true });
+            break;
+        }
+      } else {
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [user, userType, loading, navigate]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
+      <p className="text-gray-700 dark:text-gray-300">Carregando...</p>
+    </div>
+  );
+};
+
 
 // Lida com as rotas que o usuário pode ver quando NÃO está logado.
 const PublicRoutes = () => {
@@ -70,382 +116,104 @@ const PublicRoutes = () => {
 
 // Lida com as rotas que o usuário só pode ver quando ESTÁ logado.
 const PrivateRoutes = () => {
+  const adminRoles = ['admin_master', 'studio_admin'];
+
   return (
     <Routes>
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardAdminMasterView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/alunos"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciarAlunosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/alunos/:cpf"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesAlunoView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/alunos/:cpf/editar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <EditarAlunoView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/alunos/cadastrar-usuario"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarUsuarioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/alunos/cadastrar-perfil/:userId"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarAlunoView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/cadastrar-aluno"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <AdminCadastroView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/colaboradores"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciarColaboradoresView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/colaboradores/:cpf"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesColaboradorView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/colaboradores/:cpf/editar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <EditarColaboradorView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/colaboradores/cadastrar-perfil/:userId"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarColaboradorView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/usuarios"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GestaoUsuariosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/modalidades"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <ModalidadesView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/agenda"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <AgendaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/studios"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciamentoStudiosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/studios/cadastrar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarStudioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/studios/:id"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesStudioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/studios/:id/editar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <EditarStudioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/studios/:studioId/dashboard"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DashboardStudioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/marcar-aula"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <MarcarAulaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/aulas/:id"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesAulaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/aulas/:id/editar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <EditarAulaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/configuracoes"
-        element={
-          <ProtectedRoute>
-            <ConfiguracoesView />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
 
-      {/* Rotas de Horários */}
-      <Route
-        path="/horarios"
-        element={
-          <ProtectedRoute>
-            <HorariosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/horarios/novo"
-        element={
-          <ProtectedRoute>
-            <CadastrarHorarioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/horarios/editar/:id"
-        element={
-          <ProtectedRoute>
-            <EditarHorarioView />
-          </ProtectedRoute>
-        }
-      />
+      {/* Rotas do Aluno */}
+      <Route path="/aluno/dashboard" element={<ProtectedRoute allowedRoles={['aluno']}><DashboardAlunoView /></ProtectedRoute>} />
+      <Route path="/aluno/dashboard/:studioId" element={<ProtectedRoute allowedRoles={['aluno']}><DashboardAlunoView /></ProtectedRoute>} />
+      <Route path="/aluno/meus-agendamentos" element={<ProtectedRoute allowedRoles={['aluno']}><MeusAgendamentosView /></ProtectedRoute>} />
+      <Route path="/aluno/marcar-aula" element={<ProtectedRoute allowedRoles={['aluno']}><MarcarAulaView /></ProtectedRoute>} />
+      <Route path="/aluno/selecionar-studio" element={<ProtectedRoute allowedRoles={['aluno']}><div>Tela de Seleção de Estúdio</div></ProtectedRoute>} />
 
-      {/* Rotas de Bloqueios */}
-      <Route
-        path="/bloqueios"
-        element={
-          <ProtectedRoute>
-            <BloqueiosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/bloqueios/novo"
-        element={
-          <ProtectedRoute>
-            <CadastrarBloqueioView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/bloqueios/editar/:id"
-        element={
-          <ProtectedRoute>
-            <EditarBloqueioView />
-          </ProtectedRoute>
-        }
-      />
+      {/* Rotas de Admin Master */}
+      <Route path="/admin-master/dashboard" element={<ProtectedRoute allowedRoles={['admin_master']}><DashboardAdminMasterView /></ProtectedRoute>} />
+      
+      {/* Rotas de Studio Admin */}
+      <Route path="/studios/:studioId/dashboard" element={<ProtectedRoute allowedRoles={adminRoles}><DashboardStudioView /></ProtectedRoute>} />
 
-      {/* Rotas de Planos */}
-      <Route
-        path="/planos"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <PlanosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planos/novo"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <PlanoFormView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/planos/editar/:id"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <PlanoFormView />
-          </ProtectedRoute>
-        }
-      />
+      {/* Rotas de Colaboradores Genéricas (Recepcionista, etc) */}
+      <Route path="/recepcionista/atendimento" element={<ProtectedRoute allowedRoles={['recepcionista']}><div>Atendimento da Recepcionista</div></ProtectedRoute>} />
+      <Route path="/dashboard-generico" element={<ProtectedRoute><div>Dashboard Genérica</div></ProtectedRoute>} />
 
-      {/* Rota de Produtos */}
-      <Route
-        path="/produtos"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciamentoProdutosView />
-          </ProtectedRoute>
-        }
-      />
+      {/* Rotas de Gestão (Admins) */}
+      <Route path="/alunos" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarAlunosView /></ProtectedRoute>} />
+      <Route path="/alunos/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAlunoView /></ProtectedRoute>} />
+      <Route path="/alunos/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarAlunoView /></ProtectedRoute>} />
+      <Route path="/admin/cadastrar-aluno" element={<ProtectedRoute allowedRoles={adminRoles}><AdminCadastroView /></ProtectedRoute>} />
+      <Route path="/colaboradores" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarColaboradoresView /></ProtectedRoute>} />
+      <Route path="/colaboradores/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesColaboradorView /></ProtectedRoute>} />
+      <Route path="/colaboradores/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarColaboradorView /></ProtectedRoute>} />
+      <Route path="/usuarios" element={<ProtectedRoute allowedRoles={adminRoles}><GestaoUsuariosView /></ProtectedRoute>} />
+      <Route path="/modalidades" element={<ProtectedRoute allowedRoles={adminRoles}><ModalidadesView /></ProtectedRoute>} />
+      <Route path="/agenda" element={<ProtectedRoute allowedRoles={adminRoles}><AgendaView /></ProtectedRoute>} />
+      
+      {/* Nova Rota para Cadastrar Aula (Admin) */}
+      <Route path="/admin/cadastrar-aula" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarAulaView /></ProtectedRoute>} />
+      
+      <Route path="/aulas/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAulaView /></ProtectedRoute>} />
+      <Route path="/aulas/:id/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarAulaView /></ProtectedRoute>} />
+      
+      <Route path="/studios" element={<ProtectedRoute allowedRoles={['admin_master']}><GerenciamentoStudiosView /></ProtectedRoute>} />
+      <Route path="/studios/cadastrar" element={<ProtectedRoute allowedRoles={['admin_master']}><CadastrarStudioView /></ProtectedRoute>} />
+      <Route path="/studios/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesStudioView /></ProtectedRoute>} />
+      <Route path="/studios/:id/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarStudioView /></ProtectedRoute>} />
+      
+      <Route path="/horarios" element={<ProtectedRoute allowedRoles={adminRoles}><HorariosView /></ProtectedRoute>} />
+      <Route path="/horarios/novo" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarHorarioView /></ProtectedRoute>} />
+      <Route path="/horarios/editar/:id" element={<ProtectedRoute allowedRoles={adminRoles}><EditarHorarioView /></ProtectedRoute>} />
+      
+      <Route path="/bloqueios" element={<ProtectedRoute allowedRoles={adminRoles}><BloqueiosView /></ProtectedRoute>} />
+      <Route path="/bloqueios/novo" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarBloqueioView /></ProtectedRoute>} />
+      <Route path="/bloqueios/editar/:id" element={<ProtectedRoute allowedRoles={adminRoles}><EditarBloqueioView /></ProtectedRoute>} />
+      
+      <Route path="/planos" element={<ProtectedRoute allowedRoles={adminRoles}><PlanosView /></ProtectedRoute>} />
+      <Route path="/planos/novo" element={<ProtectedRoute allowedRoles={adminRoles}><PlanoFormView /></ProtectedRoute>} />
+      <Route path="/planos/editar/:id" element={<ProtectedRoute allowedRoles={adminRoles}><PlanoFormView /></ProtectedRoute>} />
+      
+      <Route path="/produtos" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciamentoProdutosView /></ProtectedRoute>} />
+      <Route path="/financeiro" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciamentoFinanceiroView /></ProtectedRoute>} />
+      <Route path="/vendas" element={<ProtectedRoute allowedRoles={adminRoles}><GestaoVendasView /></ProtectedRoute>} />
+      <Route path="/vendas/nova" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarVendaView /></ProtectedRoute>} />
+      <Route path="/vendas/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesVendaView /></ProtectedRoute>} />
+      
+      <Route path="/financeiro/pagamentos" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciamentoPagamentosView /></ProtectedRoute>} />
+      <Route path="/financeiro/pagamentos/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesPagamentoView /></ProtectedRoute>} />
+      <Route path="/financeiro/pagamentos/novo" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarPagamentoView /></ProtectedRoute>} />
+      <Route path="/financeiro/pagamentos/:id/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarPagamentoView /></ProtectedRoute>} />
+      
+      <Route path="/matriculas" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciamentoMatriculasView /></ProtectedRoute>} />
+      <Route path="/matriculas/nova" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarMatriculaView /></ProtectedRoute>} />
+      <Route path="/matriculas/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesMatriculaView /></ProtectedRoute>} />
+      <Route path="/matriculas/:id/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarMatriculaView /></ProtectedRoute>} />
+      
+      <Route path="/relatorios" element={<ProtectedRoute allowedRoles={adminRoles}><RelatoriosView /></ProtectedRoute>} />
 
-      {/* Rota de Gerenciamento Financeiro */}
-      <Route
-        path="/financeiro"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciamentoFinanceiroView />
-          </ProtectedRoute>
-        }
-      />
+      {/* Rota genérica para marcar aula, acessível a todos os usuários logados */}
+      <Route path="/marcar-aula" element={<ProtectedRoute><MarcarAulaView /></ProtectedRoute>} />
+      
+      <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesView /></ProtectedRoute>} />
 
-      {/* Rotas de Vendas */}
-      <Route
-        path="/vendas"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GestaoVendasView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/vendas/nova"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarVendaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/vendas/:id"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesVendaView />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Rotas de Pagamentos */}
-      <Route
-        path="/financeiro/pagamentos"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciamentoPagamentosView />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/financeiro/pagamentos/:id" element={<ProtectedRoute adminOnly={true}><DetalhesPagamentoView /></ProtectedRoute>} />
-      <Route path="/financeiro/pagamentos/novo" element={<ProtectedRoute adminOnly={true}><CadastrarPagamentoView /></ProtectedRoute>} />
-      <Route path="/financeiro/pagamentos/:id/editar" element={<ProtectedRoute adminOnly={true}><EditarPagamentoView /></ProtectedRoute>} />
-
-      {/* Rotas de Matrículas */}
-      <Route
-        path="/matriculas"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <GerenciamentoMatriculasView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/matriculas/nova"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <CadastrarMatriculaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/matriculas/:id"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <DetalhesMatriculaView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/matriculas/:id/editar"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <EditarMatriculaView />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Rota de Relatórios */}
-      <Route
-        path="/relatorios"
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <RelatoriosView />
-          </ProtectedRoute>
-        }
-      />
-
-
-      <Route path="*" element={<Navigate to="/dashboard" />} />
+      <Route path="*" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
     </Routes>
   );
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
+        <p className="text-gray-700 dark:text-gray-300">Carregando autenticação...</p>
+      </div>
+    );
+  }
+
   return isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
 };
 

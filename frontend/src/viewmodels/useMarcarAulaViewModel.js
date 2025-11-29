@@ -1,150 +1,211 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getModalidades } from '../services/modalidadesService';
 import studiosService from '../services/studiosService';
-import { getColaboradores } from '../services/colaboradoresService';
+import { getModalidades } from '../services/modalidadesService';
+import { getAulas } from '../services/aulasService';
+import agendamentosService from '../services/agendamentosService';
+import { format, parseISO, isSameDay, addDays, startOfWeek } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-import { createAula } from '../services/aulasService';
-import { formatISO } from 'date-fns';
+// Função utilitária para extrair mensagens de erro da API de forma robusta
+const extractErrorMessage = (err, defaultMessage) => {
+  const apiErrorData = err.response?.data;
+  if (!apiErrorData) {
+    return defaultMessage;
+  }
+
+  if (apiErrorData.non_field_errors && Array.isArray(apiErrorData.non_field_errors)) {
+    return apiErrorData.non_field_errors.join(' ');
+  }
+
+  if (apiErrorData.detail) {
+    return Array.isArray(apiErrorData.detail) ? apiErrorData.detail.join(' ') : apiErrorData.detail;
+  }
+
+  // Tratamento para erros de campo (ex: {"aula": ["ID inválido"]})
+  const fieldErrors = Object.values(apiErrorData).flat();
+  if (fieldErrors.length > 0) {
+    return fieldErrors.join(' ');
+  }
+
+  return defaultMessage;
+};
+
 
 const useMarcarAulaViewModel = () => {
-    const navigate = useNavigate();
-    const { user } = useAuth();
-    const [formData, setFormData] = useState({
-        data_hora_inicio: '',
-        capacidade_maxima: 3,
-        duracao_minutos: 60,
-        tipo_aula: 'REGULAR',
-        modalidade: '',
-        studio: '',
-        instrutor_principal: '',
-        instrutor_substituto: null,
+  const { user, loading: authLoading } = useAuth();
+  const [allStudios, setAllStudios] = useState([]);
+  const [allModalidades, setAllModalidades] = useState([]);
+  const [allAulas, setAllAulas] = useState([]); // Todas as aulas do sistema
+  const [selectedStudioId, setSelectedStudioId] = useState('all'); // 'all' para todos os estúdios
+  const [selectedModalityId, setSelectedModalityId] = useState('all'); // 'all' para todas as modalidades
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 2.1.1 Buscar todos os estúdios
+  const fetchAllStudios = useCallback(async () => {
+    try {
+      const response = await studiosService.getAllStudios();
+      const studiosWithAllOption = [{ id: 'all', nome: 'Todos os Estúdios' }, ...response.data];
+      setAllStudios(studiosWithAllOption);
+    } catch (err) {
+      console.error("Erro ao buscar estúdios:", err);
+      setError('Não foi possível carregar os estúdios.');
+    }
+  }, []);
+
+  // 2.1.2 Buscar todas as modalidades
+  const fetchAllModalidades = useCallback(async () => {
+    try {
+      const response = await getModalidades();
+      const modalidadesWithAllOption = [{ id: 'all', nome: 'Todas as Modalidades' }, ...response.data];
+      setAllModalidades(modalidadesWithAllOption);
+    } catch (err) {
+      console.error("Erro ao buscar modalidades:", err);
+      setError('Não foi possível carregar as modalidades.');
+    }
+  }, []);
+
+  // 2.1.3 Buscar todas as aulas disponíveis
+  const fetchAllAulas = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getAulas();
+      setAllAulas(response.data);
+    } catch (err) {
+      console.error("Erro ao buscar aulas:", err);
+      setError('Não foi possível carregar as aulas disponíveis.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Efeito para carregar dados iniciais
+  useEffect(() => {
+    if (!authLoading) {
+      fetchAllStudios();
+      fetchAllModalidades();
+      fetchAllAulas();
+    }
+  }, [authLoading, fetchAllStudios, fetchAllModalidades, fetchAllAulas]);
+
+  // Nomes para exibição
+  const currentStudioName = useMemo(() => {
+    return allStudios.find(s => s.id === selectedStudioId)?.nome || 'Todos os Estúdios';
+  }, [allStudios, selectedStudioId]);
+
+  const currentModalityName = useMemo(() => {
+    return allModalidades.find(m => m.id === selectedModalityId)?.nome || 'Todas as Modalidades';
+  }, [allModalidades, selectedModalityId]);
+
+  // 2.1.4 Lógica de Filtragem de Aulas
+  const filteredClasses = useMemo(() => {
+    return allAulas.filter(aula => {
+      const isSameDate = isSameDay(parseISO(aula.data_hora_inicio), selectedDate);
+      if (!isSameDate) return false;
+
+      const isStudioMatch = selectedStudioId === 'all' || aula.studio?.id === parseInt(selectedStudioId);
+      if (!isStudioMatch) return false;
+
+      const isModalityMatch = selectedModalityId === 'all' || aula.modalidade?.id === parseInt(selectedModalityId);
+      if (!isModalityMatch) return false;
+
+      const isFutureClass = parseISO(aula.data_hora_inicio) > new Date();
+      if (!isFutureClass) return false;
+
+      return true;
     });
-    const [modalidades, setModalidades] = useState([]);
-    const [studios, setStudios] = useState([]);
-    const [instrutores, setInstrutores] = useState([]); // Estado para instrutores
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
+  }, [allAulas, selectedDate, selectedStudioId, selectedModalityId]);
 
-    const allowedProfiles = ['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA'];
-    const isStaff = user && user.perfis && user.perfis.some(profile =>
-        allowedProfiles.includes(profile.toUpperCase().replace(' ', '_'))
-    );
+  // 2.1.5 Funções de Navegação Semanal
+  const getWeekDays = useCallback(() => {
+    const start = startOfWeek(selectedDate, { locale: ptBR });
+    return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+  }, [selectedDate]);
 
-    const fetchInitialData = useCallback(async () => {
-        if (!isStaff) {
-            setError('Você não tem permissão para criar aulas.');
-            setLoading(false);
-            return;
-        }
-        try {
-            // 1. Buscar modalidades, estúdios e todos os colaboradores
-            const [modalidadesRes, studiosRes, colaboradoresRes] = await Promise.all([
-                getModalidades(),
-                studiosService.getAllStudios(),
-                getColaboradores(),
-            ]);
+  const formattedDate = (date) => format(date, 'dd/MM', { locale: ptBR });
+  const formattedDayOfWeek = (date) => format(date, 'EEE', { locale: ptBR });
 
-            // 2. Filtrar colaboradores que têm o perfil de "INSTRUTOR" pelo nome
-            const instrutoresFiltrados = colaboradoresRes.data.filter(colab =>
-                colab.perfis.some(p => p.nome.toUpperCase() === 'INSTRUTOR')
-            );
-            
-            setModalidades(modalidadesRes.data);
-            setStudios(studiosRes.data);
-            setInstrutores(instrutoresFiltrados); // Armazenar a lista de instrutores
+  const setPreviousWeek = useCallback(() => {
+    const newDate = addDays(selectedDate, -7);
+    setSelectedDate(newDate);
+  }, [selectedDate]);
 
-            // Set default values if data is available
-            if (modalidadesRes.data.length > 0) {
-                setFormData(prev => ({ ...prev, modalidade: modalidadesRes.data[0].id }));
-            }
-            if (studiosRes.data.length > 0) {
-                setFormData(prev => ({ ...prev, studio: studiosRes.data[0].id }));
-            }
-            if (instrutoresFiltrados.length > 0) {
-                setFormData(prev => ({ ...prev, instrutor_principal: instrutoresFiltrados[0].usuario }));
-            }
+  const setNextWeek = useCallback(() => {
+    const newDate = addDays(selectedDate, 7);
+    setSelectedDate(newDate);
+  }, [selectedDate]);
 
-        } catch (err) {
-            setError('Erro ao carregar dados iniciais para o formulário.');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    }, [isStaff]);
+  // 2.1.6 Indicador de Dias com Aulas Disponíveis
+  const daysWithAvailableClasses = useMemo(() => {
+    const dateSet = new Set();
+    allAulas.forEach(aula => {
+      const isStudioMatch = selectedStudioId === 'all' || aula.studio?.id === parseInt(selectedStudioId);
+      const isModalityMatch = selectedModalityId === 'all' || aula.modalidade?.id === parseInt(selectedModalityId);
+      const hasVacancies = aula.vagas_preenchidas < aula.capacidade_maxima;
+      const isFutureClass = parseISO(aula.data_hora_inicio) > new Date();
 
-    useEffect(() => {
-        fetchInitialData();
-    }, [fetchInitialData]);
+      if (isStudioMatch && isModalityMatch && hasVacancies && isFutureClass) {
+        const date = format(parseISO(aula.data_hora_inicio), 'yyyy-MM-dd');
+        dateSet.add(date);
+      }
+    });
+    return dateSet;
+  }, [allAulas, selectedStudioId, selectedModalityId]);
 
-    const handleChange = useCallback((e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value === '' ? null : value,
-        }));
-    }, []);
+  const marcarAula = useCallback(async (aulaId) => {
+    try {
+      const payload = { aula: aulaId, entrar_lista_espera: false };
+      const response = await agendamentosService.marcarAula(payload);
+      fetchAllAulas();
+      return { success: true, data: response };
+    } catch (err) {
+      console.error("Erro ao marcar aula:", err);
+      const errorMessage = extractErrorMessage(err, "Não foi possível marcar a aula.");
+      return { success: false, error: errorMessage };
+    }
+  }, [fetchAllAulas]);
 
-    const handleDateTimeChange = useCallback((date, time) => {
-        if (date && time) {
-            const [year, month, day] = date.split('-').map(Number);
-            const [hours, minutes] = time.split(':').map(Number);
-            const dateTime = new Date(year, month - 1, day, hours, minutes);
-            setFormData(prev => ({
-                ...prev,
-                data_hora_inicio: formatISO(dateTime),
-            }));
-        } else {
-            setFormData(prev => ({ ...prev, data_hora_inicio: '' }));
-        }
-    }, []);
+  const entrarListaEspera = useCallback(async (aulaId) => {
+    try {
+      const payload = { aula: aulaId, entrar_lista_espera: true };
+      const response = await agendamentosService.marcarAula(payload);
+      fetchAllAulas();
+      // Retorna a mensagem específica da API para a lista de espera
+      return { success: true, data: response, message: response.detail };
+    } catch (err) {
+      console.error("Erro ao entrar na lista de espera:", err);
+      const errorMessage = extractErrorMessage(err, "Não foi possível entrar na lista de espera.");
+      return { success: false, error: errorMessage };
+    }
+  }, [fetchAllAulas]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-        setSuccess(false);
 
-        // Ensure IDs are numbers
-        const payload = {
-            ...formData,
-            modalidade: parseInt(formData.modalidade),
-            studio: parseInt(formData.studio),
-            instrutor_principal: parseInt(formData.instrutor_principal),
-            capacidade_maxima: parseInt(formData.capacidade_maxima),
-            duracao_minutos: parseInt(formData.duracao_minutos),
-            instrutor_substituto: formData.instrutor_substituto ? parseInt(formData.instrutor_substituto) : null,
-        };
-
-        try {
-            await createAula(payload);
-            setSuccess(true);
-            // Optionally navigate back or clear form
-            navigate('/agenda'); // Go back to agenda after successful creation
-        } catch (err) {
-            setError('Erro ao criar aula. Verifique os dados e suas permissões.');
-            console.error('Erro ao criar aula:', err.response?.data || err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return {
-        formData,
-        modalidades,
-        studios,
-        instrutores, // Retornar a lista de instrutores
-        loading,
-        error,
-        success,
-        isStaff,
-        handleChange,
-        handleDateTimeChange,
-        handleSubmit,
-        navigate,
-    };
+  return {
+    studios: allStudios,
+    modalidades: allModalidades,
+    filteredClasses,
+    selectedStudioId,
+    setSelectedStudioId,
+    selectedModalityId,
+    setSelectedModalityId,
+    selectedDate,
+    setSelectedDate,
+    loading,
+    error,
+    getWeekDays,
+    formattedDate,
+    formattedDayOfWeek,
+    setPreviousWeek,
+    setNextWeek,
+    daysWithAvailableClasses,
+    currentStudioName,
+    currentModalityName,
+    marcarAula,
+    entrarListaEspera,
+  };
 };
 
 export default useMarcarAulaViewModel;

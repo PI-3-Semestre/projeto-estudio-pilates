@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Criar Avaliação - Passo 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0fbdab",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102220",
+                        "text-light": "#0d1b1a",
+                        "text-dark": "#e0e4e4",
+                        "subtle-light": "#4c9a92",
+                        "subtle-dark": "#a0b5b3",
+                        "surface-light": "#e7f3f2",
+                        "surface-dark": "#1a3835"
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
+    <!-- TopAppBar -->
+    <div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+        <button class="text-text-light dark:text-text-dark flex size-12 shrink-0 items-center justify-center">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h2 class="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Criar Avaliação</h2>
+        <div class="w-12 shrink-0"></div> <!-- Spacer to balance the back button -->
+    </div>
+    <!-- PageIndicators -->
+    <div class="flex w-full flex-row items-center justify-center gap-3 pt-2 pb-5">
+        <div class="h-2 w-2 rounded-full bg-primary"></div>
+        <div class="h-2 w-2 rounded-full bg-primary/30"></div>
+        <div class="h-2 w-2 rounded-full bg-primary/30"></div>
+        <div class="h-2 w-2 rounded-full bg-primary/30"></div>
+    </div>
+    <!-- HeadlineText -->
+    <h1 class="text-text-light dark:text-text-dark tracking-light text-[32px] font-bold leading-tight px-4 text-left pb-3 pt-6">Para qual aluno?</h1>
+    <!-- SearchBar -->
+    <div class="px-4 py-3">
+        <label class="flex flex-col min-w-40 h-14 w-full">
+            <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+                <div class="text-subtle-light dark:text-subtle-dark flex border-none bg-surface-light dark:bg-surface-dark items-center justify-center pl-4 rounded-l-xl">
+                    <span class="material-symbols-outlined">search</span>
+                </div>
+                <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-0 border-none bg-surface-light dark:bg-surface-dark h-full placeholder:text-subtle-light dark:placeholder:text-subtle-dark px-4 pl-2 text-base font-normal leading-normal" placeholder="Buscar aluno..." value=""/>
+            </div>
+        </label>
+    </div>
+    <!-- Spacer -->
+    <div class="h-4"></div>
+    <!-- Student List -->
+    <div class="flex flex-col gap-2 px-4">
+        <!-- ListItem 1 -->
+        <a class="flex items-center gap-4 bg-background-light dark:bg-background-dark min-h-[72px] py-2 justify-between rounded-lg transition-colors hover:bg-surface-light dark:hover:bg-surface-dark" href="#">
+            <div class="flex items-center gap-4 flex-grow">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 ml-2" data-alt="Profile picture of Ana Silva" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBm6rAd-OLFhNxsmDBSOtzuP_esPrjVokYaTGrRWApk9MZaANKHgYI8viSdpTCa_PtWGCwD-eBOurhoUyAn3D105I3hEPO7tRZpz_cr97SMQ1YBT9ceK1XGa1-k2GigN52_xOZJ9AV4_YZnpdnajJ7eOigBoUPVSuOxOMa8bfYT950Cgz0eFS84yM7Oq81nqzoxOSQjqb8diY5iSTKV9zed69n6qyF9BzZPzanUoPubwEy0f2bSDHLN2UitkIsOPPeLz6NArxDKxbnV");'></div>
+                <div class="flex flex-col justify-center">
+                    <p class="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Ana Silva</p>
+                    <p class="text-subtle-light dark:text-subtle-dark text-sm font-normal leading-normal line-clamp-2">CPF: 123.456.789-00</p>
+                </div>
+            </div>
+            <div class="shrink-0 mr-2">
+                <div class="text-text-light dark:text-text-dark flex size-7 items-center justify-center">
+                    <span class="material-symbols-outlined">arrow_forward_ios</span>
+                </div>
+            </div>
+        </a>
+        <!-- ListItem 2 -->
+        <a class="flex items-center gap-4 bg-background-light dark:bg-background-dark min-h-[72px] py-2 justify-between rounded-lg transition-colors hover:bg-surface-light dark:hover:bg-surface-dark" href="#">
+            <div class="flex items-center gap-4 flex-grow">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 ml-2" data-alt="Profile picture of Carlos Pereira" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCz3kQKKIBKj1cWzmdMV1mhsmA4gNaPM69clz_uhFZTjncQpREbAKyppBSsbO5LQ859ZGVF9Zd-DyO3D3G-RTF6CnwRUmOkMlU3CyJUFeh_yz_a_uDFNi6M3_NCvuBet-czRvXqlPAL6wiwHhkp5f-pbtnk7baPpENrdKTkRz8OTBYazj6GD1qRaY9UCpjvbrfmvgfB4fU8zltEckgmYv2Xfm6lrxaCAk_bw3_GyA-axGOcJ1aMbSjh_GWLbo5uRna3ma-hUw5lHaD9");'></div>
+                <div class="flex flex-col justify-center">
+                    <p class="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Carlos Pereira</p>
+                    <p class="text-subtle-light dark:text-subtle-dark text-sm font-normal leading-normal line-clamp-2">CPF: 987.654.321-00</p>
+                </div>
+            </div>
+            <div class="shrink-0 mr-2">
+                <div class="text-text-light dark:text-text-dark flex size-7 items-center justify-center">
+                    <span class="material-symbols-outlined">arrow_forward_ios</span>
+                </div>
+            </div>
+        </a>
+        <!-- ListItem 3 -->
+        <a class="flex items-center gap-4 bg-background-light dark:bg-background-dark min-h-[72px] py-2 justify-between rounded-lg transition-colors hover:bg-surface-light dark:hover:bg-surface-dark" href="#">
+            <div class="flex items-center gap-4 flex-grow">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 ml-2" data-alt="Profile picture of Mariana Costa" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA3nxVejKygBMW6rBgUNkSSKaqx3OXEFaiOB2CfOYmOvH8AQTsQ8UchX6D41-k_s-ChtLKQxSiLQ2dz4k9Pz_g2Q_8YUKxwMkw5hilwceGg_kzGshx08DPnxFU11sd4SbLz-e8dsTJapsjKnMfDlShdJURXBrXzf5cY08I9-BKpudEUUfpKSgacXq4XVNyvvHTh4srjOk6Cx0n12TDJvCmiu_hHo6sjEoNMqDxGGg_r4bzlK0fNlpVWcwtjLSgWbCYbFq3MJPPurzs8");'></div>
+                <div class="flex flex-col justify-center">
+                    <p class="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Mariana Costa</p>
+                    <p class="text-subtle-light dark:text-subtle-dark text-sm font-normal leading-normal line-clamp-2">CPF: 456.789.123-00</p>
+                </div>
+            </div>
+            <div class="shrink-0 mr-2">
+                <div class="text-text-light dark:text-text-dark flex size-7 items-center justify-center">
+                    <span class="material-symbols-outlined">arrow_forward_ios</span>
+                </div>
+            </div>
+        </a>
+        <!-- ListItem 4 -->
+        <a class="flex items-center gap-4 bg-background-light dark:bg-background-dark min-h-[72px] py-2 justify-between rounded-lg transition-colors hover:bg-surface-light dark:hover:bg-surface-dark" href="#">
+            <div class="flex items-center gap-4 flex-grow">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 ml-2" data-alt="Profile picture of Rafael Souza" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCXsqnuSBzDYjZUkCja25BOUhFPC1I0HSr9kUUJ6kmzHdQE8ntBDKB8v4vrWHk5JEN8O-7RfRDElTNXFRo_YJLG29EP3ALmM2dPvOAGEFjJAg73Ujdav7_v84OhsTmKVkMpXgtQj6iQTiAXV6dZIvvGncPhuhNHJueMlMnTGem1WZ1qznHKF7NNi1Kd1XmLXCr11wOgEA4G_3yhQUbcYH6EVzRg6iKN2nYY05NqAniNegjv5uubYL70cjOCJ2Wzggb3byGGKWez7wtC");'></div>
+                <div class="flex flex-col justify-center">
+                    <p class="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">Rafael Souza</p>
+                    <p class="text-subtle-light dark:text-subtle-dark text-sm font-normal leading-normal line-clamp-2">CPF: 321.654.987-00</p>
+                </div>
+            </div>
+            <div class="shrink-0 mr-2">
+                <div class="text-text-light dark:text-text-dark flex size-7 items-center justify-center">
+                    <span class="material-symbols-outlined">arrow_forward_ios</span>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="h-10"></div> <!-- Bottom padding -->
+</div>
+</body></html>

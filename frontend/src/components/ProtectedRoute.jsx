@@ -7,13 +7,14 @@ const ProtectedRoute = ({
   adminOnly = false,
   adminMasterOnly = false,
   staffOnly = false,
+  allowedUserTypes = [], // Nova prop: array de tipos de usuário permitidos
 }) => {
-  const { user, isAuthenticated, loading } = useAuth(); // Get loading state
+  const { user, userType, isAuthenticated, loading } = useAuth(); // Obter userType e loading state
   const location = useLocation();
 
-  // If authentication status is still loading, render a loading indicator
+  // Se o status de autenticação ainda estiver carregando, renderiza um indicador de carregamento
   if (loading) {
-    return <div>Loading authentication...</div>; // Or a more sophisticated spinner component
+    return <div>Carregando autenticação...</div>; // Ou um spinner mais sofisticado
   }
 
   // 1. Verifica se o usuário está autenticado
@@ -23,38 +24,47 @@ const ProtectedRoute = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2. Verifica se a rota é apenas para Admin Master
-  if (adminMasterOnly) {
+  // 2. Verifica se o userType do usuário está entre os tipos permitidos para esta rota
+  if (allowedUserTypes.length > 0 && !allowedUserTypes.includes(userType)) {
+    // Se o tipo de usuário não for permitido, redireciona para a página inicial
+    // ou para uma página de acesso negado.
+    console.warn(`Acesso negado: userType '${userType}' não permitido para esta rota. Tipos permitidos: ${allowedUserTypes.join(', ')}`);
+    return <Navigate to="/" replace />; // Redireciona para a HomeRedirect que irá para a dashboard correta
+  }
+
+  // 3. Verifica se a rota é apenas para Admin Master (baseado em perfis)
+  // Esta verificação só faz sentido se o user tiver perfis (ou seja, não for 'aluno')
+  if (adminMasterOnly && userType !== 'aluno') {
     const isMaster = user?.perfis?.includes("Admin Master");
     if (!isMaster) {
+      console.warn(`Acesso negado: Apenas Admin Master pode acessar esta rota. userType: ${userType}`);
       return <Navigate to="/" replace />;
     }
   }
 
-  // 3. Verifica se a rota é para administradores (Admin ou Admin_Master)
-  if (adminOnly) {
+  // 4. Verifica se a rota é para administradores (Admin ou Admin_Master) (baseado em perfis)
+  if (adminOnly && userType !== 'aluno') {
     const isAdmin = user?.perfis?.some((p) =>
       ["Administrador", "Admin Master"].includes(p)
     );
-
     if (!isAdmin) {
-      // Se não for admin, redireciona para a página inicial.
-      // O usuário já está logado, então não precisa ir para /login.
+      console.warn(`Acesso negado: Apenas Admin ou Admin Master podem acessar esta rota. userType: ${userType}`);
       return <Navigate to="/" replace />;
     }
   }
 
-  // 4. Verifica se a rota é para staff (Admin, Admin_Master, Recepcionista)
-  if (staffOnly) {
+  // 5. Verifica se a rota é para staff (Admin, Admin_Master, Recepcionista) (baseado em perfis)
+  if (staffOnly && userType !== 'aluno') {
     const isStaff = user?.perfis?.some((p) =>
       ["Administrador", "Admin Master", "Recepcionista"].includes(p)
     );
     if (!isStaff) {
+      console.warn(`Acesso negado: Apenas Staff pode acessar esta rota. userType: ${userType}`);
       return <Navigate to="/" replace />;
     }
   }
 
-  // 5. Se tudo estiver ok, renderiza o componente filho
+  // 6. Se todas as verificações passarem, renderiza o componente filho
   return children;
 };
 

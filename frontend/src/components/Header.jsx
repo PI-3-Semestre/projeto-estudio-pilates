@@ -7,7 +7,7 @@ import Icon from "./Icon";
 import useNotificationsViewModel from "../viewmodels/useNotificationsViewModel";
 import NotificationsPanel from "./NotificationsPanel";
 
-const Header = ({ title = "Painel de Controle", showBackButton = false }) => {
+const Header = ({ title = "Painel de Controle", showBackButton = false, greeting }) => { // Adicionado 'greeting' como prop
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -61,8 +61,9 @@ const Header = ({ title = "Painel de Controle", showBackButton = false }) => {
           )}
         </div>
 
+        {/* Exibe a saudação se fornecida, caso contrário, exibe o título padrão */}
         <h1 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center text-text-light dark:text-text-dark">
-          {title}
+          {greeting || title}
         </h1>
 
         <div className="flex w-auto items-center justify-end gap-1">

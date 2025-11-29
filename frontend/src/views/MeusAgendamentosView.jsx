@@ -1,21 +1,31 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import useAgendaViewModel from "../viewmodels/useAgendaViewModel";
-import { format, parseISO, isSameDay } from "date-fns";
-import Icon from "../components/Icon";
+import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
+import AgendamentoCard from '../components/AgendamentoCard';
+import { useToast } from '../context/ToastContext';
+import agendamentosService from '../services/agendamentosService';
+import useMeusAgendamentosViewModel from '../viewmodels/useMeusAgendamentosViewModel';
+import { format, parseISO } from 'date-fns';
+import Icon from '../components/Icon';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useLocation } from 'react-router-dom';
 
-const AgendaView = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+const MeusAgendamentosView = () => {
+  const { showToast } = useToast();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [tempDate, setTempDate] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [agendamentoToCancelId, setAgendamentoToCancelId] = useState(null);
+
+  const location = useLocation();
+  const { initialDate, initialStudioId, forceRefresh } = location.state || {}; // Extrair forceRefresh
 
   const {
-    aulas,
+    agendamentos,
     studios,
     selectedStudioId,
     setSelectedStudioId,
-    selectedDate, // This is now a Date object
+    selectedDate,
     setSelectedDate,
     loading,
     error,
@@ -24,108 +34,72 @@ const AgendaView = () => {
     formattedDayOfWeek,
     setPreviousWeek,
     setNextWeek,
-    daysWithClasses,
+    daysWithAgendamentos,
     currentStudioName,
-  } = useAgendaViewModel();
+    refreshAgendamentos,
+  } = useMeusAgendamentosViewModel(
+    initialDate ? parseISO(initialDate) : undefined,
+    initialStudioId !== undefined ? initialStudioId : undefined,
+    forceRefresh // Passar forceRefresh para o ViewModel
+  );
 
-  // State for the date picker input, which needs a 'yyyy-MM-dd' string
-  const [tempDate, setTempDate] = useState(format(selectedDate, "yyyy-MM-dd"));
+  // Limpar o estado de navegação após o uso para evitar re-refreshs indesejados
+  useEffect(() => {
+    if (forceRefresh) {
+      // Isso é um hack para limpar o state da location sem causar um re-render imediato
+      // Em React Router v6, você pode usar navigate('.', { replace: true, state: {} })
+      // Mas para evitar dependência de navigate aqui, vamos apenas deixar o state ser consumido
+      // e o ViewModel reagirá apenas uma vez a ele.
+      // Se for necessário limpar o state para evitar que um refresh da página re-dispare a lógica,
+      // seria preciso usar navigate com replace: true e um state vazio.
+    }
+  }, [forceRefresh]);
+
+
+  useEffect(() => {
+    setTempDate(format(selectedDate, "yyyy-MM-dd"));
+  }, [selectedDate]);
 
   const handleStudioChange = (event) => {
-    setSelectedStudioId(parseInt(event.target.value));
+    const value = event.target.value;
+    setSelectedStudioId(value === 'all' ? 'all' : parseInt(value));
   };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
 
-  const renderClassCard = (aula) => {
-    const startTime = format(parseISO(aula.data_hora_inicio), "HH:mm");
-    const endTime = format(
-      new Date(
-        parseISO(aula.data_hora_inicio).getTime() + aula.duracao_minutos * 60000
-      ),
-      "HH:mm"
-    );
-    const isFull = aula.capacidade_maxima === aula.alunosInscritos;
-    const isCancelled = aula.tipo_aula === "CANCELADA";
-    const canEdit = user?.perfis?.some((p) =>
-      ["Admin Master", "Administrador", "Recepcionista"].includes(p)
-    );
+  const openCancelModal = (agendamentoId) => {
+    setAgendamentoToCancelId(agendamentoId);
+    setShowCancelModal(true);
+  };
 
-    let capacityDisplay;
-    let capacityClasses =
-      "flex h-6 items-center justify-center rounded-full px-3";
-    if (isCancelled) {
-      capacityDisplay = "Cancelada";
-      capacityClasses += " bg-red-500/20 text-red-600 dark:text-red-400";
-    } else if (isFull) {
-      capacityDisplay = `${aula.capacidade_maxima}/${aula.capacidade_maxima}`;
-      capacityClasses +=
-        " bg-yellow-500/20 text-yellow-600 dark:text-yellow-400";
-    } else {
-      capacityDisplay = `${aula.alunosInscritos || 0}/${
-        aula.capacidade_maxima
-      }`;
-      capacityClasses += " bg-primary/10 text-primary";
+  const confirmCancelAgendamento = async () => {
+    if (!agendamentoToCancelId) return;
+
+    try {
+      await agendamentosService.cancelarAgendamento(agendamentoToCancelId);
+      showToast('Agendamento cancelado com sucesso!', 'success');
+      refreshAgendamentos();
+    } catch (err) {
+      console.error("Erro ao cancelar agendamento:", err);
+      const errorMessage = err.response?.data?.detail || "Não foi possível cancelar o agendamento.";
+      showToast(errorMessage, 'error');
+    } finally {
+      setShowCancelModal(false);
+      setAgendamentoToCancelId(null);
     }
-
-    return (
-      <div
-        key={aula.id}
-        className="relative rounded-xl bg-white p-4 shadow-sm hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700/50"
-      >
-        {canEdit && (
-          <button
-            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/aulas/${aula.id}`);
-            }}
-          >
-            <span className="material-symbols-outlined text-lg">edit</span>
-          </button>
-        )}
-        <div className="flex items-start justify-between pr-10">
-          <div>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">
-              {startTime} - {endTime}
-            </p>
-            <p className="mt-1 text-base text-gray-700 dark:text-gray-200">
-              {aula.modalidade.nome}
-            </p>
-          </div>
-          <div className={capacityClasses}>
-            <span className="text-xs font-medium">{capacityDisplay}</span>
-          </div>
-        </div>
-        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-          Instrutor: {aula.instrutor_principal}
-        </p>
-      </div>
-    );
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
-      <main className="flex-grow pb-24">
+    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-gray-900 dark:text-white transition-colors duration-300">
+      <Header title="Meus Agendamentos" showBackButton={true} />
+
+      <main className="flex-1 pb-24">
         <header className="sticky top-0 z-20 flex items-center justify-between bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                const dashboardPath = "/dashboard";
-                navigate(dashboardPath);
-              }}
-              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
-            >
-              <span className="material-symbols-outlined text-2xl">
-                arrow_back
-              </span>
-            </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Agenda Geral
-            </h1>
-          </div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Seus Agendamentos
+          </h1>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => {
@@ -145,11 +119,11 @@ const AgendaView = () => {
           <div className="bg-blue-600/10 px-4 py-3 dark:bg-blue-500/20">
             <div className="flex flex-col items-start gap-2 xl:flex-row xl:items-center xl:justify-between xl:gap-4">
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                Você está gerenciando:{" "}
+                Estúdio:{" "}
                 <span className="font-bold">{currentStudioName}</span>
               </p>
               <select
-                value={selectedStudioId || ""}
+                value={selectedStudioId}
                 onChange={handleStudioChange}
                 className="appearance-none whitespace-nowrap rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm hover:bg-gray-50 dark:bg-zinc-800 dark:text-primary dark:hover:bg-zinc-700/80"
               >
@@ -161,11 +135,11 @@ const AgendaView = () => {
               </select>
             </div>
           </div>
-          <div className="border-b border-gray-200 bg-background-light px-4 dark:border-gray-700 dark:bg-background-dark">
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-background-light px-4 dark:bg-background-dark">
             <div className="flex items-center space-x-2 py-3">
               <button
                 onClick={setPreviousWeek}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
               >
                 <span className="material-symbols-outlined text-lg">
                   chevron_left
@@ -178,7 +152,7 @@ const AgendaView = () => {
                       key={date.toISOString()}
                       onClick={() => handleDateChange(date)}
                       className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-center ${
-                        isSameDay(date, selectedDate)
+                        format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
                           ? "bg-primary/10 text-primary dark:bg-primary/20"
                           : "text-gray-500 dark:text-gray-400"
                       }`}
@@ -189,7 +163,7 @@ const AgendaView = () => {
                       <span className="text-sm font-semibold">
                         {formattedDate(date)}
                       </span>
-                      {daysWithClasses.has(format(date, "yyyy-MM-dd")) && (
+                      {daysWithAgendamentos.has(format(date, "yyyy-MM-dd")) && (
                         <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                       )}
                     </button>
@@ -198,7 +172,7 @@ const AgendaView = () => {
               </div>
               <button
                 onClick={setNextWeek}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
               >
                 <span className="material-symbols-outlined text-lg">
                   chevron_right
@@ -209,18 +183,32 @@ const AgendaView = () => {
         </div>
 
         <div className="p-4">
-          {loading && <p>Carregando aulas...</p>}
-          {error && <p className="text-red-500">{error}</p>}
-          {!loading && !error && aulas.length === 0 && (
-            <div className="flex h-64 flex-col items-center justify-center text-center">
-              <p className="text-slate-500 dark:text-slate-400">
-                Nenhuma aula encontrada para este dia e estúdio.
-              </p>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-900/20 dark:border-red-800 dark:text-red-300 mb-4" role="alert">
+              <strong className="font-bold">Erro!</strong>
+              <span className="block sm:inline"> {error}</span>
             </div>
           )}
 
-          {!loading && !error && aulas.length > 0 && (
-            <div className="space-y-3">{aulas.map(renderClassCard)}</div>
+          {loading ? (
+            <>
+              <AgendamentoCard isLoading={true} />
+              <AgendamentoCard isLoading={true} />
+              <AgendamentoCard isLoading={true} />
+            </>
+          ) : agendamentos.length > 0 ? (
+            agendamentos.map(agendamento => (
+              <AgendamentoCard
+                key={agendamento.id}
+                agendamento={agendamento}
+                onCancel={openCancelModal}
+              />
+            ))
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-gray-600 dark:text-gray-300">
+              <p>Nenhum agendamento encontrado para este dia e estúdio.</p>
+              <p className="mt-2">Que tal <a href="/aluno/marcar-aula" className="text-primary hover:underline">marcar uma aula</a>?</p>
+            </div>
           )}
         </div>
       </main>
@@ -272,14 +260,17 @@ const AgendaView = () => {
         </div>
       )}
 
-      <button
-        onClick={() => navigate("/admin/cadastrar-aula")}
-        className="fixed bottom-6 right-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/90"
-      >
-        <span className="material-symbols-outlined text-4xl">add</span>
-      </button>
+      <ConfirmDeleteModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelAgendamento}
+        title="Confirmar Cancelamento"
+        message="Você tem certeza que deseja cancelar este agendamento? Esta ação não poderá ser desfeita."
+        confirmButtonText="Sim, Cancelar"
+        cancelButtonText="Não, Manter"
+      />
     </div>
   );
 };
 
-export default AgendaView;
+export default MeusAgendamentosView;

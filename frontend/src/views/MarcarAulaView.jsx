@@ -1,161 +1,150 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import useMarcarAulaViewModel from "../viewmodels/useMarcarAulaViewModel";
-import { useToast } from "../context/ToastContext";
+import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
+import Icon from '../components/Icon';
+import useMarcarAulaViewModel from '../viewmodels/useMarcarAulaViewModel';
+import { format, isSameDay } from 'date-fns';
+import ClassCard from '../components/ClassCard';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useToast } from '../context/ToastContext';
+import { useNavigate } from 'react-router-dom';
 
 const MarcarAulaView = () => {
+  const { showToast } = useToast();
   const navigate = useNavigate();
-  const toast = useToast();
+
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [tempDate, setTempDate] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionModalData, setActionModalData] = useState(null); // { aulaId, isFull }
+
   const {
-    formData,
-    modalidades,
     studios,
-    instrutores,
+    modalidades,
+    filteredClasses,
+    selectedStudioId,
+    setSelectedStudioId,
+    selectedModalityId,
+    setSelectedModalityId,
+    selectedDate,
+    setSelectedDate,
     loading,
     error,
-    success,
-    isStaff,
-    handleChange,
-    handleDateTimeChange,
-    handleSubmit,
+    getWeekDays,
+    formattedDate,
+    formattedDayOfWeek,
+    setPreviousWeek,
+    setNextWeek,
+    daysWithAvailableClasses,
+    currentStudioName,
+    currentModalityName,
+    marcarAula,
+    entrarListaEspera,
   } = useMarcarAulaViewModel();
 
-  const [dateInput, setDateInput] = useState("");
-  const [timeInput, setTimeInput] = useState("");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-
   useEffect(() => {
-    handleDateTimeChange(dateInput, timeInput);
-  }, [dateInput, timeInput, handleDateTimeChange]);
+    setTempDate(format(selectedDate, "yyyy-MM-dd"));
+  }, [selectedDate]);
 
-  // Função para mostrar modal de confirmação
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    setShowConfirmModal(true);
+  const handleStudioChange = (event) => {
+    const value = event.target.value;
+    setSelectedStudioId(value === 'all' ? 'all' : parseInt(value));
   };
 
-  // Função para confirmar criação da aula
-  const confirmCreateAula = async () => {
-    setShowConfirmModal(false);
-    setIsCreating(true);
+  const handleModalityChange = (event) => {
+    const value = event.target.value;
+    setSelectedModalityId(value === 'all' ? 'all' : parseInt(value));
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+  const openActionModal = (aulaId, isFull) => {
+    setActionModalData({ aulaId, isFull });
+    setShowActionModal(true);
+  };
+
+  const confirmAction = async () => {
+    if (!actionModalData) return;
+
+    const { aulaId, isFull } = actionModalData;
+    let result;
 
     try {
-      await handleSubmit(new Event("submit"));
-      toast.showToast("Aula criada com sucesso!", "success");
-      // navigate se faz no viewmodel
+      if (isFull) {
+        result = await entrarListaEspera(aulaId);
+        if (result.success) {
+          showToast(result.message || 'Você entrou na lista de espera com sucesso!', 'success');
+        } else {
+          showToast(result.error, 'error');
+        }
+      } else {
+        result = await marcarAula(aulaId);
+        if (result.success) {
+          showToast('Aula marcada com sucesso!', 'success');
+          const agendamentoCriado = result.data;
+          if (agendamentoCriado && agendamentoCriado.aula) {
+            navigate('/aluno/meus-agendamentos', {
+              state: {
+                initialDate: agendamentoCriado.aula.data_hora_inicio,
+                initialStudioId: agendamentoCriado.aula.studio?.id,
+                forceRefresh: true,
+              },
+            });
+          } else {
+            navigate('/aluno/meus-agendamentos', { state: { forceRefresh: true } });
+          }
+        } else {
+          showToast(result.error, 'error');
+        }
+      }
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Erro ao criar aula. Verifique os dados.";
-      toast.showToast(errorMessage, "error");
+      console.error("Erro na ação:", err);
+      showToast("Ocorreu um erro inesperado.", 'error');
     } finally {
-      setIsCreating(false);
+      setShowActionModal(false);
+      setActionModalData(null);
     }
   };
 
-  // Formatar dados do instrutor principal
-  const instrutorPrincipal = instrutores.find(
-    (inst) => inst.usuario === parseInt(formData.instrutor_principal)
-  );
-  const instrutorSubstituto = formData.instrutor_substituto
-    ? instrutores.find(
-        (inst) => inst.usuario === parseInt(formData.instrutor_substituto)
-      )
-    : null;
-  const modalidadeSelecionada = modalidades.find(
-    (mod) => mod.id === parseInt(formData.modalidade)
-  );
-  const studioSelecionado = studios.find(
-    (est) => est.id === parseInt(formData.studio)
-  );
-
-  if (loading && !isCreating) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-        <p className="text-text-light dark:text-text-dark">Carregando...</p>
-      </div>
-    );
-  }
-
-  if (error && !isStaff) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col font-display bg-background-light dark:bg-background-dark">
-      <header className="sticky top-0 z-10 flex items-center bg-background-light dark:bg-background-dark p-4 shadow-sm">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex h-10 w-10 shrink-0 items-center justify-center text-text-light dark:text-text-dark"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="flex-1 text-center text-lg font-bold leading-tight tracking-tight text-text-light dark:text-text-dark">
-          Criar Nova Aula
-        </h1>
-        <div className="h-10 w-10 shrink-0"></div>
-      </header>
+    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark text-gray-900 dark:text-white transition-colors duration-300">
+      <Header title="Marcar Aula" showBackButton={true} />
 
-      <main className="flex-1 overflow-y-auto px-4 pb-28 pt-4">
-        <form
-          id="aula-form"
-          onSubmit={handleFormSubmit}
-          className="mx-auto max-w-lg space-y-6"
-        >
-          {/* Modalidade */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="modalidade"
+      <main className="flex-1 pb-24">
+        <header className="sticky top-0 z-20 flex items-center justify-between bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Aulas Disponíveis
+          </h1>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setTempDate(format(selectedDate, "yyyy-MM-dd"));
+                setIsCalendarModalOpen(true);
+              }}
+              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
             >
-              Modalidade
-            </label>
-            <div className="relative">
-              <select
-                className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-                id="modalidade"
-                name="modalidade"
-                value={formData.modalidade || ""}
-                onChange={handleChange}
-                required
-              >
-                <option disabled value="">
-                  Selecione a modalidade
-                </option>
-                {modalidades.map((mod) => (
-                  <option key={mod.id} value={mod.id}>
-                    {mod.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <span className="material-symbols-outlined text-2xl">
+                calendar_today
+              </span>
+            </button>
           </div>
+        </header>
 
-          {/* Studio */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="studio"
-            >
-              Estúdio
-            </label>
-            <div className="relative">
+        <div className="sticky top-[72px] z-10 bg-background-light dark:bg-background-dark">
+          <div className="bg-blue-600/10 px-4 py-3 dark:bg-blue-500/20 flex flex-col sm:flex-row gap-2 justify-between items-center">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Estúdio:{" "}
+                <span className="font-bold">{currentStudioName}</span>
+              </p>
               <select
-                className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-                id="studio"
-                name="studio"
-                value={formData.studio || ""}
-                onChange={handleChange}
-                required
+                value={selectedStudioId}
+                onChange={handleStudioChange}
+                className="appearance-none whitespace-nowrap rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm hover:bg-gray-50 dark:bg-zinc-800 dark:text-primary dark:hover:bg-zinc-700/80"
               >
-                <option disabled value="">
-                  Selecione o estúdio
-                </option>
                 {studios.map((studio) => (
                   <option key={studio.id} value={studio.id}>
                     {studio.nome}
@@ -163,248 +152,164 @@ const MarcarAulaView = () => {
                 ))}
               </select>
             </div>
-          </div>
-
-          {/* Instrutor Principal */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="instrutor_principal"
-            >
-              Instrutor Principal
-            </label>
-            <div className="relative">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Modalidade:{" "}
+                <span className="font-bold">{currentModalityName}</span>
+              </p>
               <select
-                className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-                id="instrutor_principal"
-                name="instrutor_principal"
-                value={formData.instrutor_principal || ""}
-                onChange={handleChange}
-                required
+                value={selectedModalityId}
+                onChange={handleModalityChange}
+                className="appearance-none whitespace-nowrap rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm hover:bg-gray-50 dark:bg-zinc-800 dark:text-primary dark:hover:bg-zinc-700/80"
               >
-                <option disabled value="">
-                  Selecione um instrutor
-                </option>
-                {instrutores.map((colab) => (
-                  <option key={colab.usuario} value={colab.usuario}>
-                    {colab.nome_completo}
+                {modalidades.map((modality) => (
+                  <option key={modality.id} value={modality.id}>
+                    {modality.nome}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-
-          {/* Instrutor Substituto */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="instrutor_substituto"
-            >
-              Instrutor Substituto (Opcional)
-            </label>
-            <div className="relative">
-              <select
-                className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-                id="instrutor_substituto"
-                name="instrutor_substituto"
-                value={formData.instrutor_substituto || ""}
-                onChange={handleChange}
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-background-light px-4 dark:bg-background-dark">
+            <div className="flex items-center space-x-2 py-3">
+              <button
+                onClick={setPreviousWeek}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
               >
-                <option value="">Nenhum</option>
-                {instrutores.map((colab) => (
-                  <option key={colab.usuario} value={colab.usuario}>
-                    {colab.nome_completo}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Capacidade */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="capacidade_maxima"
-            >
-              Capacidade Máxima
-            </label>
-            <input
-              className="h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-              id="capacidade_maxima"
-              name="capacidade_maxima"
-              type="number"
-              placeholder="Ex: 15"
-              value={formData.capacidade_maxima}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Duração em Minutos */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="duracao_minutos"
-            >
-              Duração (minutos)
-            </label>
-            <input
-              className="h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-              id="duracao_minutos"
-              name="duracao_minutos"
-              type="number"
-              placeholder="Ex: 60"
-              value={formData.duracao_minutos}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Tipo de Aula */}
-          <div className="flex flex-col">
-            <label
-              className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-              htmlFor="tipo_aula"
-            >
-              Tipo de Aula
-            </label>
-            <div className="relative">
-              <select
-                className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark"
-                id="tipo_aula"
-                name="tipo_aula"
-                value={formData.tipo_aula}
-                onChange={handleChange}
-              >
-                <option value="REGULAR">Regular</option>
-                <option value="EXPERIMENTAL">Experimental</option>
-                <option value="REPOSICAO">Reposição</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Date and Time Picker */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Data */}
-            <div className="flex flex-col">
-              <label
-                className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-                htmlFor="dateInput"
-              >
-                Data
-              </label>
-              <div className="relative">
-                <input
-                  className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark dark:[color-scheme:dark]"
-                  id="dateInput"
-                  type="date"
-                  value={dateInput}
-                  onChange={(e) => setDateInput(e.target.value)}
-                  required
-                />
+                <span className="material-symbols-outlined text-lg">
+                  chevron_left
+                </span>
+              </button>
+              <div className="overflow-x-auto flex-1">
+                <div className="no-scrollbar flex items-center space-x-2">
+                  {getWeekDays().map((date) => (
+                    <button
+                      key={date.toISOString()}
+                      onClick={() => handleDateChange(date)}
+                      className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg px-3 py-2 text-center ${
+                        isSameDay(date, selectedDate)
+                          ? "bg-primary/10 text-primary dark:bg-primary/20"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {formattedDayOfWeek(date)}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {formattedDate(date)}
+                      </span>
+                      {daysWithAvailableClasses.has(format(date, "yyyy-MM-dd")) && (
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            {/* Horário */}
-            <div className="flex flex-col">
-              <label
-                className="pb-2 text-base font-medium leading-normal text-text-light dark:text-text-dark"
-                htmlFor="timeInput"
+              <button
+                onClick={setNextWeek}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10"
               >
-                Horário
-              </label>
-              <div className="relative">
-                <input
-                  className="form-input h-14 w-full rounded-lg border border-border-light bg-white p-4 text-base font-normal text-text-light placeholder:text-placeholder-light focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-text-dark dark:placeholder:text-placeholder-dark dark:[color-scheme:dark]"
-                  id="timeInput"
-                  type="time"
-                  value={timeInput}
-                  onChange={(e) => setTimeInput(e.target.value)}
-                  required
-                />
-              </div>
+                <span className="material-symbols-outlined text-lg">
+                  chevron_right
+                </span>
+              </button>
             </div>
           </div>
+        </div>
 
-          {error && <p className="text-red-500 text-center">{error}</p>}
-        </form>
+        <div className="p-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-900/20 dark:border-red-800 dark:text-red-300 mb-4" role="alert">
+              <strong className="font-bold">Erro!</strong>
+              <span className="block sm:inline"> {error}</span>
+            </div>
+          )}
+
+          {loading ? (
+            <>
+              <ClassCard isLoading={true} />
+              <ClassCard isLoading={true} />
+              <ClassCard isLoading={true} />
+            </>
+          ) : filteredClasses.length === 0 ? (
+            <div className="flex h-64 flex-col items-center justify-center text-center bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-gray-600 dark:text-gray-300">
+              <p>Nenhuma aula disponível encontrada para os filtros selecionados.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredClasses.map(aula => (
+                <ClassCard
+                  key={aula.id}
+                  aula={aula}
+                  onMarcarAula={openActionModal}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background-light p-4 dark:bg-background-dark">
-        <div className="mx-auto max-w-lg">
-          <button
-            type="submit"
-            form="aula-form"
-            className="w-full rounded-xl bg-primary px-6 py-4 text-lg font-bold text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark"
-            disabled={loading || isCreating}
+      {isCalendarModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 transition-opacity duration-300"
+          onClick={() => setIsCalendarModalOpen(false)}
+        >
+          <div
+            className="relative m-4 flex w-full max-w-md flex-col overflow-hidden rounded-xl bg-card-light dark:bg-card-dark shadow-2xl transform transition-all duration-300"
+            onClick={(e) => e.stopPropagation()}
           >
-            {loading || isCreating ? "Criando aula..." : "Criar Aula"}
-          </button>
-        </div>
-      </footer>
+            <div className="flex flex-col items-center p-6 sm:p-8">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+                <Icon name="calendar_today" className="text-4xl text-primary" />
+              </div>
 
-      {/* Modal de Confirmação */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="m-4 w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Confirmar criação da aula
-            </h2>
-            <div className="space-y-3 text-gray-700 dark:text-gray-300">
-              {modalidadeSelecionada && (
-                <p>
-                  <span className="font-semibold">Modalidade:</span>{" "}
-                  {modalidadeSelecionada.nome}
-                </p>
-              )}
-              {studioSelecionado && (
-                <p>
-                  <span className="font-semibold">Estúdio:</span>{" "}
-                  {studioSelecionado.nome}
-                </p>
-              )}
-              {instrutorPrincipal && (
-                <>
-                  <p>
-                    <span className="font-semibold">Instrutor:</span>{" "}
-                    {instrutorPrincipal.nome_completo}
-                  </p>
-                  {instrutorSubstituto && (
-                    <p>
-                      <span className="font-semibold">Substituto:</span>{" "}
-                      {instrutorSubstituto.nome_completo}
-                    </p>
-                  )}
-                </>
-              )}
-              {dateInput && timeInput && (
-                <p>
-                  <span className="font-semibold">Data/Hora:</span> {dateInput}{" "}
-                  às {timeInput}
-                </p>
-              )}
-              {formData.capacidade_maxima && (
-                <p>
-                  <span className="font-semibold">Capacidade:</span>{" "}
-                  {formData.capacidade_maxima} vagas
-                </p>
-              )}
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="flex-1 rounded-lg bg-gray-200 py-3 font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                disabled={isCreating}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmCreateAula}
-                className="flex-1 rounded-lg bg-primary py-3 font-semibold text-white hover:bg-primary/90 transition-colors"
-                disabled={isCreating}
-              >
-                {isCreating ? "Criando..." : "Confirmar"}
-              </button>
+              <h2 className="text-text-light dark:text-text-dark tracking-tight text-[28px] font-bold leading-tight text-center pb-3">
+                Selecionar Data
+              </h2>
+
+              <input
+                type="date"
+                value={tempDate}
+                onChange={(e) => setTempDate(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-lg font-semibold text-gray-900 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+              />
+
+              <div className="flex w-full flex-col-reverse sm:flex-row gap-3 mt-6">
+                <button
+                  onClick={() => setIsCalendarModalOpen(false)}
+                  className="flex flex-1 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-transparent text-text-light dark:text-text-dark text-base font-bold leading-normal tracking-[0.015em] hover:bg-gray-500/10 transition-colors"
+                >
+                  <span className="truncate">Cancelar</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleDateChange(new Date(tempDate));
+                    setIsCalendarModalOpen(false);
+                  }}
+                  className="flex flex-1 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
+                >
+                  <span className="truncate">Confirmar</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {showActionModal && actionModalData && (
+        <ConfirmDeleteModal
+          isOpen={showActionModal}
+          onClose={() => setShowActionModal(false)}
+          onConfirm={confirmAction}
+          title={actionModalData.isFull ? "Entrar na Lista de Espera" : "Confirmar Agendamento"}
+          message={actionModalData.isFull ?
+            "Esta aula está lotada. Deseja entrar na lista de espera? Você será notificado se uma vaga surgir." :
+            "Você tem certeza que deseja agendar esta aula? Um crédito será utilizado."
+          }
+          confirmButtonText={actionModalData.isFull ? "Sim, Entrar" : "Sim, Agendar"}
+          cancelButtonText="Não, Voltar"
+          confirmButtonColor={actionModalData.isFull ? "bg-yellow-500 hover:bg-yellow-600" : "bg-primary hover:bg-primary/90"}
+        />
       )}
     </div>
   );
