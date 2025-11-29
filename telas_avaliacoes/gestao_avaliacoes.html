@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Avaliações</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#0fbdab",
+                "background-light": "#f6f8f8",
+                "background-dark": "#102220",
+              },
+              fontFamily: {
+                "display": ["Lexend", "sans-serif"]
+              },
+              borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "1rem",
+                "xl": "1.5rem",
+                "full": "9999px"
+              },
+            },
+          },
+        }
+    </script>
+    <style>
+        body {
+          min-height: 100dvh;
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="relative flex min-h-screen w-full flex-col">
+    <header class="sticky top-0 z-20 flex items-center gap-2 bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:bg-background-dark/80">
+        <button class="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-white/10">
+            <span class="material-symbols-outlined text-2xl">arrow_back</span>
+        </button>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Avaliações</h1>
+    </header>
+    <div class="sticky top-[72px] z-10 bg-background-light px-4 pb-4 pt-1 dark:bg-background-dark">
+        <div class="relative">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">search</span>
+            <input class="w-full rounded-full border-none bg-[#e7f3f2] py-3 pl-10 pr-4 text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400" placeholder="Buscar por nome do aluno..." type="search"/>
+        </div>
+    </div>
+    <main class="flex-grow px-4 pb-24">
+        <div class="flex flex-col gap-4">
+            <a class="block rounded-xl bg-white p-4 shadow-md hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50" href="#">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Mariana Oliveira</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">15 de Julho, 2024</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Feita por Dr. Carlos</p>
+                </div>
+            </a>
+            <a class="block rounded-xl bg-white p-4 shadow-md hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50" href="#">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Rafael Pereira</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">14 de Julho, 2024</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Feita por Dr. Carlos</p>
+                </div>
+            </a>
+            <a class="block rounded-xl bg-white p-4 shadow-md hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50" href="#">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Juliana Costa</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">12 de Julho, 2024</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Feita por Dra. Ana</p>
+                </div>
+            </a>
+            <a class="block rounded-xl bg-white p-4 shadow-md hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50" href="#">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Fernando Martins</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">10 de Julho, 2024</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Feita por Dr. Carlos</p>
+                </div>
+            </a>
+            <a class="block rounded-xl bg-white p-4 shadow-md hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50" href="#">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Beatriz Almeida</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">09 de Julho, 2024</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Feita por Dra. Ana</p>
+                </div>
+            </a>
+        </div>
+    </main>
+    <button class="fixed bottom-6 right-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#0fbdac] text-white shadow-lg hover:bg-opacity-90">
+        <span class="material-symbols-outlined text-4xl">add</span>
+    </button>
+</div>
+
+</body></html>
