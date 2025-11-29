@@ -7,7 +7,7 @@ import Icon from "./Icon";
 import useNotificationsViewModel from "../viewmodels/useNotificationsViewModel";
 import NotificationsPanel from "./NotificationsPanel";
 
-const Header = ({ title = "Painel de Controle", showBackButton = false, greeting }) => { // Adicionado 'greeting' como prop
+const Header = ({ title = "Painel de Controle", showBackButton = false, greeting, backButtonPath }) => { // Adicionada a prop backButtonPath
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -25,7 +25,15 @@ const Header = ({ title = "Painel de Controle", showBackButton = false, greeting
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleNotifications = () =>
     setIsNotificationsOpen(!isNotificationsOpen);
-  const handleBack = () => navigate(-1);
+  
+  // **CORREÇÃO APLICADA AQUI**
+  const handleBack = () => {
+    if (backButtonPath) {
+      navigate(backButtonPath);
+    } else {
+      navigate(-1);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,7 +69,6 @@ const Header = ({ title = "Painel de Controle", showBackButton = false, greeting
           )}
         </div>
 
-        {/* Exibe a saudação se fornecida, caso contrário, exibe o título padrão */}
         <h1 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center text-text-light dark:text-text-dark">
           {greeting || title}
         </h1>

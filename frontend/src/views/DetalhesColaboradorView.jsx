@@ -29,7 +29,11 @@ const DetalhesColaboradorView = () => {
 
     return (
         <div className="relative flex min-h-screen w-full flex-col group/design-root">
-            <Header />
+            <Header 
+                title="Detalhes do Colaborador" 
+                showBackButton={true} 
+                backButtonPath="/colaboradores" 
+            />
             <main className="flex-1 p-4 sm:p-6 lg:p-8">
                 <div className="mx-auto max-w-2xl bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
                     <div className="p-6 md:p-8">

@@ -35,7 +35,7 @@ const DetalhesAlunoView = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display min-h-screen">
-      <div className="relative flex flex-col w-full p-4 pt-0">
+      <div className="relative flex flex-col w-full p-4">
         <div className="flex items-center bg-background-light dark:bg-background-dark py-4 sticky top-0 z-10">
           <button
             onClick={() => navigate("/alunos")}
@@ -49,7 +49,8 @@ const DetalhesAlunoView = () => {
             Detalhes do Aluno
           </h1>
         </div>
-        <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center mt-4">
+        {/* **CORREÇÃO APLICADA AQUI** - Aumentada a margem superior */}
+        <div className="relative w-full max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center mt-20">
           <div className="flex w-full flex-col gap-4 items-center -mt-20">
             <div
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 border-4 border-white dark:border-gray-800 shadow-lg"

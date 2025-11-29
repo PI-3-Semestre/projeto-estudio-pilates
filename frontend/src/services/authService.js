@@ -39,7 +39,8 @@ const authService = {
    */
   adminCreateUser: async (userData) => {
     try {
-      const response = await api.post('/api/usuarios/', userData);
+      // **CORREÇÃO APLICADA AQUI** - Removido o '/api' duplicado
+      const response = await api.post('/usuarios/', userData);
       return response.data;
     } catch (error) {
       // Lança o erro original para que o ViewModel possa extrair detalhes de validação
@@ -81,4 +82,3 @@ const authService = {
 };
 
 export default authService;
-

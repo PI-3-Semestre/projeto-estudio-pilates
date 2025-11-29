@@ -2,6 +2,14 @@ import api from './api';
 
 const matriculasService = {
     /**
+     * **NOVO**
+     * Retorna uma lista com todas as matrículas do aluno logado.
+     */
+    getMinhasMatriculas: () => {
+        return api.get('/financeiro/matriculas/me/');
+    },
+
+    /**
      * Retorna uma lista com todas as matrículas cadastradas no sistema.
      */
     getMatriculas: () => {

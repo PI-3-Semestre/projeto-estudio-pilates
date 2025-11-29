@@ -1,62 +1,76 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const useCadastrarAlunoViewModel = () => {
     const { userId } = useParams();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
-    const [studios, setStudios] = useState([]); // New state for studios
+    const [studios, setStudios] = useState([]);
     const [formData, setFormData] = useState({
         dataNascimento: '',
         contato: '',
         profissao: '',
         unidade: '',
         is_active: true,
-        foto: null, // New field for the photo
+        foto: null,
+        fotoPreview: null,
     });
 
     useEffect(() => {
-        const fetchUserData = async () => {
+        const fetchInitialData = async () => {
+            setLoading(true);
             try {
-                const response = await api.get(`/usuarios/${userId}/`);
-                setUserInfo(response.data);
+                const [userResponse, studiosResponse] = await Promise.all([
+                    api.get(`/usuarios/${userId}/`),
+                    api.get('/studios/')
+                ]);
+                setUserInfo(userResponse.data);
+                setStudios(studiosResponse.data);
+                setFormData(prev => ({ ...prev, fotoPreview: userResponse.data.foto }));
             } catch (error) {
-                setError('Falha ao carregar dados do usuário.');
+                setError('Falha ao carregar dados iniciais.');
+                showToast('Erro ao carregar dados. Tente voltar e começar de novo.', { type: 'error' });
+            } finally {
+                setLoading(false);
             }
         };
-        fetchUserData();
-    }, [userId]);
-
-    // New useEffect to fetch studios
-    useEffect(() => {
-        const fetchStudios = async () => {
-            try {
-                const response = await api.get('/studios/');
-                setStudios(response.data);
-            } catch (error) {
-                console.error("Failed to fetch studios", error);
-            }
-        };
-        fetchStudios();
-    }, []);
+        fetchInitialData();
+    }, [userId, showToast]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+
+        if (name === 'dataNascimento') {
+            const onlyNums = value.replace(/\D/g, '');
+            let formattedValue = onlyNums;
+
+            if (onlyNums.length > 4) {
+                formattedValue = `${onlyNums.slice(0, 2)}/${onlyNums.slice(2, 4)}/${onlyNums.slice(4, 8)}`;
+            } else if (onlyNums.length > 2) {
+                formattedValue = `${onlyNums.slice(0, 2)}/${onlyNums.slice(2)}`;
+            }
+            
+            setFormData(prev => ({ ...prev, [name]: formattedValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        }
     };
 
-    // New handler for file input
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                // Extract only the base64 part (remove 'data:image/...;base64,' prefix)
-                const base64String = reader.result.split(',')[1];
-                setFormData(prev => ({ ...prev, foto: base64String }));
+                setFormData(prev => ({
+                    ...prev,
+                    foto: reader.result,
+                    fotoPreview: reader.result,
+                }));
             };
             reader.readAsDataURL(file);
         }
@@ -64,35 +78,57 @@ const useCadastrarAlunoViewModel = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.unidade) {
+            showToast('Por favor, selecione a unidade principal do aluno.', { type: 'error' });
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
-        let formattedDate = null;
-        const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        // **CORREÇÕES APLICADAS AQUI**
 
-        if (formData.dataNascimento) {
-            if (!dateRegex.test(formData.dataNascimento)) {
-                setError({ dataNascimento: 'Por favor, insira a data no formato DD/MM/AAAA.' });
-                setLoading(false);
-                return;
-            }
-            const [, dia, mes, ano] = formData.dataNascimento.match(dateRegex);
+        // 1. Formatar data
+        let formattedDate = null;
+        if (formData.dataNascimento && /^\d{2}\/\d{2}\/\d{4}$/.test(formData.dataNascimento)) {
+            const [dia, mes, ano] = formData.dataNascimento.split('/');
             formattedDate = `${ano}-${mes}-${dia}`;
+        } else if (formData.dataNascimento) {
+            showToast('Formato de data inválido. Use DD/MM/AAAA.', { type: 'error' });
+            setLoading(false);
+            return;
         }
 
+        // 2. Formatar telefone para padrão internacional
+        const formattedPhone = formData.contato ? `+55${formData.contato.replace(/\D/g, '')}` : null;
+
+        // 3. Formatar imagem base64 (remover prefixo)
+        const base64Image = formData.foto ? formData.foto.split(',')[1] : null;
+
+        const submissionData = {
+            usuario: userId,
+            is_active: formData.is_active,
+            dataNascimento: formattedDate,
+            contato: formattedPhone,
+            profissao: formData.profissao || null,
+            unidades: [formData.unidade],
+            foto: base64Image,
+        };
+
         try {
-            await api.post('/alunos/', {
-                usuario: userId,
-                dataNascimento: formattedDate,
-                contato: formData.contato,
-                profissao: formData.profissao,
-                unidades: [formData.unidade],
-                is_active: formData.is_active,
-                foto: formData.foto, // Send the photo
-            });
-            navigate('/alunos');
+            await api.post('/alunos/', submissionData);
+            showToast('Aluno cadastrado com sucesso!', { type: 'success' });
+            setTimeout(() => navigate('/alunos'), 500);
         } catch (err) {
-            setError(err.response?.data || err.message);
+            const errorData = err.response?.data;
+            let errorMessage = 'Ocorreu um erro desconhecido.';
+            if (errorData) {
+                // Transforma o objeto de erro em uma string legível
+                errorMessage = Object.entries(errorData).map(([key, value]) => `${key}: ${value.join(', ')}`).join('; ');
+            }
+            setError(errorMessage);
+            showToast(`Erro: ${errorMessage}`, { type: 'error' });
+            console.error("Erro no cadastro do aluno:", errorData);
         } finally {
             setLoading(false);
         }
@@ -103,9 +139,9 @@ const useCadastrarAlunoViewModel = () => {
         formData,
         loading,
         error,
-        studios, // Expose studios
+        studios,
         handleChange,
-        handleFileChange, // Expose file handler
+        handleFileChange,
         handleSubmit,
     };
 };
