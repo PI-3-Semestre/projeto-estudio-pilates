@@ -59,7 +59,7 @@ def processar_lista_espera(aula):
                     credito_utilizado=credito_disponivel
                 )
                 # Debita o crédito
-                credito_disponivel.data_invalidacao = timezone.now()
+                credito_disponivel.data_invalidacao = novo_agendamento.aula.data_hora_inicio # Use a data da aula para invalidar o crédito
                 credito_disponivel.save()
 
                 # 3.A Notificação de Sucesso
@@ -99,8 +99,12 @@ def processar_lista_espera(aula):
 class HorarioTrabalhoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     queryset = HorarioTrabalho.objects.all()
     serializer_class = HorarioTrabalhoSerializer
-    permission_classes = [IsAuthenticated]
     studio_filter_field = 'studio'
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA', 'INSTRUTOR'])]
 
 
 @extend_schema(tags=['Agendamentos - Bloqueios'])
@@ -114,13 +118,17 @@ class HorarioTrabalhoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
 )
 class BloqueioAgendaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     queryset = BloqueioAgenda.objects.all()
-    permission_classes = [IsAuthenticated]
     studio_filter_field = 'studio'
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return BloqueioAgendaReadSerializer
         return BloqueioAgendaWriteSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA'])]
 
 
 @extend_schema(tags=['Agendamentos - Modalidades'])
@@ -136,6 +144,10 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
     queryset = Modalidade.objects.all()
     serializer_class = ModalidadeSerializer
     def get_permissions(self):
+        # Permite que qualquer usuário autenticado (incluindo Alunos) liste e visualize modalidades
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        # Restringe as ações de criação, atualização e exclusão apenas a ADMIN_MASTER e ADMINISTRADOR
         return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
 
 
@@ -151,6 +163,35 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
 class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     queryset = Aula.objects.all().order_by('data_hora_inicio')
     studio_filter_field = 'studio'
+
+    def get_queryset(self):
+        # 1. Começa chamando o get_queryset do StudioPermissionMixin.
+        #    Este método já aplica o filtro por estúdio se o usuário for um colaborador.
+        queryset = super().get_queryset().order_by('data_hora_inicio') # Aplica a ordenação aqui
+
+        # 2. Otimização para evitar N+1 queries ao calcular vagas_preenchidas
+        queryset = queryset.prefetch_related('alunos_inscritos')
+
+        # 3. Aplica os filtros de data
+        data_inicio_str = self.request.query_params.get('data_inicio')
+        data_fim_str = self.request.query_params.get('data_fim')
+
+        if data_inicio_str:
+            try:
+                data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
+                queryset = queryset.filter(data_hora_inicio__date__gte=data_inicio)
+            except ValueError:
+                raise ValidationError({"data_inicio": "Formato de data inválido. Use YYYY-MM-DD."})
+
+        if data_fim_str:
+            try:
+                data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+                # Adiciona 1 dia para incluir o dia final completo
+                queryset = queryset.filter(data_hora_inicio__date__lte=data_fim)
+            except ValueError:
+                raise ValidationError({"data_fim": "Formato de data inválido. Use YYYY-MM-DD."})
+
+        return queryset # <-- RETORNA A QUERYSET FINAL, JÁ FILTRADA PELO MIXIN E PELAS DATAS
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -173,6 +214,21 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
         serializer = ListaEsperaSerializer(lista_espera, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Lista todos os alunos inscritos em uma aula específica",
+        responses={200: AgendamentoAlunoReadSerializer(many=True)}
+    )
+    @action(detail=True, methods=['get'], url_path='inscricoes', permission_classes=[IsAuthenticated, IsStaffAutorizado])
+    def inscricoes(self, request, pk=None):
+        """
+        Retorna uma lista de todos os alunos inscritos em uma aula específica.
+        Apenas usuários da equipe (staff) podem acessar esta lista.
+        """
+        aula = self.get_object()
+        inscricoes = AulaAluno.objects.filter(aula=aula).order_by('aluno__usuario__username')
+        serializer = AgendamentoAlunoReadSerializer(inscricoes, many=True)
+        return Response(serializer.data)
+
     
 @extend_schema(tags=['Agendamentos - Inscrições (Aulas-Alunos)'])
 @extend_schema_view(
@@ -185,27 +241,36 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
 )
 class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     queryset = AulaAluno.objects.all()
+    # serializer_class = AgendamentoAlunoReadSerializer # Removido para usar get_serializer_class
+
     studio_filter_field = 'aula__studio'
     permission_classes = [IsAuthenticated] 
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return AgendamentoAlunoReadSerializer
         if self.action == 'create':
-            staff_permission = IsStaffAutorizado()
-            if staff_permission.has_permission(self.request, self):
-                return AgendamentoStaffSerializer
-            return AgendamentoAlunoSerializer
-        if self.action in ['update', 'partial_update']:
-            return AgendamentoStaffSerializer
-        return AgendamentoAlunoReadSerializer
+            return AgendamentoAlunoSerializer # Usa o serializer de escrita para criação
+        return AgendamentoAlunoReadSerializer # Usa o serializer de leitura para outras ações (list, retrieve)
 
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Se o usuário for um Aluno, ele só pode ver seus próprios agendamentos
+        if hasattr(user, 'aluno'):
+            return AulaAluno.objects.filter(aluno=user.aluno).order_by('aula__data_hora_inicio')
+        
+        # Se for um Colaborador, aplica a lógica do StudioPermissionMixin
+        # (que já foi ajustada para retornar a queryset original se não for colaborador)
+        queryset = super().get_queryset().order_by('aula__data_hora_inicio')
+        return queryset
+            
     def get_permissions(self):
-        if self.action in ['create', 'list']:
+        if self.action == 'create': # Apenas a criação ainda permite qualquer autenticado (para o aluno agendar)
             return [IsAuthenticated()]
+        # Para 'list', 'retrieve', 'update', 'destroy', etc.
         return [IsAuthenticated(), (IsOwnerDoAgendamento | IsStaffAutorizado)()]
 
     def create(self, request, *args, **kwargs):
+        # self.get_serializer() agora retornará AgendamentoAlunoSerializer para 'create'
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.validated_data.get('_adicionado_lista_espera'):
@@ -215,23 +280,26 @@ class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
             )
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+        # Após a criação, serializa a instância recém-criada com o serializer de leitura
+        # para garantir que os campos aninhados (aula, aluno) sejam populados.
+        read_serializer = AgendamentoAlunoReadSerializer(serializer.instance)
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         serializer.validated_data.pop('entrar_lista_espera', None)
-        if isinstance(serializer, AgendamentoAlunoSerializer):
-            if not hasattr(self.request.user, 'aluno'):
-                raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
-            credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
-            agendamento = serializer.save(aluno=self.request.user.aluno)
-            if credito_a_utilizar:        
-                agendamento.credito_utilizado = credito_a_utilizar
-                credito_a_utilizar.data_invalidacao = timezone.now()
-                credito_a_utilizar.invalidado_por = self.request.user 
-                credito_a_utilizar.save()
-                agendamento.save()
-        else:
-            serializer.save()
+        # A verificação `isinstance` agora será verdadeira para o AgendamentoAlunoSerializer
+        if not hasattr(self.request.user, 'aluno'):
+            raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
+        credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
+        agendamento = serializer.save(aluno=self.request.user.aluno) # O aluno é definido aqui
+        if credito_a_utilizar:        
+            agendamento.credito_utilizado = credito_a_utilizar
+            credito_a_utilizar.data_invalidacao = timezone.now()
+            credito_a_utilizar.invalidado_por = self.request.user 
+            credito_a_utilizar.save()
+            agendamento.save()
+        # Não há mais o bloco 'else' que causava o problema de 'aluno' ser null.
 
     def perform_destroy(self, instance):
         """

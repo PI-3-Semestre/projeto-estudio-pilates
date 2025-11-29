@@ -28,7 +28,7 @@ class Command(BaseCommand):
         )
         parser.add_argument('--num-colaboradores', type=int, default=5, help='Número de colaboradores aleatórios a serem criados.')
         parser.add_argument('--num-alunos', type=int, default=20, help='Número de alunos aleatórios a serem criados.')
-        parser.add_argument('--num-aulas', type=int, default=50, help='Número total de aulas a serem criadas (passado e futuro).')
+        parser.add_argument('--num-aulas', type=int, default=150, help='Número total de aulas a serem criadas (passado e futuro).')
 
     def _generate_valid_cpf(self):
         """Gera um número de CPF válido e único no banco de dados."""
@@ -110,6 +110,7 @@ class Command(BaseCommand):
         return [
             {"role": "superuser", "definir_nome_completo": "Admin Master", "email": "admin@pilates.com", "password": "123456", "cpf": "00000000000"},
             {"role": "colaborador", "definir_nome_completo": "Master Admin Profile", "email": "master.admin@pilates.com", "password": "123456", "cpf": "99999999999", "colaborador_info": {"perfis": ['ADMIN_MASTER'], "data_nascimento": "1980-01-01", "telefone": "+5511999999999", "registro_profissional": "ADM-001", "endereco": {"logradouro": "Rua Principal", "numero": "1", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01000-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Admin"]}]}},
+            {"role": "colaborador", "definir_nome_completo": "Gerente Itaquera", "email": "gerente.itaquera@pilates.com", "password": "123456", "cpf": "22222222222", "colaborador_info": {"perfis": ['ADMINISTRADOR'],"data_nascimento": "1985-02-20","telefone": "+5511955554444","registro_profissional": "ADM-002","endereco": {"logradouro": "Rua Falsa", "numero": "123", "bairro": "Itaquera", "cidade": "São Paulo", "estado": "SP", "cep": "08200-000"},"vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Admin"]}]}},
             {"role": "colaborador", "definir_nome_completo": "Ana Silva (Instrutora)", "email": "ana.silva@pilates.com", "password": "123456", "cpf": "11111111111", "colaborador_info": {"perfis": ['INSTRUTOR'], "data_nascimento": "1990-05-15", "telefone": "+5511987654321", "registro_profissional": "CREF-123456", "endereco": {"logradouro": "Rua das Flores", "numero": "10", "bairro": "Centro", "cidade": "São Paulo", "estado": "SP", "cep": "01001-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade São Miguel", "permissao_nomes": ["Instrutor"]}]}},
             {"role": "colaborador", "definir_nome_completo": "Roberto Lima (Fisio)", "email": "roberto.lima@pilates.com", "password": "123456", "cpf": "44444444444", "colaborador_info": {"perfis": ['FISIOTERAPEUTA'], "data_nascimento": "1988-11-30", "telefone": "+5511977776666", "registro_profissional": "CREFITO-7890", "endereco": {"logradouro": "Rua dos Sonhos", "numero": "45", "bairro": "Tatuapé", "cidade": "São Paulo", "estado": "SP", "cep": "03300-000"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Itaquera", "permissao_nomes": ["Fisio"]}]}},
             {"role": "colaborador", "definir_nome_completo": "Carla Souza (Multi-Perfil)", "email": "carla.souza@pilates.com", "password": "123456", "cpf": "55555555555", "colaborador_info": {"perfis": ['INSTRUTOR', 'FISIOTERAPEUTA'], "data_nascimento": "1992-03-25", "telefone": "+5511966665555", "registro_profissional": "CREF-98765", "endereco": {"logradouro": "Avenida Paulista", "numero": "1500", "bairro": "Bela Vista", "cidade": "São Paulo", "estado": "SP", "cep": "01310-200"}, "vinculos_studio": [{"studio_nome": "DEFINE PILATES - Unidade Paulista", "permissao_nomes": ["Instrutor", "Fisio"]}]}},
@@ -317,6 +318,11 @@ class Command(BaseCommand):
             "data_nascimento": date(2000, 5, 5), "is_active": True, "unidades": [random.choice(studios)],
             "role": "Aluno Novo sem Vínculos"
         }, credentials_list)
+        self._create_aluno_from_data({
+            "email": "sem.avaliacao@pilates.com", "password": "123456", "definir_nome_completo": "Aluno Sem Avaliacao",
+            "data_nascimento": date(1999, 6, 10), "is_active": True, "unidades": [random.choice(studios)],
+            "role": "Aluno Sem Avaliação"
+        }, credentials_list)
 
         self.stdout.write(self.style.HTTP_INFO(f'Gerando {num_random_alunos} alunos aleatórios...'))
         for _ in range(num_random_alunos):
@@ -449,8 +455,8 @@ class Command(BaseCommand):
                 studio=studio, instrutor_principal=instrutor, modalidade=random.choice(modalidades),
                 data_hora_inicio=data_hora.replace(minute=0, second=0, microsecond=0),
                 defaults={
-                    'capacidade_maxima': random.randint(3, 8), 'duracao_minutos': 60,
-                    'tipo_aula': random.choice([Aula.TipoAula.REGULAR, Aula.TipoAula.EXPERIMENTAL])
+                    'capacidade_maxima': 3, 'duracao_minutos': 60,
+                    'tipo_aula': random.choice([Aula.TipoAula.REGULAR, Aula.TipoAula.EXPERIMENTAL, Aula.TipoAula.REPOSICAO])
                 }
             )
             return aula
@@ -464,6 +470,8 @@ class Command(BaseCommand):
             {"nome": "Plano Mensal Premium", "duracao_dias": 30, "creditos_semanais": 2, "preco": "250.00"},
             {"nome": "Plano Trimestral", "duracao_dias": 90, "creditos_semanais": 2, "preco": "600.00"},
             {"nome": "Plano Anual", "duracao_dias": 365, "creditos_semanais": 3, "preco": "2500.00"},
+            {"nome": "Plano Experimental (1 Semana)", "duracao_dias": 7, "creditos_semanais": 2, "preco": "80.00"},
+            {"nome": "Plano Semestral", "duracao_dias": 180, "creditos_semanais": 3, "preco": "1300.00"},
         ]
         for data in planos_data:
             Plano.objects.get_or_create(nome=data['nome'], defaults=data)
@@ -474,6 +482,7 @@ class Command(BaseCommand):
         produtos_data = [
             {"nome": "Camiseta Pilates", "preco": "79.90"}, {"nome": "Meia Antiderrapante", "preco": "35.00"},
             {"nome": "Bola Suíça", "preco": "120.00"}, {"nome": "Faixa Elástica", "preco": "25.00"},
+            {"nome": "Avaliação Física Avulsa", "preco": "90.00"},
         ]
         for data in produtos_data:
             Produto.objects.get_or_create(nome=data['nome'], defaults=data)
@@ -655,11 +664,42 @@ class Command(BaseCommand):
                     'data_vencimento': venda.data_venda
                 }
             )
+        
+        # Cenário de Pagamento Parcelado
+        try:
+            aluno_parcela = Aluno.objects.filter(usuario__is_active=True).exclude(usuario__email__contains='@pilates.com').order_by('?').first()
+            plano_caro = Plano.objects.get(nome="Plano Anual")
+            studio_parcela = aluno_parcela.unidades.first()
+            if aluno_parcela and plano_caro and studio_parcela:
+                matricula_parcelada = Matricula.objects.create(
+                    aluno=aluno_parcela.usuario, plano=plano_caro, studio=studio_parcela,
+                    data_inicio=date.today() - timedelta(days=5),
+                    data_fim=date.today() + timedelta(days=plano_caro.duracao_dias)
+                )
+                valor_parcela = plano_caro.preco / 3
+                # Parcela 1 (Paga)
+                Pagamento.objects.create(
+                    matricula=matricula_parcelada, valor_total=valor_parcela, metodo_pagamento='CARTAO_CREDITO',
+                    status='PAGO', data_vencimento=date.today() - timedelta(days=5), data_pagamento=date.today() - timedelta(days=5)
+                )
+                # Parcela 2 (Pendente)
+                Pagamento.objects.create(
+                    matricula=matricula_parcelada, valor_total=valor_parcela, metodo_pagamento='BOLETO',
+                    status='PENDENTE', data_vencimento=date.today() + timedelta(days=25)
+                )
+                # Parcela 3 (Pendente)
+                Pagamento.objects.create(
+                    matricula=matricula_parcelada, valor_total=valor_parcela, metodo_pagamento='BOLETO',
+                    status='PENDENTE', data_vencimento=date.today() + timedelta(days=55)
+                )
+        except Exception:
+            pass # Evita que o seeder quebre se um objeto não for encontrado
+
         self.stdout.write(self.style.SUCCESS('Pagamentos populados.'))
 
     def _seed_avaliacoes_e_cenarios(self):
         self.stdout.write('Populando avaliações com cenários...')
-        alunos = list(Aluno.objects.filter(usuario__is_active=True))
+        alunos = list(Aluno.objects.filter(usuario__is_active=True).exclude(usuario__email='sem.avaliacao@pilates.com'))
         avaliadores = list(Colaborador.objects.filter(perfis__nome__in=['INSTRUTOR', 'FISIOTERAPEUTA'], usuario__is_active=True).distinct())
         if not all([alunos, avaliadores]): return
 

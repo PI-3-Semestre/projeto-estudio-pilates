@@ -12,7 +12,7 @@ router = DefaultRouter()
 # Isso cria as seguintes rotas:
 # - /alunos/ (GET para listar, POST para criar)
 # - /alunos/{cpf}/ (GET para detalhar, PUT/PATCH para atualizar, DELETE para remover)
-router.register(r"alunos", AlunoViewSet)
+router.register(r"alunos", AlunoViewSet, basename="aluno") # Adicionado basename="aluno"
 
 # Inclui as URLs geradas pelo router no padrão de URLs do aplicativo.
 
