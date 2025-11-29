@@ -1,4 +1,4 @@
-![Define Pilates Logo](https://github.com/PI-3-Semestre/Projeto-Estudio-Pilates/blob/main/logo.png?raw=true)
+
 
 # 🧘‍♀️ Define Pilates - Sistema de Gestão de Estúdios
 
