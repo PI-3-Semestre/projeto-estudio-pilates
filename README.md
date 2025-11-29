@@ -1,127 +1,187 @@
-# Define Pilates - Backend
+# 🧘‍♀️ Define Pilates - Sistema de Gestão de Estúdios
 
-Este é o backend do sistema de gerenciamento para estúdios de Pilates, **Define Pilates**. Construído com Django e Django REST Framework, o sistema oferece uma solução completa para administrar alunos, agendamentos, finanças e múltiplos estúdios.
+Bem-vindo(a) ao **Define Pilates**. Este é um sistema completo para gerenciamento de estúdios de Pilates, oferecendo soluções para administrar alunos, agendamentos, finanças e múltiplas unidades.
 
-## Funcionalidades Atuais
+O projeto opera em duas partes integradas:
+1. **Backend (O Cérebro):** Construído com Django e Django REST Framework.
+2. **Frontend (O Visual):** Uma aplicação SPA moderna construída com React e Vite.
 
-O sistema atualmente suporta as seguintes funcionalidades:
+---
 
-### Gestão de Usuários e Acessos
-- **Autenticação e Autorização:** Sistema de login seguro com JWT (JSON Web Tokens).
-- **Perfis de Usuário:** Gerenciamento de diferentes papéis (Admin Master, Administrador, Recepcionista, Fisioterapeuta, Instrutor).
-- **Controle de Acesso Granular:** Permissões detalhadas por estúdio, permitindo que um colaborador tenha papéis diferentes em unidades distintas.
+## ✨ Funcionalidades do Projeto
 
-### Gestão de Alunos
-- **Cadastro Completo:** Perfil do aluno com informações pessoais, contato e foto.
-- **Múltiplos Estúdios:** Alunos podem ser associados a uma ou mais unidades do estúdio.
+### 🚀 Atuais
 
-### Avaliações e Acompanhamento
-- **Avaliação Fisioterapêutica:** Registro de avaliações físicas e funcionais, com histórico médico, diagnóstico e objetivos.
-- **Registros Clínicos:** Acompanhamento da evolução do aluno (fisioterapia) ou planejamento de aulas (educação física).
+- **📊 Dashboard e Analytics:** Painéis visuais interativos com métricas financeiras, taxa de ocupação de aulas e crescimento de novos alunos.
+- **Gestão de Usuários:** Login seguro (JWT), perfis variados (Admin, Instrutor, Fisioterapeuta, Recepcionista) e controle de acesso granular por estúdio.
+- **Gestão de Alunos:** Cadastro completo com foto e associação a múltiplos estúdios.
+- **Avaliações e Prontuários:** Registro de avaliações fisioterapêuticas, histórico médico e acompanhamento de evolução (fisioterapia e educação física).
+- **Agendamentos:** Grade de horários, controle de presença, lista de espera automática e reposição de aulas.
+- **Financeiro:** Venda de produtos, controle de estoque, planos de matrícula e fluxo de caixa.
+- **Notificações:** Alertas internos sobre eventos importantes.
 
+---
 
-## Em breve
+## 🛠️ Tecnologias Utilizadas
 
-### Agendamentos e Aulas
-- **Modalidades de Aulas:** Cadastro de diferentes tipos de aulas (ex: Pilates, Yoga).
-- **Grade de Horários:** Criação e gerenciamento de aulas com instrutor, capacidade e data/hora.
-- **Controle de Presença:** Registro de presença e ausência dos alunos.
-- **Créditos de Reposição:** Sistema para gerenciar créditos de reposição para aulas perdidas.
-- **Lista de Espera:** Gerenciamento automático de listas de espera para aulas lotadas.
+| Tecnologia | Uso | Badge |
+|-----------|-----|-------|
+| **Django** | Backend Framework | ![Django](https://img.shields.io/badge/Django-092E20?style=flat&logo=django&logoColor=white) |
+| **Django REST Framework** | API RESTful | ![DRF](https://img.shields.io/badge/DRF-092E20?style=flat&logo=django&logoColor=white) |
+| **React** | Frontend Framework | ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black) |
+| **Vite** | Build Tool | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white) |
+| **MySQL** | Banco de Dados (Produção) | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white) |
+| **SQLite** | Banco de Dados (Dev) | ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white) |
+| **SimpleJWT** | Autenticação | ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=json-web-tokens&logoColor=white) |
+| **Pillow** | Processamento de Imagens | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white) |
+| **Poetry** | Gerenciamento de Dependências | ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?style=flat&logo=python&logoColor=white) |
+| **drf-spectacular** | Documentação (Swagger/OpenAPI) | ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat&logo=swagger&logoColor=black) |
 
-### Financeiro
-- **Planos e Matrículas:** Criação de planos de serviço e matrícula de alunos.
-- **Gestão de Produtos:** Cadastro e controle de estoque de produtos para venda.
-- **Registro de Vendas:** Sistema para registrar vendas de produtos.
-- **Controle de Pagamentos:** Centralização de pagamentos de matrículas e vendas, com suporte a parcelas.
+---
 
-### Notificações
-- **Sistema de Notificações:** Um sistema interno para notificar os usuários sobre eventos importantes.
+## 📝 Guia de Instalação e Execução (Passo a Passo)
 
-## Tecnologias Utilizadas
+Siga este roteiro para rodar o projeto do zero em sua máquina.
 
-- **Framework:** Django, Django REST Framework
-- **Banco de Dados:** MySQL
-- **Autenticação:** djangorestframework-simplejwt
-- **Documentação da API:** drf-spectacular (geração de schema OpenAPI)
-- **Validações:** django-cpf, email-validator, django-phonenumber-field
-- **Imagens:** Pillow
-- **Gerenciamento de Dependências:** Poetry
+### Passo 0: Pré-requisitos
 
-## Como Configurar e Rodar o Projeto
+Certifique-se de ter instalado:
 
-1. **Clone o repositório:**
-   ```bash
-   git clone <url-do-repositorio>
-   cd backend
-   ```
+1. **Git:** [Baixar Git](https://git-scm.com/downloads)
+2. **Python (3.8+):** [Baixar Python](https://www.python.org/downloads/) (Marque "Add to PATH" na instalação)
+3. **Node.js (18+):** [Baixar Node.js](https://nodejs.org/en)
+4. **Poetry:** Abra o terminal e digite `pip install poetry`
 
-2. **Instale as dependências:**
-   O Poetry criará um ambiente virtual e instalará as dependências.
-   ```bash
-   poetry install
-   ```
+---
 
-3. **Configure as variáveis de ambiente:**
-   - Renomeie o arquivo `.env.example` para `.env`.
-   - Preencha as variáveis de ambiente no arquivo `.env`, como as credenciais do banco de dados.
+### Passo 1: Baixar o Código
 
-4. **Aplique as migrações do banco de dados:**
-   Use `poetry run` para executar o comando dentro do ambiente virtual.
-   ```bash
-   poetry run python manage.py migrate
-   ```
-
-5. **Crie um superusuário:**
-   ```bash
-   poetry run python manage.py createsuperuser
-   ```
-
-6. **Rode o servidor de desenvolvimento:**
-   ```bash
-   poetry run python manage.py runserver
-   ```
-
-## Populando o Banco de Dados para Desenvolvimento
-
-Para facilitar o desenvolvimento e os testes, o projeto inclui um comando para popular o banco de dados com um conjunto completo de dados de teste (`seed`).
-
-Isso inclui:
-- 3 Estúdios de Pilates.
-- Usuários com todos os perfis (Admin, Instrutor, Fisioterapeuta, etc.).
-- 20 alunos aleatórios.
-- Horários de funcionamento e feriados para os estúdios.
-- Créditos de aula manuais e gerados por cancelamento.
-- 40 aulas com cenários complexos, incluindo aulas lotadas, listas de espera e cancelamentos.
-
-### Como usar
-
-Para popular o banco de dados, execute o seguinte comando a partir da pasta `backend/`:
+Abra seu terminal ou Git Bash e execute:
 
 ```bash
-poetry run python manage.py seed_db
+git clone https://github.com/PI-3-Semestre/Projeto-Estudio-Pilates.git
+cd Projeto-Estudio-Pilates
 ```
 
-Para limpar o banco de dados antes de popular com novos dados, use a flag `--clean`:
+---
+
+### Passo 2: Configurando o Backend (Servidor)
+
+**1. Entre na pasta do backend:**
 
 ```bash
-poetry run python manage.py seed_db --clean
+cd backend
 ```
-**Atenção:** O comando com a flag `--clean` apagará todos os dados existentes nas tabelas gerenciadas pelo script antes de inserir os novos.
 
-## Documentação da API
+**2. Instale as dependências:**
 
-A documentação da API é gerada automaticamente pelo `drf-spectacular` e pode ser acessada em:
+```bash
+poetry install
+```
 
-- **/api/schema/**: O schema OpenAPI em formato `yaml` ou `json`.
-- **/api/schema/swagger-ui/**: A interface do Swagger UI.
-- **/api/schema/redoc/**: A interface do ReDoc.
+**3. Ative o ambiente virtual:**
 
-## Futuras Implementações
+```bash
+poetry shell
+```
 
-- **Dashboard e Analytics:** Painéis visuais com métricas financeiras, ocupação de aulas, crescimento de alunos, etc.
-- **Pagamentos Online:** Integração com gateways de pagamento (ex: Stripe, PagSeguro) para cobrança automática e recorrente.
-- **Calendário Interativo:** Uma interface de calendário mais rica para agendamentos e reservas.
-- **Aplicativo para Alunos:** Um aplicativo móvel para que os alunos possam agendar aulas, ver seu progresso e receber notificações.
-- **Notificações Automatizadas:** Envio de e-mails e/ou SMS para lembretes de aulas, vencimentos de pagamentos, etc.
-- **Sistema de Relatórios:** Geração de relatórios financeiros e operacionais em formatos como PDF e CSV.
+**4. Configure as Senhas (.env):**
+
+- Copie o arquivo de exemplo: `cp .env.example .env` (ou copie manualmente)
+- Abra o arquivo `.env` criado
+- **Gere uma chave secreta:** No terminal, rode:
+  ```bash
+  python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+  ```
+  Copie o código gerado e cole na variável `DJANGO_SECRET_KEY` dentro do arquivo.
+- **Banco de Dados:** Para rodar facilmente sem instalar MySQL, altere as linhas de banco de dados no `.env` para:
+  ```ini
+  DB_ENGINE=django.db.backends.sqlite3
+  DB_NAME=db.sqlite3
+  ```
+
+**5. Crie as Tabelas:**
+
+```bash
+python manage.py migrate
+```
+
+**6. Popule o Banco de Dados (Dados de Teste):**
+
+Para não começar com o sistema vazio, execute este comando que cria estúdios, alunos, instrutores e aulas fictícias para alimentar o Dashboard:
+
+```bash
+python manage.py seed_db
+```
+
+_Nota: Se precisar limpar tudo e recriar, use `python manage.py seed_db --clean`_
+
+**7. Crie seu Usuário Admin:**
+
+```bash
+python manage.py createsuperuser
+```
+
+**8. Inicie o Servidor:**
+
+```bash
+python manage.py runserver
+```
+
+✅ O backend estará rodando em: `http://127.0.0.1:8000/`. **Deixe este terminal aberto.**
+
+---
+
+### Passo 3: Configurando o Frontend (Visual)
+
+Abra uma **NOVA JANELA** do terminal.
+
+**1. Entre na pasta do frontend:**
+
+```bash
+cd Projeto-Estudio-Pilates/frontend
+```
+
+**2. Instale as dependências:**
+
+```bash
+npm install
+```
+
+**3. Configure a Conexão:**
+
+- Crie um arquivo `.env` na pasta frontend
+- Adicione a linha: `VITE_API_URL=http://127.0.0.1:8000/api`
+
+**4. Inicie o Visual:**
+
+```bash
+npm run dev
+```
+
+✅ Acesse o sistema pelo link exibido (geralmente `http://localhost:5173`).
+
+---
+
+## 📖 Documentação da API (Técnico)
+
+Com o backend rodando, você pode consultar a documentação técnica das rotas em:
+
+- **Swagger UI:** [http://127.0.0.1:8000/api/schema/swagger-ui/](http://127.0.0.1:8000/api/schema/swagger-ui/)
+- **ReDoc:** [http://127.0.0.1:8000/api/schema/redoc/](http://127.0.0.1:8000/api/schema/redoc/)
+- **Schema JSON:** [http://127.0.0.1:8000/api/schema/](http://127.0.0.1:8000/api/schema/)
+
+---
+
+## 🔮 Futuras Implementações
+
+- **Pagamentos Online:** Integração com gateways (Stripe/PagSeguro)
+- **App Mobile:** Aplicativo para alunos agendarem aulas
+- **Relatórios Avançados:** Geração de PDFs e CSVs financeiros e operacionais
+
+---
+
+## 🐛 Solução de Problemas
+
+- Se der erro de `python` não encontrado, tente usar `python3`
+- Se o login falhar no frontend, verifique se o terminal do backend não foi fechado
