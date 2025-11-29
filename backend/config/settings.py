@@ -76,6 +76,7 @@ AUTH_USER_MODEL = "usuarios.Usuario"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     # +++ O middleware do CORS deve vir antes de middlewares que geram respostas, como o CommonMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
