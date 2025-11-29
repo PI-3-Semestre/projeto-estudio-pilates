@@ -10,6 +10,14 @@ const postWithFormData = (url, formData) => {
 
 const financeiroService = {
     /**
+     * **NOVO**
+     * Retorna uma lista de todos os pagamentos do aluno logado.
+     */
+    getMeusPagamentos: () => {
+        return api.get('/financeiro/pagamentos/me/');
+    },
+
+    /**
      * Cria um novo registro de pagamento, associado a uma venda ou matrícula.
      * @param {FormData} formData - Os dados do pagamento em formato FormData.
      */

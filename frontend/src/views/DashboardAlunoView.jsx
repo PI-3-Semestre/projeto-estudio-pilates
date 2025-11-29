@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import InfoCard from '../components/InfoCard';
 import QuickActionButton from '../components/QuickActionButton';
-import { useNavigate, useParams } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate, useParams } from 'react-router-dom';
 import useMeusAgendamentosViewModel from '../viewmodels/useMeusAgendamentosViewModel';
 import { format, parseISO, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,8 +12,10 @@ import { ptBR } from 'date-fns/locale';
 const DashboardAlunoView = () => {
   const { user, loading: authLoading } = useAuth();
   const { studioId } = useParams();
-  const navigate = useNavigate(); // Inicializar useNavigate
+  const navigate = useNavigate();
 
+  // **CORREÇÃO APLICADA AQUI**
+  // Garante que 'loading' e 'nextClass' sejam desestruturados corretamente.
   const {
     loading: agendamentosLoading,
     nextClass,
@@ -128,11 +130,12 @@ const DashboardAlunoView = () => {
         <section>
           <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">Ações Rápidas</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <QuickActionButton iconName="person" label="Meu Perfil" to="/aluno/meu-perfil" />
             <QuickActionButton iconName="calendar_month" label="Marcar Aula" to="/aluno/marcar-aula" />
             <QuickActionButton iconName="event_note" label="Meus Agendamentos" to="/aluno/meus-agendamentos" />
-            <QuickActionButton iconName="assignment" label="Meus Planos" to="/aluno/meus-planos" />
-            <QuickActionButton iconName="history" label="Histórico de Aulas" to="/aluno/historico-aulas" />
+            <QuickActionButton iconName="assessment" label="Minhas Avaliações" to="/aluno/minhas-avaliacoes" />
             <QuickActionButton iconName="receipt_long" label="Minhas Matrículas" to="/aluno/minhas-matriculas" />
+            <QuickActionButton iconName="payments" label="Meus Pagamentos" to="/aluno/meus-pagamentos" />
           </div>
         </section>
       </main>

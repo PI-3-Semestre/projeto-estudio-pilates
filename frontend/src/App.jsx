@@ -25,7 +25,7 @@ import EditarColaboradorView from "./views/EditarColaboradorView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
-import CadastrarAulaView from "./views/CadastrarAulaView"; // Importando a nova view
+import CadastrarAulaView from "./views/CadastrarAulaView";
 import DetalhesAulaView from "./views/DetalhesAulaView";
 import EditarAulaView from "./views/EditarAulaView";
 import GerenciamentoStudiosView from "./views/GerenciamentoStudiosView";
@@ -58,6 +58,14 @@ import EditarMatriculaView from "./views/EditarMatriculaView";
 import RelatoriosView from "./views/RelatoriosView";
 import DashboardAlunoView from "./views/DashboardAlunoView";
 import MeusAgendamentosView from "./views/MeusAgendamentosView";
+import GestaoAvaliacoesView from "./views/GestaoAvaliacoesView";
+import AvaliacoesAlunoView from "./views/AvaliacoesAlunoView";
+import DetalhesAvaliacaoView from "./views/DetalhesAvaliacaoView";
+import AvaliacaoFormView from "./views/AvaliacaoFormView";
+import MinhasAvaliacoesView from "./views/MinhasAvaliacoesView";
+import MinhasMatriculasView from "./views/MinhasMatriculasView";
+import MeusPagamentosView from "./views/MeusPagamentosView";
+import MeuPerfilView from "./views/MeuPerfilView";
 
 // Componente para redirecionar para a dashboard correta com base no userType
 const HomeRedirect = () => {
@@ -117,6 +125,7 @@ const PublicRoutes = () => {
 // Lida com as rotas que o usuário só pode ver quando ESTÁ logado.
 const PrivateRoutes = () => {
   const adminRoles = ['admin_master', 'studio_admin'];
+  const allUserRoles = ['admin_master', 'studio_admin', 'aluno'];
 
   return (
     <Routes>
@@ -127,6 +136,10 @@ const PrivateRoutes = () => {
       <Route path="/aluno/dashboard" element={<ProtectedRoute allowedRoles={['aluno']}><DashboardAlunoView /></ProtectedRoute>} />
       <Route path="/aluno/dashboard/:studioId" element={<ProtectedRoute allowedRoles={['aluno']}><DashboardAlunoView /></ProtectedRoute>} />
       <Route path="/aluno/meus-agendamentos" element={<ProtectedRoute allowedRoles={['aluno']}><MeusAgendamentosView /></ProtectedRoute>} />
+      <Route path="/aluno/minhas-avaliacoes" element={<ProtectedRoute allowedRoles={['aluno']}><MinhasAvaliacoesView /></ProtectedRoute>} />
+      <Route path="/aluno/minhas-matriculas" element={<ProtectedRoute allowedRoles={['aluno']}><MinhasMatriculasView /></ProtectedRoute>} />
+      <Route path="/aluno/meus-pagamentos" element={<ProtectedRoute allowedRoles={['aluno']}><MeusPagamentosView /></ProtectedRoute>} />
+      <Route path="/aluno/meu-perfil" element={<ProtectedRoute allowedRoles={['aluno']}><MeuPerfilView /></ProtectedRoute>} />
       <Route path="/aluno/marcar-aula" element={<ProtectedRoute allowedRoles={['aluno']}><MarcarAulaView /></ProtectedRoute>} />
       <Route path="/aluno/selecionar-studio" element={<ProtectedRoute allowedRoles={['aluno']}><div>Tela de Seleção de Estúdio</div></ProtectedRoute>} />
 
@@ -142,17 +155,26 @@ const PrivateRoutes = () => {
 
       {/* Rotas de Gestão (Admins) */}
       <Route path="/alunos" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarAlunosView /></ProtectedRoute>} />
-      <Route path="/alunos/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAlunoView /></ProtectedRoute>} />
+      <Route path="/alunos/cadastrar" element={<ProtectedRoute allowedRoles={adminRoles}><AdminCadastroView /></ProtectedRoute>} />
+      <Route path="/alunos/completar-perfil/:userId" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarAlunoView /></ProtectedRoute>} />
+      <Route path="/alunos/detalhes/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAlunoView /></ProtectedRoute>} />
       <Route path="/alunos/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarAlunoView /></ProtectedRoute>} />
-      <Route path="/admin/cadastrar-aluno" element={<ProtectedRoute allowedRoles={adminRoles}><AdminCadastroView /></ProtectedRoute>} />
+      <Route path="/alunos/:alunoId/avaliacoes" element={<ProtectedRoute allowedRoles={adminRoles}><AvaliacoesAlunoView /></ProtectedRoute>} />
+      
+      <Route path="/avaliacoes" element={<ProtectedRoute allowedRoles={adminRoles}><GestaoAvaliacoesView /></ProtectedRoute>} />
+      <Route path="/avaliacoes/nova" element={<ProtectedRoute allowedRoles={adminRoles}><AvaliacaoFormView /></ProtectedRoute>} />
+      <Route path="/avaliacoes/:id" element={<ProtectedRoute allowedRoles={allUserRoles}><DetalhesAvaliacaoView /></ProtectedRoute>} />
+      
       <Route path="/colaboradores" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarColaboradoresView /></ProtectedRoute>} />
+      {/* **NOVA ROTA ADICIONADA AQUI** */}
+      <Route path="/colaboradores/completar-perfil/:userId" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarColaboradorView /></ProtectedRoute>} />
       <Route path="/colaboradores/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesColaboradorView /></ProtectedRoute>} />
       <Route path="/colaboradores/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarColaboradorView /></ProtectedRoute>} />
+      
       <Route path="/usuarios" element={<ProtectedRoute allowedRoles={adminRoles}><GestaoUsuariosView /></ProtectedRoute>} />
       <Route path="/modalidades" element={<ProtectedRoute allowedRoles={adminRoles}><ModalidadesView /></ProtectedRoute>} />
       <Route path="/agenda" element={<ProtectedRoute allowedRoles={adminRoles}><AgendaView /></ProtectedRoute>} />
       
-      {/* Nova Rota para Cadastrar Aula (Admin) */}
       <Route path="/admin/cadastrar-aula" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarAulaView /></ProtectedRoute>} />
       
       <Route path="/aulas/:id" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAulaView /></ProtectedRoute>} />
@@ -193,7 +215,6 @@ const PrivateRoutes = () => {
       
       <Route path="/relatorios" element={<ProtectedRoute allowedRoles={adminRoles}><RelatoriosView /></ProtectedRoute>} />
 
-      {/* Rota genérica para marcar aula, acessível a todos os usuários logados */}
       <Route path="/marcar-aula" element={<ProtectedRoute><MarcarAulaView /></ProtectedRoute>} />
       
       <Route path="/configuracoes" element={<ProtectedRoute><ConfiguracoesView /></ProtectedRoute>} />

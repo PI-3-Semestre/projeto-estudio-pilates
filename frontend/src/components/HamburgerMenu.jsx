@@ -39,6 +39,18 @@ const HamburgerMenu = ({ toggleMenu }) => {
                         </Link>
                     </li>
                     <li>
+                        <Link to="/aluno/minhas-avaliacoes" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">assessment</span>
+                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Minhas Avaliações</p>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/aluno/minhas-matriculas" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
+                            <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">receipt_long</span>
+                            <p className="text-base font-semibold text-text-light dark:text-text-dark">Minhas Matrículas</p>
+                        </Link>
+                    </li>
+                    <li>
                         <Link to="/aluno/marcar-aula" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
                             <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">add_circle</span>
                             <p className="text-base font-semibold text-text-light dark:text-text-dark">Marcar Aula</p>
@@ -115,10 +127,10 @@ const HamburgerMenu = ({ toggleMenu }) => {
                             </Link>
                         </li>
                         <li>
-                            <a className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary" href="#">
+                            <Link to="/avaliacoes" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">
                                 <span className="material-symbols-outlined text-text-subtle-light dark:text-text-subtle-dark">assessment</span>
                                 <p className="text-base font-semibold text-text-light dark:text-text-dark">Avaliações</p>
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <Link to="/financeiro" className="flex h-12 items-center gap-4 rounded-lg px-4 transition-colors hover:bg-action-secondary hover:text-action-primary">

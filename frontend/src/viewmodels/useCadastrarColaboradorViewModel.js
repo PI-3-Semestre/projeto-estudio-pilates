@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import colaboradoresService from '../services/colaboradoresService'; // Importando o serviço
+import { useToast } from '../context/ToastContext';
 
 const useCadastrarColaboradorViewModel = () => {
     const { userId } = useParams();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
@@ -32,30 +34,25 @@ const useCadastrarColaboradorViewModel = () => {
 
     useEffect(() => {
         const fetchInitialData = async () => {
+            setLoading(true);
             try {
                 const [userResponse, studiosResponse, perfisResponse] = await Promise.all([
                     api.get(`/usuarios/${userId}/`),
                     api.get('/studios/'),
-                    // Assuming you have an endpoint to fetch profiles
-                    // If not, you might need to hardcode them or create an endpoint
-                    // For now, I'll simulate it.
-                    Promise.resolve({ data: [
-                        { id: 1, nome: 'ADMIN_MASTER' },
-                        { id: 2, nome: 'ADMINISTRADOR' },
-                        { id: 3, nome: 'RECEPCIONISTA' },
-                        { id: 4, nome: 'FISIOTERAPEUTA' },
-                        { id: 5, nome: 'INSTRUTOR' },
-                    ]})
+                    colaboradoresService.getPerfis(), // Usando a função do serviço
                 ]);
                 setUserInfo(userResponse.data);
                 setStudios(studiosResponse.data);
                 setPerfis(perfisResponse.data);
             } catch (error) {
                 setError('Falha ao carregar dados.');
+                showToast('Erro ao carregar dados iniciais.', { type: 'error' });
+            } finally {
+                setLoading(false);
             }
         };
         fetchInitialData();
-    }, [userId]);
+    }, [userId, showToast]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -93,9 +90,9 @@ const useCadastrarColaboradorViewModel = () => {
         const permissaoIndex = vinculo.permissao_ids.indexOf(permissaoId);
     
         if (permissaoIndex > -1) {
-            vinculo.permissao_ids.splice(permissaoIndex, 1); // Remove permissão
+            vinculo.permissao_ids.splice(permissaoIndex, 1);
         } else {
-            vinculo.permissao_ids.push(permissaoId); // Adiciona permissão
+            vinculo.permissao_ids.push(permissaoId);
         }
     
         setFormData(prev => ({ ...prev, vinculos_studio: newVinculos }));
@@ -124,10 +121,14 @@ const useCadastrarColaboradorViewModel = () => {
         };
 
         try {
-            await api.post('/colaboradores/', payload);
-            navigate('/colaboradores'); // Or wherever you want to redirect after success
+            // Usando a função do serviço
+            await colaboradoresService.createColaborador(payload);
+            showToast('Colaborador cadastrado com sucesso!', { type: 'success' });
+            navigate('/colaboradores');
         } catch (err) {
-            setError(err.response?.data || err.message);
+            const errorMessage = err.response?.data ? JSON.stringify(err.response.data) : 'Ocorreu um erro desconhecido.';
+            setError(errorMessage);
+            showToast(`Erro ao cadastrar colaborador: ${errorMessage}`, { type: 'error' });
         } finally {
             setLoading(false);
         }
