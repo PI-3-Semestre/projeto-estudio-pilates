@@ -18,21 +18,56 @@ Incluindo outro URLconf (Including another URLconf)
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+
+# Importar as ViewSets de financeiro.views
+from financeiro.views import PlanoViewSet, MatriculaViewSet, VendaViewSet
+
+# Criar roteadores específicos para Planos e Matrículas
+planos_router = DefaultRouter()
+planos_router.register(r'', PlanoViewSet, basename='plano')
+
+matriculas_router = DefaultRouter()
+matriculas_router.register(r'', MatriculaViewSet, basename='matricula')
+
+# Criar roteadores específicos para Vendas
+vendas_router = DefaultRouter()
+vendas_router.register(r'', VendaViewSet, basename='venda')
+
 
 urlpatterns = [
     # Rota do Admin Padrão do Django
     path("admin/", admin.site.urls),
-
     # --- Rotas da Documentação (Swagger) ---
-    # Rota que gera o arquivo de schema da API (necessário para o Swagger)
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    
-    # Rota que serve a interface gráfica do Swagger UI
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
     # --- Nossas Rotas de API ---
-    # Inclui todas as rotas definidas no arquivo 'urls.py' do app 'usuarios'
-    
-    # TODO: Adicionar as rotas das outras apps aqui no futuro. Exemplo:
-    # path('api/', include('agendamentos.urls')),
+    path('api/agendamentos/', include('agendamentos.urls')),
+    path("api/", include("usuarios.urls")),
+    path("api/", include("alunos.urls")),
+    path("api/studios/", include("studios.urls")),
+    path("api/avaliacoes/", include("avaliacoes.urls")),
+    path("api/auth/", include("autenticacao.urls")),
+
+    # Rotas separadas para Planos e Matrículas
+    path('api/planos/', include(planos_router.urls)),
+    path('api/matriculas/', include(matriculas_router.urls)),
+
+    # Rotas separadas para Vendas
+    path('api/vendas/', include(vendas_router.urls)),
+
+    path('api/financeiro/', include('financeiro.urls')), # O restante do financeiro (Pagamentos e agora Produtos)
+    path('api/notifications/', include('notifications.urls')),
+    path('api/relatorios/', include('relatorios.urls')),
+    path('api/', include('core.urls')), # Rota para o Dashboard
 ]
+
+# path para salvar as fotos dos alunos
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

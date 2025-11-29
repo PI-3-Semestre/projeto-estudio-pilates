@@ -2,23 +2,40 @@
 name = "backend"
 version = "0.1.0"
 description = "Backend para o sistema Define Pilates"
-authors = ["Pilates"]
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.10"
-# As dependências serão adicionadas aqui pelo comando 'poetry add'
+python = ">=3.12"
 django = "^5.2.6"
 djangorestframework = "^3.16.1"
 mysqlclient = "^2.2.7"
 python-decouple = "^3.8"
 drf-spectacular = "^0.28.0"
+pillow = "^11.3.0"
+sqlparse = "^0.5.3"
+asgiref = "^3.9.2"
+django-cpf = "^0.1.0"
+email-validator = "^2.3.0"
+# Sintaxe para dependências com "extras"
+django-phonenumber-field = {version = "^8.1.0", extras = ["phonenumbers"]}
+drf-extra-fields = "^3.7.0"
+django-guardian = "^3.2.0"
+dotenv = "^0.9.9"
+python-dotenv = "^1.1.1"
+rest-framework-simplejwt = "^0.0.2"
+djangorestframework-simplejwt = "^5.5.1"
+django-cors-headers = "^4.9.0"
+drf-nested-routers = "^0.95.0"
+faker = "^38.0.0"
+django-simple-history = "^3.6.0"
+resend = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
-# As dependências de desenvolvimento serão adicionadas aqui
 black = "^25.9.0"
-ruff = "^0.13.2"
+ruff = "^0.13.1"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
