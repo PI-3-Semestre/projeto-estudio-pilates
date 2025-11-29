@@ -14,7 +14,7 @@ from alunos.models import Aluno
 from usuarios.models import Usuario, Colaborador
 from studios.models import Studio
 from notifications.models import Notification
-from agendamentos.permissions import HasRole
+from .permissions import HasRole
 from .serializers import DashboardSerializer
 
 @extend_schema(tags=['Dashboard'])
