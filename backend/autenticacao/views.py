@@ -1,4 +1,5 @@
 import resend
+import os
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -40,12 +41,8 @@ class LoginAPIView(TokenObtainPairView):
     pelo `CustomTokenObtainPairSerializer` para enriquecer a resposta do login
     com os dados do perfil do usuário.
     """
-    # Permite que qualquer usuário, autenticado ou não, acesse este endpoint.
-    # Essencial para uma view de login.
     permission_classes = (AllowAny,)
     
-    # Especifica o serializer customizado que deve ser usado para validar
-    # as credenciais e formatar a resposta do token.
     serializer_class = CustomTokenObtainPairSerializer
 
 @extend_schema(
@@ -61,29 +58,21 @@ class PasswordResetRequestAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         identifier = serializer.validated_data['identifier']
 
-        # 1. Busca o usuário (por e-mail ou CPF)
         try:
             user = Usuario.objects.get(Q(email__iexact=identifier) | Q(cpf=identifier), is_active=True)
         except Usuario.DoesNotExist:
-            # Retorna sucesso falso por segurança (para não revelar emails cadastrados)
             return Response(
                 {"detail": "Se um usuário com este identificador existir, um e-mail foi enviado."},
                 status=status.HTTP_200_OK
             )
 
-        # 2. Invalida tokens antigos desse usuário para evitar conflitos
         PasswordResetToken.objects.filter(user=user).delete()
-        
-        # 3. Cria um novo token (Seu model já gera um hash seguro de 48 chars automaticamente)
         reset_token = PasswordResetToken.objects.create(user=user)
 
-        # 4. Monta o Link Mágico
-        # Assumindo que seu frontend roda na porta 3000. Ajuste se necessário.
-        # O token vai na URL como um parâmetro GET.
-        # MUdar a port caso seja DIFERENTE no frontend
-        reset_link = f"http://localhost:5173/recuperar-senha?token={reset_token.token}"
+        base_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+        
+        reset_link = f"{base_url}/password-reset-confirm/{reset_token.token}"
 
-        # 5. Prepara o HTML do E-mail
         html_content = f"""
         <div style="font-family: sans-serif; color: #333;">
             <h2>Recuperação de Senha - Define Pilates</h2>
@@ -102,19 +91,21 @@ class PasswordResetRequestAPIView(generics.GenericAPIView):
         </div>
         """
 
-        # 6. Envia usando o Resend
         try:
+            resend.api_key = os.environ.get('RESEND_API_KEY')
+
             params = {
-                "from": settings.DEFAULT_FROM_EMAIL, # Pega o 'onboarding@resend.dev' do settings
+                "from": "onboarding@resend.dev", 
                 "to": [user.email],
                 "subject": "Redefina sua senha - Define Pilates",
-                "html": html_content,
+                "html": html_content, 
             }
-            resend.Emails.send(params)
+            
+            email_sent = resend.Emails.send(params)
+            print("Resend Response:", email_sent)
             
         except Exception as e:
             print(f"ERRO AO ENVIAR E-MAIL RESEND: {e}")
-            # Em produção, você pode querer logar isso melhor
             
         return Response(
             {"detail": "Se um usuário com este identificador existir, um e-mail foi enviado."},
@@ -134,23 +125,18 @@ class PasswordResetConfirmAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # 1. Busca o token no banco
         try:
             token_obj = PasswordResetToken.objects.get(token=data['token'])
         except PasswordResetToken.DoesNotExist:
             return Response({"error": "Link inválido ou token incorreto."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. Verifica se expirou
         if token_obj.is_expired():
             token_obj.delete()
             return Response({"error": "Este link expirou. Solicite um novo."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. Altera a senha do usuário dono do token
         user = token_obj.user
         user.set_password(data['password'])
         user.save()
-
-        # 4. Remove o token usado (para não ser usado 2 vezes)
         token_obj.delete()
 
         return Response({"detail": "Senha redefinida com sucesso! Agora você pode fazer login."}, status=status.HTTP_200_OK)

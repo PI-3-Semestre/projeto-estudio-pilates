@@ -33,8 +33,8 @@ class LoginAPITestCase(APITestCase):
         response = self.client.post(url, data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data) # Verifica se o token de acesso foi retornado
-        self.assertIn('user', response.data)   # Verifica se os dados do usuário foram retornados
+        self.assertIn('access', response.data)
+        self.assertIn('user', response.data)
 
     def test_login_com_senha_invalida(self):
         """

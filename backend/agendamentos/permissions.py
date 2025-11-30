@@ -37,11 +37,11 @@ class IsAdminAgendamento(BasePermission):
 
 class CanUpdateAula(BasePermission):
     """
-    Permissão customizada para ATUALIZAR (PUT/PATCH) uma aula.
+    Permissão para atualizar (PUT/PATCH) uma aula.
     A permissão é concedida se o usuário for:
-    1. Admin Master, Administrador OU Recepcionista
+    Admin Master, Administrador OU Recepcionista
     OU
-    2. O instrutor (principal ou substituto) da aula.
+    O instrutor (principal ou substituto) da aula.
     """
     message = "Você não tem permissão para editar esta aula."
 
@@ -86,9 +86,9 @@ class IsOwnerDoAgendamento(BasePermission):
         'obj' aqui deve ser uma instância de AulaAluno.
         """
         
-        # (O modelo Aluno tem a FK para Usuario)
+        
         if not (request.user and request.user.is_authenticated and hasattr(request.user, 'aluno')):
             return False
         
-        # Compara o aluno do objeto (obj.aluno) com o aluno logado (request.user.aluno)
+        
         return obj.aluno == request.user.aluno

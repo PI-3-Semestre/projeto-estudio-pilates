@@ -11,20 +11,16 @@ class Notification(models.Model):
         WARNING = 'WARNING', 'Aviso'
         ERROR = 'ERROR', 'Erro'
 
-    # Para quem é a notificação
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='notifications'
     )
 
-    # Mensagem da notificação
     message = models.TextField()
 
-    # Status de leitura
     is_read = models.BooleanField(default=False)
 
-    # Nível para estilização no front-end (ex: cor do ícone)
     level = models.CharField(
         max_length=10,
         choices=NotificationLevel.choices,
@@ -36,7 +32,6 @@ class Notification(models.Model):
 
     # --- Campos para Link Genérico ---
     # Permite que a notificação aponte para QUALQUER outro objeto no sistema
-    # Ex: um Pagamento, uma Aula, um Aluno, etc.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')

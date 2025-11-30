@@ -33,11 +33,9 @@ class CanManageAvaliacaoObject(BasePermission):
         except Colaborador.DoesNotExist:
             return False
 
-        # Permite a criação (POST) para perfis administrativos, fisios e instrutores.
         if request.method == 'POST':
             return any(perfil in ['ADMIN_MASTER', 'ADMINISTRADOR', 'FISIOTERAPEUTA', 'INSTRUTOR'] for perfil in user_perfis)
 
-        # Permite o acesso à lista (GET) para qualquer colaborador autenticado.
         return True
 
     def has_object_permission(self, request, view, obj):
@@ -50,16 +48,12 @@ class CanManageAvaliacaoObject(BasePermission):
         except Colaborador.DoesNotExist:
             return False
 
-        # Admin Master e Administrador têm acesso total a qualquer objeto.
         if 'ADMIN_MASTER' in user_perfis or 'ADMINISTRADOR' in user_perfis:
             return True
 
-        # Fisioterapeuta e Instrutor podem gerenciar a avaliação que eles mesmos criaram.
         if 'FISIOTERAPEUTA' in user_perfis or 'INSTRUTOR' in user_perfis:
             return obj.instrutor == request.user.colaborador
 
-        # Recepcionista pode apenas visualizar os detalhes (GET, HEAD, OPTIONS).
         if 'RECEPCIONISTA' in user_perfis:
             return request.method in SAFE_METHODS
-
         return False

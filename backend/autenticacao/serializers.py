@@ -53,24 +53,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     O objetivo é adicionar dados customizados (o perfil do usuário) à resposta do token.
     """
     def validate(self, attrs):
-        # 1. Chama o método `validate` da classe pai.
-        # Este método é o que de fato autentica o usuário (verifica senha) e,
-        # se for sucesso, retorna um dicionário com os tokens `access` e `refresh`.
-        # Se a autenticação falhar, ele levanta uma exceção e o código abaixo não executa.
         data = super().validate(attrs)
 
-        # 2. Se a autenticação foi bem-sucedida, `self.user` conterá o objeto do usuário.
         user_profile_data = None
         user_type = None
 
         try:
-            # Tenta acessar o perfil de colaborador associado ao usuário.
             colaborador_profile = self.user.colaborador
             perfil_serializer = PerfilColaboradorSerializer(colaborador_profile)
             user_profile_data = perfil_serializer.data
             user_type = 'colaborador'
             
-            # Adiciona os perfis específicos do colaborador
             if colaborador_profile.perfis.filter(nome='ADMIN_MASTER').exists():
                 user_type = 'admin_master'
             elif colaborador_profile.perfis.filter(nome='ADMINISTRADOR').exists():
@@ -84,14 +77,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         except Colaborador.DoesNotExist:
             try:
-                # Se não é colaborador, tenta acessar o perfil de aluno.
                 aluno_profile = self.user.aluno
                 perfil_serializer = PerfilAlunoSerializer(aluno_profile)
                 user_profile_data = perfil_serializer.data
                 user_type = 'aluno'
             except Aluno.DoesNotExist:
-                # Se não é nem colaborador nem aluno, pode ser um superuser puro ou outro tipo de usuário sem perfil específico.
-                # Neste caso, apenas retorna os dados básicos do usuário.
                 user_profile_data = {
                     'id': self.user.id,
                     'username': self.user.username,
@@ -102,12 +92,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 if self.user.is_superuser:
                     user_type = 'superuser'
                 else:
-                    user_type = 'usuario_generico' # Ou outro tipo padrão
-
-        # Adiciona os dados do perfil serializado e o tipo de usuário à resposta final.
+                    user_type = 'usuario_generico'
         data['user'] = user_profile_data
         data['user_type'] = user_type
-
         return data
 
 
@@ -120,7 +107,6 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
     def validate_identifier(self, value):
         # Esta validação é apenas para garantir que o campo não está vazio.
-        # A lógica de busca do usuário fica na view.
         if not value:
             raise serializers.ValidationError("O campo de identificador não pode ser vazio.")
         return value

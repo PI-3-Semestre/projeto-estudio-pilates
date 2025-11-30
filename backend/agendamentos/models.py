@@ -224,7 +224,7 @@ class CreditoAula(models.Model):
     aluno = models.ForeignKey(
         Aluno,
         on_delete=models.CASCADE,
-        related_name="creditos_aula",  # <== MUDANÇA 1: Nome diferente de "reposicoes"
+        related_name="creditos_aula",  
         null=True,
     )
 
@@ -237,7 +237,7 @@ class CreditoAula(models.Model):
     agendamento_origem = models.ForeignKey(
         AulaAluno,
         on_delete=models.CASCADE,
-        related_name="credito_aula_gerado",  # <== MUDANÇA 2: Nome diferente de "reposicao_gerada"
+        related_name="credito_aula_gerado",  
         null=True,
         blank=True, 
     )
@@ -257,18 +257,17 @@ class CreditoAula(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="creditos_adicionados",
-        null=True,  # null=True permite que o sistema (ex: reposição) crie créditos
+        null=True,  
         blank=True,
     )
 
     data_validade = models.DateField(db_index=True)
     
-    # Adicionando o "link" para a Matrícula que gerou este crédito.
     matricula_origem = models.ForeignKey(
         Matricula,
-        on_delete=models.SET_NULL, # Se a matrícula for deletada, o crédito não some.
-        null=True,                 # Permite que o campo fique vazio (p/ créditos manuais)
-        blank=True,                # Permite que o campo seja nulo no Admin
+        on_delete=models.SET_NULL, 
+        null=True,                 
+        blank=True,                
         related_name='creditos_gerados'
     )
 

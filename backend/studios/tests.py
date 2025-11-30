@@ -46,7 +46,6 @@ class DashboardStudioViewTests(APITestCase):
 
         self.url = lambda pk: reverse('studio-dashboard', kwargs={'studio_pk': pk})
 
-        # Create some data for Studio 1
         self.produto1_s1 = Produto.objects.create(nome='Produto 1 S1', preco=10.00)
         EstoqueStudio.objects.create(produto=self.produto1_s1, studio=self.studio1, quantidade=100)
         self.aluno1_s1_user = User.objects.create_user(username='aluno1s1', email='aluno1s1@example.com', password='password123')
@@ -59,7 +58,6 @@ class DashboardStudioViewTests(APITestCase):
         self.pagamento1_s1 = Pagamento.objects.create(matricula=self.matricula1_s1, valor_total=100.00, status='PENDENTE', data_vencimento=timezone.localdate() + timedelta(days=5))
         self.pagamento2_s1 = Pagamento.objects.create(matricula=self.matricula1_s1, valor_total=50.00, status='ATRASADO', data_vencimento=timezone.localdate() - timedelta(days=5))
 
-        # Create some data for Studio 2
         self.aluno1_s2_user = User.objects.create_user(username='aluno1s2', email='aluno1s2@example.com', password='password123')
         self.aluno1_s2 = Aluno.objects.create(usuario=self.aluno1_s2_user, dataNascimento=timezone.localdate() - timedelta(days=365*20))
         self.matricula1_s2 = Matricula.objects.create(aluno=self.aluno1_s2, plano=self.plano, data_inicio=timezone.localdate(), data_fim=timezone.localdate() + timedelta(days=30), studio=self.studio2)

@@ -12,7 +12,6 @@ def criar_notificacao_para_admins(instance, message, level='INFO'):
     Função auxiliar para criar notificações para todos os admins.
     """
     admin_roles = ['ADMIN_MASTER', 'ADMINISTRADOR']
-    # CORREÇÃO FINAL: Acessar o 'nome' do Perfil através da relação ManyToMany 'perfis'.
     admins = Usuario.objects.filter(colaborador__perfis__nome__in=admin_roles).distinct()
     content_type = ContentType.objects.get_for_model(instance)
 
@@ -30,16 +29,14 @@ def notificar_novo_usuario(sender, instance, created, **kwargs):
     """
     Cenário 8: Notifica o ADMIN_MASTER quando um novo usuário se cadastra.
     """
-    # Este sinal é acionado durante as migrações, antes que os perfis existam.
-    # Adicionamos uma verificação para evitar que ele quebre o comando migrate.
     try:
         Perfil.objects.get(nome='ADMIN_MASTER')
     except Perfil.DoesNotExist:
-        return # Interrompe a execução se os perfis ainda não foram criados.
+        return 
 
     if created:
         try:
-            # CORREÇÃO FINAL: Acessar o 'nome' do Perfil.
+            
             admin_master_user = Usuario.objects.get(colaborador__perfis__nome='ADMIN_MASTER')
             Notification.objects.create(
                 recipient=admin_master_user,
@@ -48,7 +45,7 @@ def notificar_novo_usuario(sender, instance, created, **kwargs):
                 content_object=instance
             )
         except Usuario.DoesNotExist:
-            # Se não houver ADMIN_MASTER, não faz nada.
+            
             pass
 
 @receiver(post_save, sender=Pagamento)
@@ -71,7 +68,7 @@ def notificar_estoque_baixo(sender, instance, **kwargs):
     """
     Cenário 7: Notifica os admins quando o estoque de um produto está baixo.
     """
-    pass # Mantendo desativado por enquanto.
+    pass 
 
 @receiver(pre_delete, sender=Aula)
 def notificar_cancelamento_aula(sender, instance, **kwargs):

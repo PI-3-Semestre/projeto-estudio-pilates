@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied, ValidationError
-# +++ MODIFICADO: Adicionado OpenApiParameter e extend_schema_view para a decoração.
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from .models import Aluno
 from .serializers import AlunoSerializer

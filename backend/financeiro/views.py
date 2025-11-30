@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
@@ -379,7 +380,7 @@ class EstoqueAjusteView(APIView):
             estoque.quantidade += quantidade
         elif operacao == 'remover':
             if estoque.quantidade < quantidade:
-                raise serializers.ValidationError(
+                raise ValidationError(
                     f"Não é possível remover {quantidade} unidades. Estoque atual: {estoque.quantidade}."
                 )
             estoque.quantidade -= quantidade

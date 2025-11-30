@@ -8,8 +8,8 @@ from .views import (
     EstoquePorStudioView,
     EstoquePorProdutoView,
     ProdutosPorStudioView,
-    MinhasMatriculasListView, # Importar a nova view
-    MeusPagamentosListView,   # Importar a nova view
+    MinhasMatriculasListView, 
+    MeusPagamentosListView,   
 )
 
 router = DefaultRouter()

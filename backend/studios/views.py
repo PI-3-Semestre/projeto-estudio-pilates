@@ -13,7 +13,6 @@ from .models import Studio
 from .serializers import StudioSerializer, DashboardSerializer
 from .permissions import IsAdminMasterOrReadOnly, IsStudioAdminOrAdminMaster
 
-# Import models from other apps for aggregation
 from financeiro.models import Matricula, Venda, EstoqueStudio, Pagamento, Produto
 from avaliacoes.models import Avaliacao
 from agendamentos.models import Aula, ListaEspera, AulaAluno
@@ -168,5 +167,4 @@ class DashboardStudioView(APIView):
         }
 
         serializer = DashboardSerializer(dashboard_data)
-        # CORREÇÃO: Remover a chamada a .is_valid() e retornar diretamente serializer.data
         return Response(serializer.data)

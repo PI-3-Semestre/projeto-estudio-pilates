@@ -122,7 +122,6 @@ class Colaborador(models.Model):
         FERIAS = 'FERIAS', 'Férias'
 
     # Relação um-para-um com o usuário. Cada usuário pode ter apenas um perfil de colaborador.
-    # `primary_key=True` faz deste campo a chave primária da tabela.
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
     
     # Perfis de acesso associados a este colaborador.
@@ -135,19 +134,16 @@ class Colaborador(models.Model):
     data_demissao = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ATIVO)
     
-    # Endereço do colaborador. Se o endereço for deletado, o campo fica nulo.
     endereco = models.OneToOneField(Endereco, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # Novo campo de unidades que usa a tabela intermediária para permissões granulares.
     unidades = models.ManyToManyField(
         Studio,
         through='studios.ColaboradorStudio',
         related_name="colaboradores"
     )
 
-    # Managers do modelo
-    objects = ColaboradorManager()  # O manager padrão que retorna apenas ativos.
-    todos_objetos = models.Manager()  # Manager para acessar todos os objetos.
+    objects = ColaboradorManager()  
+    todos_objetos = models.Manager() 
 
     class Meta:
         db_table = 'colaboradores'

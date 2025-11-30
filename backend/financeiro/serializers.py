@@ -15,7 +15,6 @@ class HistoricalRecordSerializer(serializers.ModelSerializer):
     history_date = serializers.DateTimeField()
 
     class Meta:
-        # O modelo será definido dinamicamente
         exclude = ['history_id', 'history_change_reason']
 
 def create_historical_serializer(model_class):
@@ -26,27 +25,23 @@ def create_historical_serializer(model_class):
 
 # --- Serializers Principais ---
 
-# Serializer aninhado para Studio
 class StudioNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Studio
         fields = ['id', 'nome']
 
-# Serializer aninhado para Aluno (usuário)
 class AlunoNestedSerializer(serializers.ModelSerializer):
     nome_completo = serializers.CharField(source='get_full_name', read_only=True)
     class Meta:
         model = Usuario
         fields = ['id', 'nome_completo', 'cpf']
 
-# Serializer para leitura de VendaProduto (como já existia)
 class VendaProdutoNestedSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(source='produto.nome', read_only=True)
     class Meta:
         model = VendaProduto
         fields = ['produto_id', 'nome', 'quantidade', 'preco_unitario']
 
-# NOVO Serializer para escrita de VendaProduto (receber dados do frontend)
 class VendaProdutoWriteSerializer(serializers.Serializer):
     produto_id = serializers.IntegerField()
     quantidade = serializers.IntegerField(min_value=1)
@@ -107,17 +102,15 @@ class VendaSerializer(serializers.ModelSerializer):
     aluno_id = serializers.PrimaryKeyRelatedField(
         queryset=Usuario.objects.filter(aluno__isnull=False), source='aluno', write_only=True, allow_null=True
     )
-    # Campo para receber os produtos na criação/atualização
     produtos_vendidos = VendaProdutoWriteSerializer(many=True, write_only=True)
-    # Campo para exibir os produtos na leitura
     produtos = VendaProdutoNestedSerializer(source='vendaproduto_set', many=True, read_only=True)
     
-    valor_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) # Será calculado no create
+    valor_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) 
 
     class Meta:
         model = Venda
         fields = ['id', 'aluno', 'aluno_id', 'data_venda', 'produtos', 'produtos_vendidos', 'studio', 'studio_id', 'valor_total']
-        read_only_fields = ['data_venda'] # data_venda é preenchida automaticamente pelo modelo
+        read_only_fields = ['data_venda'] 
 
     @transaction.atomic # Garante que todas as operações sejam bem-sucedidas ou revertidas
     def create(self, validated_data):
@@ -126,7 +119,6 @@ class VendaSerializer(serializers.ModelSerializer):
         if not produtos_data:
             raise serializers.ValidationError("É necessário informar pelo menos um produto para a venda.")
 
-        # Pré-validação de estoque antes de criar a venda
         studio_id = validated_data.get('studio').id if validated_data.get('studio') else None
         if not studio_id:
             raise serializers.ValidationError("O estúdio da venda é obrigatório.")
@@ -148,14 +140,11 @@ class VendaSerializer(serializers.ModelSerializer):
                     f"Estoque não encontrado para o produto '{produto_nome}' no estúdio."
                 )
 
-        # Calcular valor_total com base nos produtos recebidos
         total_value = sum(item['preco_unitario'] * item['quantidade'] for item in produtos_data)
         validated_data['valor_total'] = total_value
 
-        # Cria a instância da Venda
         venda = Venda.objects.create(**validated_data)
 
-        # Cria as instâncias de VendaProduto e atualiza o estoque
         for item_data in produtos_data:
             produto = Produto.objects.get(pk=item_data['produto_id'])
             VendaProduto.objects.create(
@@ -210,7 +199,6 @@ class PagamentoSerializer(serializers.ModelSerializer):
         """
         Valida a extensão do arquivo do comprovante.
         """
-        # 'value' é o objeto do arquivo enviado (UploadedFile)
         ext = os.path.splitext(value.name)[1]  # Pega a extensão do arquivo, ex: '.pdf'
         valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
 
@@ -245,7 +233,6 @@ class EstoqueAjusteSerializer(serializers.Serializer):
             raise serializers.ValidationError("Studio não encontrado.")
         return value
 
-# Novo serializer para produtos com estoque por estúdio
 class ProdutoEstoqueSerializer(serializers.ModelSerializer):
     quantidade_em_estoque = serializers.SerializerMethodField()
 
@@ -260,13 +247,13 @@ class ProdutoEstoqueSerializer(serializers.ModelSerializer):
         """
         studio_id = self.context.get('studio_id')
         if not studio_id:
-            return None # Ou 0, dependendo da regra de negócio
+            return None 
 
         try:
             estoque = EstoqueStudio.objects.get(produto=obj, studio_id=studio_id)
             return estoque.quantidade
         except EstoqueStudio.DoesNotExist:
-            return 0 # Se não há registro de estoque, a quantidade é 0
+            return 0 
 
 class ProdutoSerializer(serializers.ModelSerializer):
     estoque_studios = EstoqueStudioSerializer(many=True, read_only=True, source='estoquestudio_set')

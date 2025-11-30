@@ -39,11 +39,9 @@ def processar_lista_espera(aula):
     if not aula.lista_espera.exists():
         return
 
-    # Itera sobre a lista de espera em ordem de inscrição
     for inscricao_espera in aula.lista_espera.order_by('data_inscricao'):
         aluno_em_espera = inscricao_espera.aluno
         
-        # 1. Verifica se o aluno tem crédito válido
         credito_disponivel = CreditoAula.objects.filter(
             aluno=aluno_em_espera,
             data_invalidacao__isnull=True,
@@ -51,39 +49,32 @@ def processar_lista_espera(aula):
         ).first()
 
         if credito_disponivel:
-            # 2. Tenta criar o agendamento
             try:
                 novo_agendamento = AulaAluno.objects.create(
                     aula=aula,
                     aluno=aluno_em_espera,
                     credito_utilizado=credito_disponivel
                 )
-                # Debita o crédito
                 credito_disponivel.data_invalidacao = novo_agendamento.aula.data_hora_inicio # Use a data da aula para invalidar o crédito
                 credito_disponivel.save()
 
-                # 3.A Notificação de Sucesso
                 Notification.objects.create(
                     recipient=aluno_em_espera.usuario,
                     message=f"Conseguimos! Você foi inscrito(a) automaticamente na aula de {aula.modalidade.nome} do dia {aula.data_hora_inicio.strftime('%d/%m')}.",
                     level=Notification.NotificationLevel.SUCCESS,
                     content_object=novo_agendamento
                 )
-                # Remove da lista de espera e para o processo
                 inscricao_espera.delete()
                 return
             except Exception:
-                # Se houver outro erro (ex: conflito de horário), notifica e continua
                 pass
         
-        # 3.B Notificação de Falha (Falta de Crédito)
         Notification.objects.create(
             recipient=aluno_em_espera.usuario,
             message=f"Uma vaga surgiu na aula de {aula.modalidade.nome}, mas não conseguimos te inscrever por falta de créditos válidos. Adquira um novo plano para não perder a próxima chance!",
             level=Notification.NotificationLevel.WARNING,
             content_object=aula
         )
-        # Remove o aluno da lista para tentar o próximo
         inscricao_espera.delete()
 
 
@@ -144,10 +135,8 @@ class ModalidadeViewSet(viewsets.ModelViewSet):
     queryset = Modalidade.objects.all()
     serializer_class = ModalidadeSerializer
     def get_permissions(self):
-        # Permite que qualquer usuário autenticado (incluindo Alunos) liste e visualize modalidades
         if self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]
-        # Restringe as ações de criação, atualização e exclusão apenas a ADMIN_MASTER e ADMINISTRADOR
         return [HasRole.for_roles(['ADMIN_MASTER', 'ADMINISTRADOR'])]
 
 
@@ -165,14 +154,11 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     studio_filter_field = 'studio'
 
     def get_queryset(self):
-        # 1. Começa chamando o get_queryset do StudioPermissionMixin.
-        #    Este método já aplica o filtro por estúdio se o usuário for um colaborador.
-        queryset = super().get_queryset().order_by('data_hora_inicio') # Aplica a ordenação aqui
+        # Este método aplica o filtro por estúdio se o usuário for um colaborador.
+        queryset = super().get_queryset().order_by('data_hora_inicio') 
 
-        # 2. Otimização para evitar N+1 queries ao calcular vagas_preenchidas
         queryset = queryset.prefetch_related('alunos_inscritos')
 
-        # 3. Aplica os filtros de data
         data_inicio_str = self.request.query_params.get('data_inicio')
         data_fim_str = self.request.query_params.get('data_fim')
 
@@ -186,12 +172,11 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
         if data_fim_str:
             try:
                 data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-                # Adiciona 1 dia para incluir o dia final completo
                 queryset = queryset.filter(data_hora_inicio__date__lte=data_fim)
             except ValueError:
                 raise ValidationError({"data_fim": "Formato de data inválido. Use YYYY-MM-DD."})
 
-        return queryset # <-- RETORNA A QUERYSET FINAL, JÁ FILTRADA PELO MIXIN E PELAS DATAS
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -241,15 +226,14 @@ class AulaViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
 )
 class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
     queryset = AulaAluno.objects.all()
-    # serializer_class = AgendamentoAlunoReadSerializer # Removido para usar get_serializer_class
 
     studio_filter_field = 'aula__studio'
     permission_classes = [IsAuthenticated] 
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return AgendamentoAlunoSerializer # Usa o serializer de escrita para criação
-        return AgendamentoAlunoReadSerializer # Usa o serializer de leitura para outras ações (list, retrieve)
+            return AgendamentoAlunoSerializer 
+        return AgendamentoAlunoReadSerializer 
 
     def get_queryset(self):
         user = self.request.user
@@ -259,18 +243,15 @@ class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
             return AulaAluno.objects.filter(aluno=user.aluno).order_by('aula__data_hora_inicio')
         
         # Se for um Colaborador, aplica a lógica do StudioPermissionMixin
-        # (que já foi ajustada para retornar a queryset original se não for colaborador)
         queryset = super().get_queryset().order_by('aula__data_hora_inicio')
         return queryset
             
     def get_permissions(self):
-        if self.action == 'create': # Apenas a criação ainda permite qualquer autenticado (para o aluno agendar)
+        if self.action == 'create': 
             return [IsAuthenticated()]
-        # Para 'list', 'retrieve', 'update', 'destroy', etc.
         return [IsAuthenticated(), (IsOwnerDoAgendamento | IsStaffAutorizado)()]
 
     def create(self, request, *args, **kwargs):
-        # self.get_serializer() agora retornará AgendamentoAlunoSerializer para 'create'
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.validated_data.get('_adicionado_lista_espera'):
@@ -282,24 +263,21 @@ class AulaAlunoViewSet(StudioPermissionMixin, viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         
         # Após a criação, serializa a instância recém-criada com o serializer de leitura
-        # para garantir que os campos aninhados (aula, aluno) sejam populados.
         read_serializer = AgendamentoAlunoReadSerializer(serializer.instance)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         serializer.validated_data.pop('entrar_lista_espera', None)
-        # A verificação `isinstance` agora será verdadeira para o AgendamentoAlunoSerializer
         if not hasattr(self.request.user, 'aluno'):
             raise PermissionDenied("Você não possui um perfil de aluno para realizar este agendamento.")
         credito_a_utilizar = serializer.validated_data.pop('credito_a_utilizar', None)
-        agendamento = serializer.save(aluno=self.request.user.aluno) # O aluno é definido aqui
+        agendamento = serializer.save(aluno=self.request.user.aluno) 
         if credito_a_utilizar:        
             agendamento.credito_utilizado = credito_a_utilizar
             credito_a_utilizar.data_invalidacao = timezone.now()
             credito_a_utilizar.invalidado_por = self.request.user 
             credito_a_utilizar.save()
             agendamento.save()
-        # Não há mais o bloco 'else' que causava o problema de 'aluno' ser null.
 
     def perform_destroy(self, instance):
         """

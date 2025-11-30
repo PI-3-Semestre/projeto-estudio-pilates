@@ -28,22 +28,19 @@ class Avaliacao(models.Model):
     tratamentos_realizados = models.TextField(verbose_name="Tratamentos Anteriores", blank=True, null=True)
     objetivo_aluno = models.TextField("Objetivo do Aluno")
     
-    # Campo para armazenar uma foto da avaliação postural. O upload será na pasta 'avaliacoes'.
     foto_avaliacao_postural = models.ImageField(upload_to='avaliacoes/', verbose_name="Foto da Avaliação Postural", null=True, blank=True)
     
     data_reavalicao = models.DateField(verbose_name="Data para Reavaliação", blank=True, null=True)
     
     # --- Timestamps ---
-    # Data de criação, preenchida automaticamente na primeira vez que o objeto é salvo.
     data_criacao = models.DateTimeField(auto_now_add=True)
-    # Data da última modificação, atualizada toda vez que o objeto é salvo.
     data_ultima_modificacao = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'avaliacoes' # Nome da tabela no banco de dados.
-        ordering = ['-data_avaliacao'] # Ordena as avaliações pela data, da mais recente para a mais antiga.
-        verbose_name = "Avaliação" # Nome amigável para o singular.
-        verbose_name_plural = "Avaliações" # Nome amigável para o plural.
+        db_table = 'avaliacoes'
+        ordering = ['-data_avaliacao'] 
+        verbose_name = "Avaliação" 
+        verbose_name_plural = "Avaliações" 
 
     def __str__(self):
         """Representação em string do objeto, útil no admin do Django e para debugging."""

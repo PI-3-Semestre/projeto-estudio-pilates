@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    CreditoAula # <-- Importe
+    CreditoAula 
 )
 
 # Register your models here.

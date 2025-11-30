@@ -4,9 +4,6 @@ from django.dispatch import receiver
 from guardian.shortcuts import assign_perm, remove_perm
 from .models import ColaboradorStudio, Studio
 
-# Este dicionário funciona como uma Matriz de Controle de Acesso Baseado em Papel (Role-Based Access Control).
-# Ele mapeia o NOME de uma FuncaoOperacional para uma lista de codinomes de permissão
-# (definidos na classe Meta do modelo Studio).
 PERMISSIONS_MAP = {
     # Administradores têm todas as permissões no studio.
     'Admin': [
@@ -39,18 +36,14 @@ def handle_colaborador_studio_permissions(sender, instance, **kwargs):
     # Obtém os objetos relevantes a partir da instância que foi salva.
     usuario_autenticavel = instance.colaborador.usuario
     studio = instance.studio
-    # O campo 'permissao' agora é uma ForeignKey para FuncaoOperacional.
-    # Precisamos do nome da função para usar como chave no nosso mapa.
+    # Precisamos do nome da função para usar como chave
     papel_atual = instance.permissao.nome
 
-    # 1. Limpa todas as permissões de studio existentes para este usuário neste studio específico.
-    # Este passo é CRUCIAL para garantir que, ao rebaixar o papel de um usuário
-    # (ex: de Admin para Instrutor), as permissões de Admin sejam revogadas.
+    
     all_studio_perms = [perm[0] for perm in Studio._meta.permissions]
     for perm_codename in all_studio_perms:
         remove_perm(perm_codename, usuario_autenticavel, studio)
 
-    # 2. Atribui as novas permissões com base no papel atual, usando o mapa de permissões.
     perms_to_assign = PERMISSIONS_MAP.get(papel_atual, [])
     for perm_codename in perms_to_assign:
         assign_perm(perm_codename, usuario_autenticavel, studio)

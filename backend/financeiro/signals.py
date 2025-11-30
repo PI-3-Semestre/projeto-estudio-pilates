@@ -15,7 +15,6 @@ def gerar_pagamento_matricula(sender, instance, created, **kwargs):
     """
     if created:
         plano = instance.plano
-        # A data de vencimento será 10 dias após a criação da matrícula
         data_vencimento = timezone.now().date() + timezone.timedelta(days=10)
 
         Pagamento.objects.create(
@@ -40,14 +39,9 @@ def gerar_creditos_aula(sender, instance, created, **kwargs):
     if instance.status == 'PAGO' and instance.matricula:
         matricula = instance.matricula
 
-        # CORREÇÃO DE BUG: 
-        # 'matricula.aluno' é o 'Usuario'.
-        # 'matricula.aluno.aluno' é o perfil 'Aluno' que o CreditoAula espera.
-        # (Assumindo que sua FK no modelo Aluno se chama 'aluno')
         try:
             aluno_perfil = matricula.aluno.aluno
         except AttributeError:
-            # Caso de segurança se o perfil do aluno não for encontrado
             return
 
         if not CreditoAula.objects.filter(matricula_origem=matricula).exists():
@@ -59,9 +53,8 @@ def gerar_creditos_aula(sender, instance, created, **kwargs):
             total_creditos = int(semanas * plano.creditos_semanais)
             data_validade = matricula.data_fim
 
-            # 3. ALTERADO: Adicionado 'matricula_origem' e corrigido 'aluno'
             CreditoAula.objects.create(
-                aluno=aluno_perfil,           # Passa o perfil Aluno
+                aluno=aluno_perfil, 
                 quantidade=total_creditos,
                 data_validade=data_validade,
                 matricula_origem=matricula 

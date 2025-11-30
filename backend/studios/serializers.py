@@ -1,8 +1,6 @@
 # studios/serializers.py
 from rest_framework import serializers
 from .models import Studio
-# Importar modelos necessários para os cálculos, embora não diretamente usados no serializer,
-# a estrutura do serializer deve refletir a saída da view.
 
 class StudioSerializer(serializers.ModelSerializer):
     """
@@ -13,9 +11,6 @@ class StudioSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Studio
-        
-        # Define os campos do modelo que serão expostos na API.
-        # Listar os campos explicitamente é uma boa prática de segurança.
         fields = ['id', 'nome', 'endereco']
 
 

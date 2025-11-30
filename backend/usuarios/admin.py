@@ -9,9 +9,7 @@ class UsuarioAdmin(UserAdmin):
     Herda de UserAdmin para manter a funcionalidade padrão de gerenciamento de usuários do Django.
     """
     model = Usuario
-    # Campos a serem exibidos na lista de usuários.
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active']
-    # Campos que podem ser usados para busca.
     search_fields = ['username', 'email', 'first_name', 'last_name']
 
 @admin.register(Colaborador)
@@ -19,14 +17,10 @@ class ColaboradorAdmin(admin.ModelAdmin):
     """
     Configuração do admin para o modelo Colaborador.
     """
-    # Ações customizadas
     actions = ['inativar_colaboradores']
 
-    # Campos a serem exibidos na lista de colaboradores.
     list_display = ('get_full_name', 'get_email', 'status', 'get_user_is_active')
-    # Filtros que aparecerão na barra lateral.
     list_filter = ('status', 'perfis')
-    # Campos que podem ser usados para busca.
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'usuario__email')
 
     def get_queryset(self, request):
@@ -36,7 +30,6 @@ class ColaboradorAdmin(admin.ModelAdmin):
         """
         return Colaborador.todos_objetos.all()
 
-    # Funções para obter dados do modelo Usuario relacionado.
     def get_full_name(self, obj):
         return obj.usuario.get_full_name() or obj.usuario.username
     get_full_name.short_description = 'Nome Completo'
@@ -60,5 +53,4 @@ class ColaboradorAdmin(admin.ModelAdmin):
             colaborador.delete() # Chama o nosso método delete() sobrescrito.
         self.message_user(request, f'{queryset.count()} colaborador(es) foram inativados com sucesso.')
 
-# Registra o modelo Perfil para que seja gerenciável no admin.
 admin.site.register(Perfil)

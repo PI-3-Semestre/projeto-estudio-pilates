@@ -37,7 +37,6 @@ class IsAdminMasterOrAdministrador(BasePermission):
             return True
 
         try:
-            # Verifica se o colaborador tem algum dos perfis necessários.
             return request.user.colaborador.perfis.filter(
                 nome__in=['ADMIN_MASTER', 'ADMINISTRADOR']
             ).exists()
@@ -56,24 +55,18 @@ class IsStaffAutorizado(BasePermission):
     message = "Você não tem permissão para esta ação. Acesso restrito ao Staff autorizado (Admin, Administrador ou Recepcionista)."
 
     def has_permission(self, request, view):
-        # 1. O usuário deve estar logado
         if not request.user or not request.user.is_authenticated:
             return False
 
-        # 2. Superusuário sempre tem permissão
         if request.user.is_superuser:
             return True
         
-        # 3. O usuário deve ter um perfil de Colaborador e o perfil correto
         try:
-            # Sua lógica de .filter().exists() está perfeita e eficiente.
             return request.user.colaborador.perfis.filter(
                 nome__in=['ADMIN_MASTER', 'ADMINISTRADOR', 'RECEPCIONISTA']
             ).exists()
             
         except Colaborador.DoesNotExist:
-            # Se request.user.colaborador não existir, falha a permissão
             return False
         except AttributeError:
-            # Se request.user não tiver 'colaborador' (ex: Aluno)
             return False

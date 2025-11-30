@@ -54,14 +54,13 @@ class AvaliacaoPerformCreateTests(APITestCase):
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Avaliacao.objects.count(), 1) # Should still be 1, as it's the first successful creation
+        self.assertEqual(Avaliacao.objects.count(), 1) 
         avaliacao = Avaliacao.objects.first()
-        self.assertEqual(avaliacao.studio, self.studio1) # Should be associated with instrutor's single studio
+        self.assertEqual(avaliacao.studio, self.studio1) 
         self.assertEqual(avaliacao.instrutor, self.instrutor_colaborador)
         self.assertEqual(avaliacao.aluno, self.aluno)
 
     def test_avaliacao_perform_create_no_studio_if_multiple_instructor_studios_and_not_in_request(self):
-        # Add another studio to the instructor
         studio2 = Studio.objects.create(nome='Studio B', endereco='Address B')
         self.instrutor_colaborador.unidades.add(studio2, through_defaults={'permissao': self.funcao_instrutor})
         self.instrutor_colaborador.save()
@@ -73,5 +72,5 @@ class AvaliacaoPerformCreateTests(APITestCase):
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        avaliacao = Avaliacao.objects.latest('id') # Get the latest created evaluation
-        self.assertIsNone(avaliacao.studio) # Should be None as no studio was specified and instructor has multiple
+        avaliacao = Avaliacao.objects.latest('id') 
+        self.assertIsNone(avaliacao.studio)

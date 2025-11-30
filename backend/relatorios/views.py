@@ -15,7 +15,6 @@ from .serializers import (
 )
 from datetime import date, timedelta
 
-
 # Funções auxiliares para reduzir a duplicação de código
 def get_date_range_from_params(request):
     """
