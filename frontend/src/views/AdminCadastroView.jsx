@@ -14,7 +14,12 @@ const AdminCadastroView = () => {
     handleChange,
     handleSubmit,
     handleConfirmCreation,
+    userType, // Importar userType do ViewModel
   } = useAdminCadastroViewModel();
+
+  const pageTitle = userType === 'aluno' ? 'Criar Conta de Aluno (Fase 1)' : 'Criar Conta de Colaborador (Fase 1)';
+  const formDescription = userType === 'aluno' ? 'Insira os dados de acesso do novo aluno.' : 'Insira os dados de acesso do novo colaborador.';
+
 
   return (
     <>
@@ -30,11 +35,11 @@ const AdminCadastroView = () => {
         className="relative flex h-auto min-h-screen w-full flex-col bg-[#f8fcfb] justify-start group/design-root overflow-x-hidden"
         style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}
       >
-        <Header title="Criar Conta de Aluno (Fase 1)" showBackButton={true} />
+        <Header title={pageTitle} showBackButton={true} />
         
         <div className="p-4">
           <h2 className="text-[#0d1b1a] text-lg font-bold leading-tight tracking-[-0.015em] px-4 text-center pb-2 pt-4">
-            Insira os dados de acesso do novo aluno.
+            {formDescription}
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="flex max-w-[480px] mx-auto flex-col gap-4 py-3">

@@ -8,8 +8,9 @@ const useAdminCadastroViewModel = () => {
   const location = useLocation();
   const { showToast } = useToast();
   
-  // Pega o userType do estado da rota, com 'aluno' como padrão
-  const userType = location.state?.userType || 'aluno';
+  // Pega o userType dos parâmetros de query da URL
+  const queryParams = new URLSearchParams(location.search);
+  const userType = queryParams.get('type') || 'aluno'; // 'aluno' como padrão se não especificado
 
   const [formData, setFormData] = useState({
     username: '',
@@ -24,7 +25,7 @@ const useAdminCadastroViewModel = () => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Atualiza o user_type no formulário se o estado da rota mudar
+  // Atualiza o user_type no formulário se o tipo da URL mudar
   useEffect(() => {
     setFormData(prev => ({ ...prev, user_type: userType }));
   }, [userType]);
@@ -60,6 +61,14 @@ const useAdminCadastroViewModel = () => {
       const { confirmPassword, ...userData } = formData;
       const response = await authService.adminCreateUser(userData);
       const newUserId = response.id;
+
+      if (!newUserId) {
+        const errorMessage = "Erro: ID do novo usuário não retornado pela API.";
+        setError(errorMessage);
+        showToast(errorMessage, { type: 'error' });
+        setLoading(false); 
+        return; 
+      }
 
       showToast('Usuário criado! Agora complete o perfil.', { type: 'success' });
 

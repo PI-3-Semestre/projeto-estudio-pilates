@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Importar useNavigate
 import Header from "../components/Header";
 import useGestaoUsuariosViewModel from "../viewmodels/useGestaoUsuariosViewModel";
 
@@ -19,9 +19,15 @@ const FiltroStatusButton = ({ texto, onClick, isActive }) => (
 
 const GestaoUsuariosView = () => {
   const { users, loading, error } = useGestaoUsuariosViewModel();
+  const navigate = useNavigate(); // Inicializar useNavigate
 
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroTipo, setFiltroTipo] = useState("todos"); // Novo estado para filtro por tipo
   const [termoBusca, setTermoBusca] = useState("");
+  const [isStatusFilterExpanded, setIsStatusFilterExpanded] = useState(false); // Estado para expandir/colapsar filtro de status
+  const [isTipoFilterExpanded, setIsTipoFilterExpanded] = useState(false); // Estado para expandir/colapsar filtro de tipo
+  const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false); // Estado para controlar o modal de escolha de cadastro
+
   const usuariosFiltrados = useMemo(() => {
     const buscaNormalizada = termoBusca
       .toLowerCase()
@@ -29,62 +35,66 @@ const GestaoUsuariosView = () => {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[.\-\s]/g, "");
 
-    const filtradosPorBusca = users.filter((user) => {
-      if (buscaNormalizada === "") {
-        return true;
-      }
+    let filtrados = users;
 
-      const nomeNormalizado = (user.nome_completo || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[.\-\s]/g, "");
+    // Filtro por busca
+    if (buscaNormalizada) {
+      filtrados = filtrados.filter((user) => {
+        const nomeNormalizado = (user.nome_completo || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[.\-\s]/g, "");
 
-      const cpfNormalizado = (user.cpf || "").replace(/[.-]/g, "");
+        const cpfNormalizado = (user.cpf || "").replace(/[.-]/g, "");
 
-      return (
-        nomeNormalizado.includes(buscaNormalizada) ||
-        cpfNormalizado.includes(buscaNormalizada)
-      );
-    });
+        return (
+          nomeNormalizado.includes(buscaNormalizada) ||
+          cpfNormalizado.includes(buscaNormalizada)
+        );
+      });
+    }
 
+    // Filtro por status
     if (filtroStatus === "ativos") {
-      console.log(
-        filtradosPorBusca.map((u) => ({
-          nome: u.nome_completo,
-          ativo: u.is_active,
-        }))
-      );
-
-      return filtradosPorBusca.filter((user) => user.is_active);
-    }
-    if (filtroStatus === "inativos") {
-      return filtradosPorBusca.filter((user) => !user.is_active);
+      filtrados = filtrados.filter((user) => user.is_active);
+    } else if (filtroStatus === "inativos") {
+      filtrados = filtrados.filter((user) => !user.is_active);
     }
 
-    return filtradosPorBusca;
-  }, [users, filtroStatus, termoBusca]);
+    // Novo filtro por tipo de usuário
+    if (filtroTipo !== "todos") {
+      filtrados = filtrados.filter((user) => user.tipo_usuario === filtroTipo);
+    }
+
+    return filtrados;
+  }, [users, filtroStatus, filtroTipo, termoBusca]); // Adicionado filtroTipo às dependências
 
   const getDetalhesLink = (user) => {
-    if (user.tipo_usuario === "Aluno") {
-      return `/alunos/${user.cpf}`;
-    }
-    if (user.tipo_usuario === "Colaborador") {
-      return `/colaboradores/${user.cpf}`;
-    }
-
-    return null;
+    return `/usuarios/detalhes/${user.cpf}`;
   };
 
+  const openCadastroModal = () => setIsCadastroModalOpen(true);
+  const closeCadastroModal = () => setIsCadastroModalOpen(false);
+
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-page dark:bg-background-dark group/design-root overflow-x-hidden">
-      <Header />
+    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display overflow-x-hidden">
+      <Header showBackButton={true} backButtonPath="/admin-master/dashboard" />
       <main className="flex flex-col flex-1 p-4">
         <div className="bg-card-light dark:bg-card-dark shadow-md rounded-xl w-full max-w-7xl mx-auto p-4 sm:p-6">
           <div className="flex flex-col gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-text-light dark:text-text-dark">
-              Gestão de Usuários
-            </h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-text-light dark:text-text-dark">
+                Gestão de Usuários
+              </h1>
+              <button
+                onClick={openCadastroModal} // Abre o modal de escolha
+                className="flex items-center justify-center rounded-lg bg-action-primary h-10 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-action-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+              >
+                <span className="material-symbols-outlined mr-2">person_add</span>
+                Cadastrar Usuário
+              </button>
+            </div>
 
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-grow">
@@ -103,23 +113,69 @@ const GestaoUsuariosView = () => {
                 </label>
               </div>
             </div>
-            {/* Adiciona os botões de filtro */}
-            <div className="flex gap-3 flex-wrap">
-              <FiltroStatusButton
-                texto="Todos"
-                onClick={() => setFiltroStatus("todos")}
-                isActive={filtroStatus === "todos"}
-              />
-              <FiltroStatusButton
-                texto="Ativos"
-                onClick={() => setFiltroStatus("ativos")}
-                isActive={filtroStatus === "ativos"}
-              />
-              <FiltroStatusButton
-                texto="Inativos"
-                onClick={() => setFiltroStatus("inativos")}
-                isActive={filtroStatus === "inativos"}
-              />
+
+            {/* Filtros de Status */}
+            <div className="bg-input-background-light dark:bg-input-background-dark rounded-xl p-4"> {/* Always card style */}
+              <div className="flex justify-between items-center mb-2"> {/* Always visible title, toggle button only on mobile */}
+                <h3 className="text-text-light dark:text-text-dark font-bold">Filtrar por Status</h3>
+                <button
+                  onClick={() => setIsStatusFilterExpanded(!isStatusFilterExpanded)}
+                  className="lg:hidden" // Toggle button only on mobile
+                >
+                  <span className="material-symbols-outlined text-text-light dark:text-text-dark">
+                    {isStatusFilterExpanded ? 'expand_less' : 'expand_more'}
+                  </span>
+                </button>
+              </div>
+              <div className={`${isStatusFilterExpanded ? 'block' : 'hidden'} lg:block flex gap-3 flex-wrap mt-2`}> {/* Conditional on mobile, always block on desktop */}
+                <FiltroStatusButton
+                  texto="Todos Status"
+                  onClick={() => setFiltroStatus("todos")}
+                  isActive={filtroStatus === "todos"}
+                />
+                <FiltroStatusButton
+                  texto="Ativos"
+                  onClick={() => setFiltroStatus("ativos")}
+                  isActive={filtroStatus === "ativos"}
+                />
+                <FiltroStatusButton
+                  texto="Inativos"
+                  onClick={() => setFiltroStatus("inativos")}
+                  isActive={filtroStatus === "inativos"}
+                />
+              </div>
+            </div>
+
+            {/* Filtros por Tipo de Usuário */}
+            <div className="bg-input-background-light dark:bg-input-background-dark rounded-xl p-4"> {/* Always card style */}
+              <div className="flex justify-between items-center mb-2"> {/* Always visible title, toggle button only on mobile */}
+                <h3 className="text-text-light dark:text-text-dark font-bold">Filtrar por Tipo</h3>
+                <button
+                  onClick={() => setIsTipoFilterExpanded(!isTipoFilterExpanded)}
+                  className="lg:hidden" // Toggle button only on mobile
+                >
+                  <span className="material-symbols-outlined text-text-light dark:text-text-dark">
+                    {isTipoFilterExpanded ? 'expand_less' : 'expand_more'}
+                  </span>
+                </button>
+              </div>
+              <div className={`${isTipoFilterExpanded ? 'block' : 'hidden'} lg:block flex gap-3 flex-wrap mt-2`}> {/* Conditional on mobile, always block on desktop */}
+                <FiltroStatusButton
+                  texto="Todos Tipos"
+                  onClick={() => setFiltroTipo("todos")}
+                  isActive={filtroTipo === "todos"}
+                />
+                <FiltroStatusButton
+                  texto="Aluno"
+                  onClick={() => setFiltroTipo("Aluno")}
+                  isActive={filtroTipo === "Aluno"}
+                />
+                <FiltroStatusButton
+                  texto="Colaborador"
+                  onClick={() => setFiltroTipo("Colaborador")}
+                  isActive={filtroTipo === "Colaborador"}
+                />
+              </div>
             </div>
           </div>
 
@@ -168,8 +224,6 @@ const GestaoUsuariosView = () => {
                         scope="row"
                       >
                         <div className="flex items-center gap-3">
-                          {/* O Avatar não está no /usuarios/, então usamos um padrão */}
-                          {/* <Avatar imageUrl={user.foto} alt={`Foto de ${user.nome_completo}`} className="h-10 w-10 shrink-0" /> */}
                           <div className="flex flex-col">
                             <span>{user.nome_completo}</span>
                             <span className="text-xs text-text-subtle-light dark:text-text-subtle-dark">
@@ -178,8 +232,8 @@ const GestaoUsuariosView = () => {
                           </div>
                         </div>
                       </th>
-                      <td className="px-6 py-4">{user.cpf}</td>
-                      <td className="px-6 py-4">{user.tipo_usuario}</td>
+                      <td className="px-6 py-4 text-text-light dark:text-text-dark">{user.cpf}</td>
+                      <td className="px-6 py-4 text-text-light dark:text-text-dark">{user.tipo_usuario}</td>
                       <td className="px-6 py-4">
                         <span
                           className={`text-xs font-semibold inline-flex px-2.5 py-0.5 rounded-full ${
@@ -223,11 +277,10 @@ const GestaoUsuariosView = () => {
               return (
                 <div
                   key={user.id}
-                  className="bg-background-page dark:bg-background-dark rounded-lg p-4"
+                  className="bg-card-light dark:bg-card-dark rounded-lg p-4 shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      {/* <Avatar className="h-14 w-14" /> */}
                       <div className="flex flex-col">
                         <p className="text-text-light dark:text-text-dark text-base font-bold leading-normal">
                           {user.nome_completo}
@@ -246,7 +299,7 @@ const GestaoUsuariosView = () => {
                     {detalhesLink && (
                       <Link
                         to={detalhesLink}
-                        className="text-text-light dark:text-text-dark"
+                        className="text-text-light dark:text-text-dark hover:bg-action-secondary rounded-full p-1.5"
                       >
                         <span className="material-symbols-outlined">
                           more_vert
@@ -278,6 +331,45 @@ const GestaoUsuariosView = () => {
           </div>
         </div>
       </main>
+
+      {/* Modal de Escolha de Tipo de Usuário */}
+      {isCadastroModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-lg w-full max-w-md transform transition-all">
+            <div className="p-6 text-center">
+              <h3 className="mt-5 text-xl font-bold text-text-light dark:text-text-dark">
+                Escolha o Tipo de Usuário
+              </h3>
+              <p className="mt-2 text-base text-text-subtle-light dark:text-text-subtle-dark">
+                Selecione o tipo de usuário que deseja cadastrar.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 bg-background-light dark:bg-background-dark p-4 rounded-b-xl">
+              <Link
+                to="/alunos/cadastrar?type=aluno" // Alterado para a rota correta
+                onClick={closeCadastroModal}
+                className="w-full inline-flex justify-center rounded-lg bg-action-primary px-4 py-2.5 text-base font-medium text-white shadow-sm hover:bg-action-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+              >
+                Cadastrar Aluno
+              </Link>
+              <Link
+                to="/alunos/cadastrar?type=colaborador" // Alterado para a rota correta
+                onClick={closeCadastroModal}
+                className="w-full inline-flex justify-center rounded-lg bg-action-secondary px-4 py-2.5 text-base font-medium text-text-light dark:text-text-dark shadow-sm hover:bg-action-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+              >
+                Cadastrar Colaborador
+              </Link>
+              <button
+                onClick={closeCadastroModal}
+                type="button"
+                className="w-full inline-flex justify-center rounded-lg px-4 py-2.5 text-base font-medium bg-input-background-light dark:bg-input-background-dark text-text-light dark:text-text-dark hover:bg-input-background-light/80 dark:hover:bg-input-background-dark/80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

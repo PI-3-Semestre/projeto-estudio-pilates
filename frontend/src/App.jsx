@@ -20,8 +20,10 @@ import GerenciarColaboradoresView from "./views/GerenciarColaboradoresView";
 import GestaoUsuariosView from "./views/GestaoUsuariosView";
 import DetalhesColaboradorView from "./views/DetalhesColaboradorView";
 import DetalhesAlunoView from "./views/DetalhesAlunoView";
+import DetalhesUsuarioView from "./views/DetalhesUsuarioView";
 import EditarAlunoView from "./views/EditarAlunoView";
 import EditarColaboradorView from "./views/EditarColaboradorView";
+import EditarUsuarioView from "./views/EditarUsuarioView";
 import ModalidadesView from "./views/ModalidadesView";
 import AgendaView from "./views/AgendaView";
 import MarcarAulaView from "./views/MarcarAulaView";
@@ -166,12 +168,13 @@ const PrivateRoutes = () => {
       <Route path="/avaliacoes/:id" element={<ProtectedRoute allowedRoles={allUserRoles}><DetalhesAvaliacaoView /></ProtectedRoute>} />
       
       <Route path="/colaboradores" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarColaboradoresView /></ProtectedRoute>} />
-      {/* **NOVA ROTA ADICIONADA AQUI** */}
       <Route path="/colaboradores/completar-perfil/:userId" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarColaboradorView /></ProtectedRoute>} />
       <Route path="/colaboradores/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesColaboradorView /></ProtectedRoute>} />
       <Route path="/colaboradores/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarColaboradorView /></ProtectedRoute>} />
       
       <Route path="/usuarios" element={<ProtectedRoute allowedRoles={adminRoles}><GestaoUsuariosView /></ProtectedRoute>} />
+      <Route path="/usuarios/detalhes/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesUsuarioView /></ProtectedRoute>} />
+      <Route path="/usuarios/editar/:id" element={<ProtectedRoute allowedRoles={adminRoles}><EditarUsuarioView /></ProtectedRoute>} />
       <Route path="/modalidades" element={<ProtectedRoute allowedRoles={adminRoles}><ModalidadesView /></ProtectedRoute>} />
       <Route path="/agenda" element={<ProtectedRoute allowedRoles={adminRoles}><AgendaView /></ProtectedRoute>} />
       
