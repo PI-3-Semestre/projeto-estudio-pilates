@@ -158,6 +158,7 @@ const PrivateRoutes = () => {
       {/* Rotas de Gestão (Admins) */}
       <Route path="/alunos" element={<ProtectedRoute allowedRoles={adminRoles}><GerenciarAlunosView /></ProtectedRoute>} />
       <Route path="/alunos/cadastrar" element={<ProtectedRoute allowedRoles={adminRoles}><AdminCadastroView /></ProtectedRoute>} />
+      <Route path="/colaboradores/cadastrar" element={<ProtectedRoute allowedRoles={adminRoles}><AdminCadastroView /></ProtectedRoute>} />
       <Route path="/alunos/completar-perfil/:userId" element={<ProtectedRoute allowedRoles={adminRoles}><CadastrarAlunoView /></ProtectedRoute>} />
       <Route path="/alunos/detalhes/:cpf" element={<ProtectedRoute allowedRoles={adminRoles}><DetalhesAlunoView /></ProtectedRoute>} />
       <Route path="/alunos/:cpf/editar" element={<ProtectedRoute allowedRoles={adminRoles}><EditarAlunoView /></ProtectedRoute>} />

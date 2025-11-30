@@ -9,8 +9,9 @@ const useAdminCadastroViewModel = () => {
   const { showToast } = useToast();
   
   // Pega o userType dos parâmetros de query da URL
+  const isColaboradorRoute = location.pathname.includes('/colaboradores/');
   const queryParams = new URLSearchParams(location.search);
-  const userType = queryParams.get('type') || 'aluno'; // 'aluno' como padrão se não especificado
+  const userType = isColaboradorRoute ? 'colaborador' : (queryParams.get('type') || 'aluno'); // 'aluno' como padrão se não especificado
 
   const [formData, setFormData] = useState({
     username: '',

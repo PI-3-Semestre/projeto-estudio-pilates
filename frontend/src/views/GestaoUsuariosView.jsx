@@ -346,14 +346,14 @@ const GestaoUsuariosView = () => {
             </div>
             <div className="flex flex-col gap-3 bg-background-light dark:bg-background-dark p-4 rounded-b-xl">
               <Link
-                to="/alunos/cadastrar?type=aluno" // Alterado para a rota correta
+                to="/alunos/cadastrar?type=aluno"
                 onClick={closeCadastroModal}
                 className="w-full inline-flex justify-center rounded-lg bg-action-primary px-4 py-2.5 text-base font-medium text-white shadow-sm hover:bg-action-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
               >
                 Cadastrar Aluno
               </Link>
               <Link
-                to="/alunos/cadastrar?type=colaborador" // Alterado para a rota correta
+                to="/colaboradores/cadastrar"
                 onClick={closeCadastroModal}
                 className="w-full inline-flex justify-center rounded-lg bg-action-secondary px-4 py-2.5 text-base font-medium text-text-light dark:text-text-dark shadow-sm hover:bg-action-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark"
               >

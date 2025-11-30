@@ -104,7 +104,7 @@ const GerenciarColaboradoresView = () => {
                   <span className="truncate">Filtros</span>
                 </button>
                 <Link
-                  to="/alunos/cadastrar"
+                  to="/alunos/cadastrar?type=colaborador"
                   state={{ userType: "colaborador" }}
                   className="flex-1 flex items-center justify-center rounded-xl h-12 px-5 bg-action-primary text-white gap-2 text-base font-bold"
                 >
