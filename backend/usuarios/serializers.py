@@ -75,9 +75,9 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if 'definir_nome_completo' in validated_data:
             nome_completo = validated_data.pop('definir_nome_completo')
             parts = nome_completo.split(' ', 1)
-            instance.usuario.first_name = parts[0]
-            instance.usuario.last_name = parts[1] if len(parts) > 1 else ''
-            instance.usuario.save()
+            instance.first_name = parts[0]
+            instance.last_name = parts[1] if len(parts) > 1 else ''
+            instance.save()
 
         return super().update(instance, validated_data)
 
