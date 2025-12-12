@@ -204,5 +204,5 @@ Com o backend rodando, você pode consultar a documentação técnica das rotas 
 
 ## 🐛 Solução de Problemas
 
-- Se der erro de `python` não encontrado, tente usar `python3`
+- Se der erro de `python` não encontrado,  tente usar `python3`
 - Se o login falhar no frontend, verifique se o terminal do backend não foi fechado
