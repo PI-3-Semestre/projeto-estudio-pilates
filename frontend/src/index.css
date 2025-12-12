@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    min-height: max(884px, 100dvh);
+}
+
+/* Estilos para a animação "Adicionar ao Carrinho" */
+.fly-to-cart-image {
+    position: fixed; /* Posição fixa para voar sobre tudo */
+    z-index: 9999;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: all 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19); /* Curva de aceleração */
+    opacity: 1;
+    transform: scale(1);
+}
+
+.fly-to-cart-image.flying {
+    opacity: 0.5;
+    transform: scale(0.1); /* Encolhe a imagem ao final */
+}

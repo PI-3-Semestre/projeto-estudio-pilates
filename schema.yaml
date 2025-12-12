@@ -1,0 +1,1825 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/alunosalunos/:
+    get:
+      operationId: api_alunosalunos_list
+      description: Lista todos os alunos.
+      tags:
+      - Alunos
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Aluno'
+          description: ''
+    post:
+      operationId: api_alunosalunos_create
+      description: Cria um novo aluno.
+      tags:
+      - Alunos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+  /api/alunosalunos/{cpf}/:
+    get:
+      operationId: api_alunosalunos_retrieve
+      description: Retorna os detalhes de um aluno específico.
+      parameters:
+      - in: path
+        name: cpf
+        schema:
+          type: string
+        description: CPF do Aluno (utilizado como identificador na URL).
+        required: true
+      tags:
+      - Alunos
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+    put:
+      operationId: api_alunosalunos_update
+      description: Atualiza completamente um aluno.
+      parameters:
+      - in: path
+        name: cpf
+        schema:
+          type: string
+        description: CPF do Aluno (utilizado como identificador na URL).
+        required: true
+      tags:
+      - Alunos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+    patch:
+      operationId: api_alunosalunos_partial_update
+      description: Atualiza parcialmente um aluno.
+      parameters:
+      - in: path
+        name: cpf
+        schema:
+          type: string
+        description: CPF do Aluno (utilizado como identificador na URL).
+        required: true
+      tags:
+      - Alunos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+    delete:
+      operationId: api_alunosalunos_destroy
+      description: Remove um aluno.
+      parameters:
+      - in: path
+        name: cpf
+        schema:
+          type: string
+        description: CPF do Aluno (utilizado como identificador na URL).
+        required: true
+      tags:
+      - Alunos
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: api_auth_login_create
+      description: |2
+
+        Endpoint para Autenticação de Usuários.
+
+        Fornece o endpoint para realizar o login no sistema.
+
+        Recebe um identificador (`username`, `cpf` ou `email`) e `password` e retorna os tokens de acesso (`access`, `refresh`) e os dados do perfil do usuário, se aplicável.
+
+        **Nota:** Este endpoint tem acesso público.
+      tags:
+      - Autenticação
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomTokenObtainPair'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: api_auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/avaliacoes/alunos/{aluno_cpf}/avaliacoes/:
+    get:
+      operationId: api_avaliacoes_alunos_avaliacoes_list
+      description: |2
+
+        Endpoint para Avaliações Físicas de um Aluno.
+
+        Fornece endpoints para:
+        - Listar todas as avaliações de um aluno específico (via `aluno_cpf` na URL).
+        - Criar uma nova avaliação para um aluno específico.
+
+        **Nota:** O acesso está restrito a `FISIOTERAPEUTA`, `INSTRUTOR` ou `ADMINISTRADOR`.
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    post:
+      operationId: api_avaliacoes_alunos_avaliacoes_create
+      description: |2
+
+        Endpoint para Avaliações Físicas de um Aluno.
+
+        Fornece endpoints para:
+        - Listar todas as avaliações de um aluno específico (via `aluno_cpf` na URL).
+        - Criar uma nova avaliação para um aluno específico.
+
+        **Nota:** O acesso está restrito a `FISIOTERAPEUTA`, `INSTRUTOR` ou `ADMINISTRADOR`.
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+  /api/avaliacoes/alunos/{aluno_cpf}/avaliacoes/latest/:
+    get:
+      operationId: api_avaliacoes_alunos_avaliacoes_latest_retrieve
+      description: Endpoint para gerenciar a Avaliação Física mais recente de um Aluno
+        (via CPF).
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    put:
+      operationId: api_avaliacoes_alunos_avaliacoes_latest_update
+      description: Endpoint para gerenciar a Avaliação Física mais recente de um Aluno
+        (via CPF).
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    patch:
+      operationId: api_avaliacoes_alunos_avaliacoes_latest_partial_update
+      description: Endpoint para gerenciar a Avaliação Física mais recente de um Aluno
+        (via CPF).
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    delete:
+      operationId: api_avaliacoes_alunos_avaliacoes_latest_destroy
+      description: Endpoint para gerenciar a Avaliação Física mais recente de um Aluno
+        (via CPF).
+      parameters:
+      - in: path
+        name: aluno_cpf
+        schema:
+          type: string
+        required: true
+      tags:
+      - Avaliações
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/avaliacoes/avaliacoes/{id}/:
+    get:
+      operationId: api_avaliacoes_avaliacoes_retrieve
+      description: Endpoint para gerenciar uma Avaliação Física específica diretamente
+        pelo seu ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Avaliações
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    put:
+      operationId: api_avaliacoes_avaliacoes_update
+      description: Endpoint para gerenciar uma Avaliação Física específica diretamente
+        pelo seu ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Avaliações
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    patch:
+      operationId: api_avaliacoes_avaliacoes_partial_update
+      description: Endpoint para gerenciar uma Avaliação Física específica diretamente
+        pelo seu ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Avaliações
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    delete:
+      operationId: api_avaliacoes_avaliacoes_destroy
+      description: Endpoint para gerenciar uma Avaliação Física específica diretamente
+        pelo seu ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Avaliações
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/colaboradores/:
+    get:
+      operationId: api_colaboradores_list
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      tags:
+      - Colaboradores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Colaborador'
+          description: ''
+    post:
+      operationId: api_colaboradores_create
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      tags:
+      - Colaboradores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colaborador'
+          description: ''
+  /api/colaboradores/{usuario__cpf}/:
+    get:
+      operationId: api_colaboradores_retrieve
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: usuario__cpf
+        schema:
+          type: string
+          description: CPF do usuário. Será usado como identificador único.
+        required: true
+      tags:
+      - Colaboradores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colaborador'
+          description: ''
+    put:
+      operationId: api_colaboradores_update
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: usuario__cpf
+        schema:
+          type: string
+          description: CPF do usuário. Será usado como identificador único.
+        required: true
+      tags:
+      - Colaboradores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Colaborador'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colaborador'
+          description: ''
+    patch:
+      operationId: api_colaboradores_partial_update
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: usuario__cpf
+        schema:
+          type: string
+          description: CPF do usuário. Será usado como identificador único.
+        required: true
+      tags:
+      - Colaboradores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedColaborador'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedColaborador'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedColaborador'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colaborador'
+          description: ''
+    delete:
+      operationId: api_colaboradores_destroy
+      description: |2
+
+        ViewSet para gerenciar os perfis de Colaborador.
+
+        Fornece endpoints para:
+        - Listar todos os colaboradores.
+        - Visualizar detalhes de um colaborador (busca por CPF do usuário).
+        - Criar um novo perfil de colaborador.
+        - Atualizar um perfil de colaborador.
+        - Deletar um perfil de colaborador.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: usuario__cpf
+        schema:
+          type: string
+          description: CPF do usuário. Será usado como identificador único.
+        required: true
+      tags:
+      - Colaboradores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/schema/:
+    get:
+      operationId: api_schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/studios/:
+    get:
+      operationId: api_studios_list
+      description: ViewSet para gerenciar os Studios (unidades).
+      tags:
+      - Studios
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Studio'
+          description: ''
+    post:
+      operationId: api_studios_create
+      description: ViewSet para gerenciar os Studios (unidades).
+      tags:
+      - Studios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Studio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Studio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Studio'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Studio'
+          description: ''
+  /api/studios/{id}/:
+    get:
+      operationId: api_studios_retrieve
+      description: ViewSet para gerenciar os Studios (unidades).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Studio (Unidade).
+        required: true
+      tags:
+      - Studios
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Studio'
+          description: ''
+    put:
+      operationId: api_studios_update
+      description: ViewSet para gerenciar os Studios (unidades).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Studio (Unidade).
+        required: true
+      tags:
+      - Studios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Studio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Studio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Studio'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Studio'
+          description: ''
+    patch:
+      operationId: api_studios_partial_update
+      description: ViewSet para gerenciar os Studios (unidades).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Studio (Unidade).
+        required: true
+      tags:
+      - Studios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStudio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStudio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStudio'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Studio'
+          description: ''
+    delete:
+      operationId: api_studios_destroy
+      description: ViewSet para gerenciar os Studios (unidades).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Studio (Unidade).
+        required: true
+      tags:
+      - Studios
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/usuarios/:
+    get:
+      operationId: api_usuarios_list
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      tags:
+      - Contas de Usuário
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Usuario'
+          description: ''
+    post:
+      operationId: api_usuarios_create
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      tags:
+      - Contas de Usuário
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+  /api/usuarios/{id}/:
+    get:
+      operationId: api_usuarios_retrieve
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Usuário.
+        required: true
+      tags:
+      - Contas de Usuário
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+    put:
+      operationId: api_usuarios_update
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Usuário.
+        required: true
+      tags:
+      - Contas de Usuário
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+    patch:
+      operationId: api_usuarios_partial_update
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Usuário.
+        required: true
+      tags:
+      - Contas de Usuário
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+    delete:
+      operationId: api_usuarios_destroy
+      description: |2
+
+        ViewSet para gerenciar as Contas de Usuário.
+
+        Fornece endpoints para:
+        - Listar todos os usuários.
+        - Visualizar detalhes de um usuário.
+        - Criar um novo usuário.
+        - Atualizar um usuário existente.
+        - Deletar um usuário.
+
+        **Nota:** Apenas usuários com perfil de 'Admin Master' ou 'Administrador' podem realizar esta ação.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este Usuário.
+        required: true
+      tags:
+      - Contas de Usuário
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Aluno:
+      type: object
+      description: |-
+        Serializer para o modelo Aluno. Lida com a conversão de dados do Aluno
+        para JSON (leitura) e a validação de dados de entrada (escrita).
+      properties:
+        usuario:
+          type: integer
+          writeOnly: true
+        nome:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        cpf:
+          type: string
+          readOnly: true
+        foto:
+          type: string
+          format: uri
+          nullable: true
+        dataNascimento:
+          type: string
+          format: date
+          title: Data de Nascimento
+        contato:
+          type: string
+          title: Telefone de Contato
+          maxLength: 128
+        profissao:
+          type: string
+          nullable: true
+          maxLength: 100
+        is_active:
+          type: boolean
+          title: Ativo
+        unidades:
+          type: array
+          items:
+            type: integer
+      required:
+      - contato
+      - cpf
+      - dataNascimento
+      - email
+      - nome
+    Avaliacao:
+      type: object
+      description: |-
+        Serializer para serializar (converter para JSON) e desserializar (validar dados de entrada)
+        os dados das avaliações físicas dos alunos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        aluno:
+          type: integer
+          readOnly: true
+        instrutor:
+          type: integer
+          readOnly: true
+          nullable: true
+        instrutor_nome:
+          type: string
+          readOnly: true
+        data_avaliacao:
+          type: string
+          format: date
+          title: Data de Avaliação
+        diagnostico_fisioterapeutico:
+          type: string
+          nullable: true
+          title: Diagnóstico Fisioterapeutico
+        historico_medico:
+          type: string
+          nullable: true
+          title: Histórico Médico
+        patologias:
+          type: string
+          nullable: true
+        exames_complementares:
+          type: string
+          nullable: true
+        medicamentos_em_uso:
+          type: string
+          nullable: true
+        tratamentos_realizados:
+          type: string
+          nullable: true
+          title: Tratamentos Anteriores
+        objetivo_aluno:
+          type: string
+          title: Objetivo do Aluno
+        foto_avaliacao_postural:
+          type: string
+          format: uri
+          nullable: true
+        data_reavalicao:
+          type: string
+          format: date
+          nullable: true
+          title: Data para Reavaliação
+        data_criacao:
+          type: string
+          format: date-time
+          readOnly: true
+        data_ultima_modificacao:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - aluno
+      - data_avaliacao
+      - data_criacao
+      - data_ultima_modificacao
+      - id
+      - instrutor
+      - instrutor_nome
+      - objetivo_aluno
+    Colaborador:
+      type: object
+      description: Serializer para o modelo Colaborador. Gerencia o perfil profissional
+        do usuário.
+      properties:
+        usuario:
+          type: integer
+        nome_completo:
+          type: string
+          readOnly: true
+        definir_nome_completo:
+          type: string
+          writeOnly: true
+          description: Defina o nome completo para atualizar o usuário relacionado.
+        perfis:
+          type: array
+          items:
+            type: integer
+        registro_profissional:
+          type: string
+          nullable: true
+          description: 'Ex: CREFITO para fisioterapeutas, CREF para instrutores'
+          maxLength: 20
+        data_nascimento:
+          type: string
+          format: date
+          nullable: true
+        telefone:
+          type: string
+          nullable: true
+          maxLength: 128
+        data_admissao:
+          type: string
+          format: date
+          nullable: true
+        data_demissao:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        endereco:
+          $ref: '#/components/schemas/Endereco'
+        unidades:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColaboradorStudioRead'
+          readOnly: true
+        vinculos_studio:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColaboradorStudioWrite'
+          writeOnly: true
+      required:
+      - endereco
+      - nome_completo
+      - perfis
+      - unidades
+      - usuario
+      - vinculos_studio
+    ColaboradorStudioRead:
+      type: object
+      description: Serializer para leitura da relação Colaborador-Studio, mostrando
+        o nome do studio.
+      properties:
+        studio_id:
+          type: integer
+          readOnly: true
+        studio_nome:
+          type: string
+          readOnly: true
+        permissao:
+          type: integer
+          readOnly: true
+      required:
+      - permissao
+      - studio_id
+      - studio_nome
+    ColaboradorStudioWrite:
+      type: object
+      description: Serializer auxiliar para a escrita da relação Colaborador-Studio.
+      properties:
+        studio_id:
+          type: integer
+        permissao_ids:
+          type: array
+          items:
+            type: integer
+      required:
+      - permissao_ids
+      - studio_id
+    CustomTokenObtainPair:
+      type: object
+      description: |-
+        Serializer de login customizado que herda do padrão do simple-jwt.
+        O objetivo é adicionar dados customizados (o perfil do usuário) à resposta do token.
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    Endereco:
+      type: object
+      description: Serializer para o modelo Endereco. Converte o objeto Endereco para
+        JSON e vice-versa.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        logradouro:
+          type: string
+          maxLength: 255
+        numero:
+          type: string
+          maxLength: 20
+        complemento:
+          type: string
+          nullable: true
+          maxLength: 100
+        bairro:
+          type: string
+          maxLength: 100
+        cidade:
+          type: string
+          maxLength: 100
+        estado:
+          type: string
+          description: 'Sigla do estado, ex: SP'
+          maxLength: 2
+        cep:
+          type: string
+          description: CEP no formato XXXXX-XXX
+          maxLength: 9
+      required:
+      - bairro
+      - cep
+      - cidade
+      - estado
+      - id
+      - logradouro
+      - numero
+    PatchedAluno:
+      type: object
+      description: |-
+        Serializer para o modelo Aluno. Lida com a conversão de dados do Aluno
+        para JSON (leitura) e a validação de dados de entrada (escrita).
+      properties:
+        usuario:
+          type: integer
+          writeOnly: true
+        nome:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        cpf:
+          type: string
+          readOnly: true
+        foto:
+          type: string
+          format: uri
+          nullable: true
+        dataNascimento:
+          type: string
+          format: date
+          title: Data de Nascimento
+        contato:
+          type: string
+          title: Telefone de Contato
+          maxLength: 128
+        profissao:
+          type: string
+          nullable: true
+          maxLength: 100
+        is_active:
+          type: boolean
+          title: Ativo
+        unidades:
+          type: array
+          items:
+            type: integer
+    PatchedAvaliacao:
+      type: object
+      description: |-
+        Serializer para serializar (converter para JSON) e desserializar (validar dados de entrada)
+        os dados das avaliações físicas dos alunos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        aluno:
+          type: integer
+          readOnly: true
+        instrutor:
+          type: integer
+          readOnly: true
+          nullable: true
+        instrutor_nome:
+          type: string
+          readOnly: true
+        data_avaliacao:
+          type: string
+          format: date
+          title: Data de Avaliação
+        diagnostico_fisioterapeutico:
+          type: string
+          nullable: true
+          title: Diagnóstico Fisioterapeutico
+        historico_medico:
+          type: string
+          nullable: true
+          title: Histórico Médico
+        patologias:
+          type: string
+          nullable: true
+        exames_complementares:
+          type: string
+          nullable: true
+        medicamentos_em_uso:
+          type: string
+          nullable: true
+        tratamentos_realizados:
+          type: string
+          nullable: true
+          title: Tratamentos Anteriores
+        objetivo_aluno:
+          type: string
+          title: Objetivo do Aluno
+        foto_avaliacao_postural:
+          type: string
+          format: uri
+          nullable: true
+        data_reavalicao:
+          type: string
+          format: date
+          nullable: true
+          title: Data para Reavaliação
+        data_criacao:
+          type: string
+          format: date-time
+          readOnly: true
+        data_ultima_modificacao:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedColaborador:
+      type: object
+      description: Serializer para o modelo Colaborador. Gerencia o perfil profissional
+        do usuário.
+      properties:
+        usuario:
+          type: integer
+        nome_completo:
+          type: string
+          readOnly: true
+        definir_nome_completo:
+          type: string
+          writeOnly: true
+          description: Defina o nome completo para atualizar o usuário relacionado.
+        perfis:
+          type: array
+          items:
+            type: integer
+        registro_profissional:
+          type: string
+          nullable: true
+          description: 'Ex: CREFITO para fisioterapeutas, CREF para instrutores'
+          maxLength: 20
+        data_nascimento:
+          type: string
+          format: date
+          nullable: true
+        telefone:
+          type: string
+          nullable: true
+          maxLength: 128
+        data_admissao:
+          type: string
+          format: date
+          nullable: true
+        data_demissao:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        endereco:
+          $ref: '#/components/schemas/Endereco'
+        unidades:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColaboradorStudioRead'
+          readOnly: true
+        vinculos_studio:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColaboradorStudioWrite'
+          writeOnly: true
+    PatchedStudio:
+      type: object
+      description: |-
+        Serializer para o modelo Studio.
+
+        Responsável por converter os dados do modelo Studio para JSON (serialização)
+        e por validar os dados de entrada ao criar ou atualizar um studio (desserialização).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        endereco:
+          type: string
+          nullable: true
+          maxLength: 255
+    PatchedUsuario:
+      type: object
+      description: Serializer para o modelo Usuario. Lida com a criação e atualização
+        de contas de usuário.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Endereço de e-mail
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          title: Senha
+          maxLength: 128
+        cpf:
+          type: string
+          nullable: true
+          description: CPF do usuário. Será usado como identificador único.
+          maxLength: 14
+        nome_completo:
+          type: string
+          description: Nome completo do usuário (para leitura).
+          readOnly: true
+        definir_nome_completo:
+          type: string
+          writeOnly: true
+          description: 'Defina o nome completo. Ex: ''Nome Sobrenome''.'
+    StatusEnum:
+      enum:
+      - ATIVO
+      - INATIVO
+      - FERIAS
+      type: string
+      description: |-
+        * `ATIVO` - Ativo
+        * `INATIVO` - Inativo
+        * `FERIAS` - Férias
+    Studio:
+      type: object
+      description: |-
+        Serializer para o modelo Studio.
+
+        Responsável por converter os dados do modelo Studio para JSON (serialização)
+        e por validar os dados de entrada ao criar ou atualizar um studio (desserialização).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        endereco:
+          type: string
+          nullable: true
+          maxLength: 255
+      required:
+      - id
+      - nome
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    Usuario:
+      type: object
+      description: Serializer para o modelo Usuario. Lida com a criação e atualização
+        de contas de usuário.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Endereço de e-mail
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          title: Senha
+          maxLength: 128
+        cpf:
+          type: string
+          nullable: true
+          description: CPF do usuário. Será usado como identificador único.
+          maxLength: 14
+        nome_completo:
+          type: string
+          description: Nome completo do usuário (para leitura).
+          readOnly: true
+        definir_nome_completo:
+          type: string
+          writeOnly: true
+          description: 'Defina o nome completo. Ex: ''Nome Sobrenome''.'
+      required:
+      - email
+      - id
+      - nome_completo
+      - password
+      - username
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
