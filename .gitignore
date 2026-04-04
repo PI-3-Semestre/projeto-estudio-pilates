@@ -78,4 +78,4 @@ local_settings.py
 *.env
 GEMINI.md
 AGENTS.md
-
+/.opencode

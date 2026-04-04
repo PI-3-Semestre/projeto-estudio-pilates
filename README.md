@@ -18,12 +18,14 @@ O projeto opera em duas partes integradas:
 - **Gestão de Usuários:** Login seguro (JWT), perfis variados (Admin, Instrutor, Fisioterapeuta, Recepcionista) e controle de acesso granular por estúdio.
 - **Gestão de Alunos:** Cadastro completo com foto e associação a múltiplos estúdios.
 - **Avaliações e Prontuários:** Registro de avaliações fisioterapêuticas, histórico médico e acompanhamento de evolução (fisioterapia e educação física).
-
-### 🚧 Em Breve (Roadmap)
-
 - **Agendamentos:** Grade de horários, controle de presença, lista de espera automática e reposição de aulas.
 - **Financeiro:** Venda de produtos, controle de estoque, planos de matrícula e fluxo de caixa.
 - **Notificações:** Alertas internos sobre eventos importantes.
+
+### 🚧 Em Breve (Roadmap)
+
+- **Dashboard do Instrutor:** Visão personalizada para instrutores com agenda e métricas.
+- **App Mobile:** Aplicativo para alunos agendarem aulas.
 
 ---
 
